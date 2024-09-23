@@ -9,7 +9,7 @@ All instructions are asuming an Ubuntu environment.
 sudo apt install flex bison
 ```
 
-## To install LLVM
+## Install LLVM
 Instructions are adapted from https://llvm.org/docs/GettingStarted.html.
  
 ```
