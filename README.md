@@ -14,3 +14,10 @@ sudo apt install flex bison
 sudo apt install llvm
 ```
 
+## Test everything was setup correctly
+```
+make toy
+./toy
+ready> def foo(a b) a*a + 2*a*b + b*b;
+```
+
