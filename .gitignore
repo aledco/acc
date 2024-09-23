@@ -1,3 +1,6 @@
+# Specific
+llvm-project/
+
 # Prerequisites
 *.d
 
