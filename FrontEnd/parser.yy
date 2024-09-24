@@ -3,7 +3,7 @@
 
 %code requires {
     #include <string>
-    #include "lexer.h"
+    #include "lexer.hpp"
 }
 
 %define api.value.type {std::string}

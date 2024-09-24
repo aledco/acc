@@ -1,16 +1,18 @@
 CPPC = g++
 
-lexer.yy.o: lexer.yy.cpp lexer.h parser.tab.h
+all: lexer.yy.o parser.tab.o
+
+lexer.yy.o: lexer.yy.cpp lexer.hpp parser.tab.hpp
 	$(CPPC) -c $< -o $@
 
-parser.tab.o: parser.tab.cpp lexer.h
+parser.tab.o: parser.tab.cpp lexer.hpp
 	$(CPPC) -c $< -o $@
 
 lexer.yy.cpp: lexer.ll
-	flex $<
+	flex -o $@ $<
 
-parser.tab.h parser.tab.cpp parser.output: parser.yy
-	bison $<
+parser.tab.hpp parser.tab.cpp parser.output: parser.yy
+	bison $< -o parser.tab.cpp
 
 .PHONY: clean
 clean:
