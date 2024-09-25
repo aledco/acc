@@ -22,7 +22,7 @@ struct Token
     Token(const TokenType type, const std::string& value) : type(type), value(value) {}
 };
 
-std::vector<std::string> seperators = {
+inline std::vector<std::string> seperators = {
     ";",
     ",",
     "(",
@@ -33,7 +33,7 @@ std::vector<std::string> seperators = {
     "]"
 };
 
-std::vector<std::string> operators = {
+inline std::vector<std::string> operators = {
     "+",
     "-",
     "*",
@@ -49,13 +49,14 @@ std::vector<std::string> operators = {
     "%="
 };
 
-std::vector<std::string> keywords = {
+inline std::vector<std::string> keywords = {
     "void",
     "int", // TODO add more later
     "return"
 };
 
-bool vector_contains_char(std::vector<std::string>&, char c)
+
+inline bool vector_contains_char(std::vector<std::string>&, char c)
 {
     for (auto sep : seperators)
     {
@@ -72,7 +73,7 @@ class Lexer
 {
 private:
     std::string input;
-    size_t index = 0;
+    std::size_t index = 0;
     std::vector<std::unique_ptr<Token>> tokens;
 
     void lex();
@@ -80,27 +81,35 @@ private:
     std::optional<std::unique_ptr<Token>> attempt_lex_keyword();
     std::unique_ptr<Token> lex_integer();
     std::unique_ptr<Token> lex_id();
-    std::unique_ptr<Token> Lexer::lex_sep();
-    std::unique_ptr<Token> Lexer::lex_op();
+    std::unique_ptr<Token> lex_sep();
+    std::unique_ptr<Token> lex_op();
 
-    bool eof() const { return index >= input.length(); }
-    char current() const { return input[index]; }
-    std::string slice(int length) { return input.substr(index, length); }
-    void advance() { index++; }
-    void advance(int i) { index += i; }
+    _GLIBCXX_NORETURN void error(); 
 
-    bool iswhitespace() const { return std::isspace(current()); }
-    bool isdigit() const { return std::isdigit(current()); }
-    bool isfloat() const { return isdigit() || current() == '.'; }
-    bool isalpha() const { return std::isalpha(current()); } 
-    bool isalnum() const { return std::isalnum(current()); }
-    bool isid() const { return isalnum() || current() == '_'; }
-    bool issep() const { return vector_contains_char(seperators, current()); }
-    bool isop() const { return vector_contains_char(operators, current()); }
+    inline bool eof() const { return index >= input.length(); }
+    inline char current() const { return input[index]; }
+    inline std::string slice(int length) { return input.substr(index, length); }
+    inline void advance() { index++; }
+    inline void advance(int i) { index += i; }
 
+    inline bool iswhitespace() const { return std::isspace(current()); }
+    inline bool isdigit() const { return std::isdigit(current()); }
+    inline bool isfloat() const { return isdigit() || current() == '.'; }
+    inline bool isalpha() const { return std::isalpha(current()); } 
+    inline bool isalnum() const { return std::isalnum(current()); }
+    inline bool isid() const { return isalnum() || current() == '_'; }
+    inline bool issep() const { return vector_contains_char(seperators, current()); }
+    inline bool isop() const { return vector_contains_char(operators, current()); }
+
+    inline void add(std::unique_ptr<Token>& token) { tokens.push_back(std::move(token)); }
 public:
-    Lexer(const std::string& input) : input(input) {}
+    Lexer(const std::string& input) : input(input)
+    {
+        // TODO standardize input
+        lex();
+    };
 
     auto begin() { return tokens.begin(); }
     auto end() { return tokens.end(); }
+    auto size() { return tokens.size(); }
 };

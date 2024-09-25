@@ -1,4 +1,6 @@
 #include <cassert>
+#include <iostream>
+#include <algorithm>
 #include "Lexer.hpp"
 
 void Lexer::lex()
@@ -9,10 +11,10 @@ void Lexer::lex()
         if (isalpha()) 
         {
             // attempt to lex a keyword
-            std::optional<std::unique_ptr<Token>> token = attempt_lex_keyword();
+            auto token = attempt_lex_keyword();
             if (token)
             {
-                tokens.push_back(token.value());
+                add(token.value());
                 continue;
             }
         }
@@ -26,22 +28,26 @@ void Lexer::lex()
         else if (isdigit())
         {
             auto token = lex_integer();
-            tokens.push_back(token);
+            add(token);
         }
         else if (isid() && !isdigit())
         {
             auto token = lex_id();
-            tokens.push_back(token);
+            add(token);
         }
         else if (issep())
         {
             auto token = lex_sep();
-            tokens.push_back(token);
+            add(token);
         }
         else if (isop())
         {
             auto token = lex_op();
-            tokens.push_back(token);
+            add(token);
+        }
+        else 
+        {
+            error();
         }
     }
 }
@@ -72,7 +78,7 @@ std::unique_ptr<Token> Lexer::lex_integer()
         advance();
     }
 
-    return std::make_unique<Token>(Token(TokenType::Integer, value));
+    return std::make_unique<Token>(TokenType::Integer, value);
 }
 
 std::unique_ptr<Token> Lexer::lex_id()
@@ -86,7 +92,7 @@ std::unique_ptr<Token> Lexer::lex_id()
         advance();
     }
 
-    return std::make_unique<Token>(Token(TokenType::Id, value));
+    return std::make_unique<Token>(TokenType::Id, value);
 }
 
 std::unique_ptr<Token> Lexer::lex_sep()
@@ -94,11 +100,16 @@ std::unique_ptr<Token> Lexer::lex_sep()
     std::string value = "";
     while (!eof() && issep())
     {
+        if (std::find(seperators.begin(), seperators.end(), value + current()) == seperators.end())
+        {
+            break;
+        }
+
         value += current();
         advance();
     }
 
-    return std::make_unique<Token>(Token(TokenType::Sep, value));
+    return std::make_unique<Token>(TokenType::Sep, value);
 }
 
 std::unique_ptr<Token> Lexer::lex_op()
@@ -106,9 +117,20 @@ std::unique_ptr<Token> Lexer::lex_op()
     std::string value = "";
     while (!eof() && isop())
     {
+        if (std::find(operators.begin(), operators.end(), value + current()) == operators.end())
+        {
+            break;
+        }
+
         value += current();
         advance();
     }
 
-    return std::make_unique<Token>(Token(TokenType::Op, value));
+    return std::make_unique<Token>(TokenType::Op, value);
 }
+
+_GLIBCXX_NORETURN void Lexer::error()
+{
+    std::cerr << "Syntax Error" << std::endl; // TODO keep track of line numbers, output entire token error happend at
+    std::exit(1);
+} 
