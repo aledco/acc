@@ -15,3 +15,16 @@ make toy
 ./toy
 ready> def foo(a b) a*a + 2*a*b + b*b;
 ```
+
+# Testing
+
+## Install Google Test
+Follow instructions in [How to set up Google Test](https://stackoverflow.com/questions/13513905/how-to-set-up-googletest-as-a-shared-library-on-linux)
+
+## Build and Run the Tests
+```
+make test
+./test
+```
+
+
