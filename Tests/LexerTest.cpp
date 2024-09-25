@@ -11,7 +11,7 @@ TEST(LexerTest, Test1)
     
     for (auto& token : lexer)
     {
-        std::cerr << "token.value = " << token->value << std::endl;
+        std::cerr << "token.value = " << token.value << std::endl;
     }
 
     std::vector<Token> expected = {
@@ -31,8 +31,8 @@ TEST(LexerTest, Test1)
     int i = 0;
     for (auto& token : lexer)
     {
-        EXPECT_EQ(expected[i].type, token->type);
-        EXPECT_EQ(expected[i].value, token->value);
+        EXPECT_EQ(expected[i].type, token.type);
+        EXPECT_EQ(expected[i].value, token.value);
         i++;
     }
 }

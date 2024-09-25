@@ -74,15 +74,15 @@ class Lexer
 private:
     std::string input;
     std::size_t index = 0;
-    std::vector<std::unique_ptr<Token>> tokens;
+    std::vector<Token> tokens;
 
     void lex();
 
-    std::optional<std::unique_ptr<Token>> attempt_lex_keyword();
-    std::unique_ptr<Token> lex_integer();
-    std::unique_ptr<Token> lex_id();
-    std::unique_ptr<Token> lex_sep();
-    std::unique_ptr<Token> lex_op();
+    std::optional<Token> attempt_lex_keyword();
+    Token lex_integer();
+    Token lex_id();
+    Token lex_sep();
+    Token lex_op();
 
     _GLIBCXX_NORETURN void error(); 
 
@@ -101,7 +101,7 @@ private:
     inline bool issep() const { return vector_contains_char(seperators, current()); }
     inline bool isop() const { return vector_contains_char(operators, current()); }
 
-    inline void add(std::unique_ptr<Token>& token) { tokens.push_back(std::move(token)); }
+    inline void add(Token& token) { tokens.push_back(token); }
 public:
     Lexer(const std::string& input) : input(input)
     {

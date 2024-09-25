@@ -52,7 +52,7 @@ void Lexer::lex()
     }
 }
 
-std::optional<std::unique_ptr<Token>> Lexer::attempt_lex_keyword()
+std::optional<Token> Lexer::attempt_lex_keyword()
 {
     for (auto keyword : keywords) 
     {
@@ -61,7 +61,7 @@ std::optional<std::unique_ptr<Token>> Lexer::attempt_lex_keyword()
             if (slice(keyword.length()) == keyword)
             {
                 advance(keyword.length());
-                return std::make_unique<Token>(TokenType::Keyword, keyword);
+                return Token(TokenType::Keyword, keyword);
             }
         }
     }
@@ -69,7 +69,7 @@ std::optional<std::unique_ptr<Token>> Lexer::attempt_lex_keyword()
     return {};
 }
 
-std::unique_ptr<Token> Lexer::lex_integer()
+Token Lexer::lex_integer()
 {
     std::string value = "";
     while (!eof() && isdigit())
@@ -78,10 +78,10 @@ std::unique_ptr<Token> Lexer::lex_integer()
         advance();
     }
 
-    return std::make_unique<Token>(TokenType::Integer, value);
+    return Token(TokenType::Integer, value);
 }
 
-std::unique_ptr<Token> Lexer::lex_id()
+Token Lexer::lex_id()
 {
     assert(!isdigit() && "Lexer is trying to parse an id that starts with an integer");
 
@@ -92,10 +92,10 @@ std::unique_ptr<Token> Lexer::lex_id()
         advance();
     }
 
-    return std::make_unique<Token>(TokenType::Id, value);
+    return Token(TokenType::Id, value);
 }
 
-std::unique_ptr<Token> Lexer::lex_sep()
+Token Lexer::lex_sep()
 {
     std::string value = "";
     while (!eof() && issep())
@@ -109,10 +109,10 @@ std::unique_ptr<Token> Lexer::lex_sep()
         advance();
     }
 
-    return std::make_unique<Token>(TokenType::Sep, value);
+    return Token(TokenType::Sep, value);
 }
 
-std::unique_ptr<Token> Lexer::lex_op()
+Token Lexer::lex_op()
 {
     std::string value = "";
     while (!eof() && isop())
@@ -126,7 +126,7 @@ std::unique_ptr<Token> Lexer::lex_op()
         advance();
     }
 
-    return std::make_unique<Token>(TokenType::Op, value);
+    return Token(TokenType::Op, value);
 }
 
 _GLIBCXX_NORETURN void Lexer::error()
