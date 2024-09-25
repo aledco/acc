@@ -1,5 +1,8 @@
 # Specific
-llvm-project/
+.vscode/
+acc
+test
+toy
 
 # Prerequisites
 *.d
