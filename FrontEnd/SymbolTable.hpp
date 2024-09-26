@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <string>
-#include <optional>
+#include <memory>
 #include "Type.hpp"
 
 struct Symbol
@@ -11,19 +11,19 @@ struct Symbol
     Type type;
     bool isparam;
 
-    Symbol(std::string name, Type type, bool isparam) : name(name), type(type), isparam(isparam) {}
+    Symbol(std::string name, Type type, bool isparam): name(name), type(type), isparam(isparam) {}
 };
 
 class SymbolTable
 {
 private:
-    std::optional<SymbolTable&> parent;
-    std::unordered_map<std::string, Symbol> table;
+    std::shared_ptr<SymbolTable> parent;
+    std::unordered_map<std::string, std::shared_ptr<Symbol>> table;
 
 public:
-    SymbolTable(): parent({}) {}
-    SymbolTable(SymbolTable& parent): parent(parent) {}
+    SymbolTable(): parent(nullptr) {}
+    SymbolTable(std::shared_ptr<SymbolTable> parent): parent(parent) {}
 
-    void add_symbol(std::string name, Type type, bool isparam);
-    Symbol& lookup(std::string name);
+    std::shared_ptr<Symbol> add_symbol(std::string name, Type type, bool isparam);
+    std::shared_ptr<Symbol> lookup(std::string name);
 };

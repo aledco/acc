@@ -1,6 +1,6 @@
 #include "SymbolTable.hpp"
 
-void SymbolTable::add_symbol(std::string name, Type type, bool isparam)
+std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, Type type, bool isparam)
 {
     if (table.find(name) != table.end())
     {
@@ -8,10 +8,12 @@ void SymbolTable::add_symbol(std::string name, Type type, bool isparam)
         std::exit(1);
     }
 
-    table[name] = Symbol(name, type, isparam);
+    auto symbol = std::make_shared<Symbol>(name, type, isparam);
+    table[name] = symbol;
+    return symbol;
 }
 
-Symbol& SymbolTable::lookup(std::string name)
+std::shared_ptr<Symbol> SymbolTable::lookup(std::string name)
 {
     if (table.find(name) != table.end())
     {
@@ -20,7 +22,7 @@ Symbol& SymbolTable::lookup(std::string name)
 
     if (parent)
     {
-        return parent.value().lookup(name);
+        return parent->lookup(name);
     }
 
     // TODO error name not defined

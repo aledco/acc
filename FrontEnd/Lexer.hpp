@@ -5,15 +5,6 @@
 #include <optional>
 #include <memory>
 
-enum class TokenType 
-{
-    Integer,
-    Id,
-    Keyword,
-    Op,
-    Sep
-};
-
 inline std::string TokenType_Id = "ID";
 inline std::string TokenType_Int = "INT";
 
@@ -21,7 +12,7 @@ struct Token
 {
     std::string type;
     std::string value;
-    Token(const std::string& type, const std::string& value) : type(type), value(value) {}
+    Token(const std::string type, const std::string value) : type(type), value(value) {}
 };
 
 inline std::vector<std::string> seperators = {

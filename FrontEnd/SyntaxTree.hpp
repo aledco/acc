@@ -28,6 +28,7 @@ struct Statement : SyntaxTree
 struct CompoundStatement : Statement
 {
     std::vector<Statement> statements;
+    CompoundStatement(std::vector<Statement> statements): statements(statements) {}
 };
 
 struct Return : Statement
@@ -39,7 +40,12 @@ struct Return : Statement
 
 struct FunctionDef : SyntaxTree
 {
-    Symbol& function;
-    std::vector<Symbol&> params;
+    std::shared_ptr<Symbol> function;
+    std::vector<std::shared_ptr<Symbol>> params;
     CompoundStatement body;
+    FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, CompoundStatement body):
+        function(function), 
+        params(params), 
+        body(body) 
+    {}
 };
