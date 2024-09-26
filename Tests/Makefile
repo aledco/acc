@@ -1,11 +1,12 @@
-CPPC = g++
-CPPFLAGS = -I../FrontEnd
+CPPC ?= g++
+CPPFLAGS ?= -g
+CPPFLAGS := $(CPPFLAGS) -I../FrontEnd -I../BackEnd
 
 TEST_CPPFILES = $(wildcard *Test.cpp)
 TEST_OFILES = $(TEST_CPPFILES:.cpp=.o)
 
 .cpp.o:
-	$(CPPC) $(CPPFLAGS) -g -c $< -lgtest
+	$(CPPC) $(CPPFLAGS) -c $< -lgtest
 
 tests: $(TEST_OFILES) test_util.o
 

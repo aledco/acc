@@ -1,18 +1,18 @@
 #include <vector>
 #include "Parser.hpp"
 
-std::unique_ptr<Program> Parser::parse()
+std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
     context.global_symbol_table = std::make_shared<SymbolTable>();
 
-    std::vector<std::unique_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<FunctionDef>> functions;
     while (is_currently({"void", "int"}))
     {
         functions.push_back(std::move(parse_function(context)));
     }
 
-    return std::make_unique<Program>(functions);
+    return std::make_shared<Program>(functions);
 }
 
 // SyntaxTree Parser::parse_varable_declaration()
@@ -20,7 +20,7 @@ std::unique_ptr<Program> Parser::parse()
 
 // }
 
-std::unique_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
+std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
     context.local_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
     
@@ -52,10 +52,10 @@ std::unique_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     auto function_symbol = context.local_symbol_table->add_symbol(function_name_token.value, function_type, false);
     
     auto body = parse_compound_statement(context);
-    return std::make_unique<FunctionDef>(function_symbol, param_symbols, std::move(body));
+    return std::make_shared<FunctionDef>(function_symbol, param_symbols, std::move(body));
 }
 
-std::unique_ptr<Statement> Parser::parse_statement(ParserContext& context)
+std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
     if (is_currently({ "return" }))
     {
@@ -70,35 +70,37 @@ std::unique_ptr<Statement> Parser::parse_statement(ParserContext& context)
     exit(1);
 }
 
-std::unique_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
+std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
     match("{");;
-    std::vector<std::unique_ptr<Statement>> statements;
+    std::vector<std::shared_ptr<Statement>> statements;
     while (is_currently({ "return", "{" }))
     {
-        statements.push_back(std::move(parse_statement(context)));
+        statements.push_back(parse_statement(context));
     }
 
     match("}");
 
-    return std::make_unique<CompoundStatement>(statements);
+    return std::make_shared<CompoundStatement>(statements);
 }
 
-std::unique_ptr<Return> Parser::parse_return_statement(ParserContext& context)
+std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     match("return");
     if (is_currently({ TokenType_Int }))
     {
         auto expr = parse_expression(context);
-        return std::make_unique<Return>(expr);
+        match(";");
+        return std::make_shared<Return>(expr);
     }
     else
     {
-        return std::make_unique<Return>();
+        match(";");
+        return std::make_shared<Return>();
     }
 }
 
-std::unique_ptr<Expression> Parser::parse_expression(ParserContext& context)
+std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
 {
     if (is_currently({ TokenType_Int }))
     {
@@ -109,10 +111,10 @@ std::unique_ptr<Expression> Parser::parse_expression(ParserContext& context)
     std::exit(1);
 }
 
-std::unique_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
+std::shared_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
 {
     auto token = match(TokenType_Int);
-    return std::make_unique<IntegerConstant>(std::stol(token.value));
+    return std::make_shared<IntegerConstant>(std::stol(token.value));
 }
 
 std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
