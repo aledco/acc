@@ -1,4 +1,4 @@
-CPPC ?= g++
+CPPC ?= clang++-18
 CPPFLAGS ?=
 CPPFLAGS := $(CPPFLAGS) -I../BackEnd -I.
 

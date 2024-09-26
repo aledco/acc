@@ -1,5 +1,6 @@
-CPPC = g++ # clang++
-CPPFLAGS = -g
+# CPPC = g++
+CPPC = clang++-18
+CPPFLAGS = -g $(shell llvm-config --cxxflags --ldflags --libs) -Wno-unused-command-line-argument
 INCLUDE = -IFrontEnd -IBackEnd
 
 export CPPC
@@ -11,8 +12,7 @@ $(DEST): main.cpp FrontEnd BackEnd
 	$(CPPC) main.cpp $(CPPFLAGS) $(INCLUDE) -o $(DEST) FrontEnd/*.o BackEnd/*.o
 
 test: Tests/main.cpp FrontEnd BackEnd Tests
-	echo $(wildcard Tests/*.o)
-	$(CPPC) Tests/main.cpp -g -o test $(OFILES) Tests/*.o FrontEnd/*.o BackEnd/*.o -lgtest
+	$(CPPC) Tests/main.cpp $(CPPFLAGS) $(INCLUDE) -o test Tests/*.o FrontEnd/*.o BackEnd/*.o -lgtest
 
 FrontEnd:
 	$(MAKE) -C FrontEnd
