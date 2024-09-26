@@ -61,7 +61,7 @@ std::optional<Token> Lexer::attempt_lex_keyword()
             if (slice(keyword.length()) == keyword)
             {
                 advance(keyword.length());
-                return Token(TokenType::Keyword, keyword);
+                return Token(keyword, keyword);
             }
         }
     }
@@ -78,7 +78,7 @@ Token Lexer::lex_integer()
         advance();
     }
 
-    return Token(TokenType::Integer, value);
+    return Token(TokenType_Int, value);
 }
 
 Token Lexer::lex_id()
@@ -92,7 +92,7 @@ Token Lexer::lex_id()
         advance();
     }
 
-    return Token(TokenType::Id, value);
+    return Token(TokenType_Id, value);
 }
 
 Token Lexer::lex_sep()
@@ -109,7 +109,7 @@ Token Lexer::lex_sep()
         advance();
     }
 
-    return Token(TokenType::Sep, value);
+    return Token(value, value);
 }
 
 Token Lexer::lex_op()
@@ -126,7 +126,7 @@ Token Lexer::lex_op()
         advance();
     }
 
-    return Token(TokenType::Op, value);
+    return Token(value, value);
 }
 
 _GLIBCXX_NORETURN void Lexer::error()

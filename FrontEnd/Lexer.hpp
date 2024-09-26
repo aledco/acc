@@ -14,12 +14,14 @@ enum class TokenType
     Sep
 };
 
+inline std::string TokenType_Id = "ID";
+inline std::string TokenType_Int = "INT";
+
 struct Token
 {
-    TokenType type;
+    std::string type;
     std::string value;
-
-    Token(const TokenType type, const std::string& value) : type(type), value(value) {}
+    Token(const std::string& type, const std::string& value) : type(type), value(value) {}
 };
 
 inline std::vector<std::string> seperators = {
@@ -111,5 +113,6 @@ public:
 
     auto begin() { return tokens.begin(); }
     auto end() { return tokens.end(); }
-    auto size() { return tokens.size(); }
+    std::size_t size() { return tokens.size(); }
+    inline Token& operator[](int index) { return tokens[index]; }
 };

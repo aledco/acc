@@ -9,21 +9,21 @@ TEST(LexerTest, Test1)
     auto input = read_input(1);
     Lexer lexer(input);
     
-    for (auto& token : lexer)
+    for (auto token : lexer)
     {
         std::cerr << "token.value = " << token.value << std::endl;
     }
 
     std::vector<Token> expected = {
-        Token(TokenType::Keyword, "void"),
-        Token(TokenType::Id, "main"),
-        Token(TokenType::Sep, "("),
-        Token(TokenType::Sep, ")"),
-        Token(TokenType::Sep, "{"),
-        Token(TokenType::Keyword, "return"),
-        Token(TokenType::Integer, "0"),
-        Token(TokenType::Sep, ";"),
-        Token(TokenType::Sep, "}"),
+        Token("void", "void"),
+        Token(TokenType_Id, "main"),
+        Token("(", "("),
+        Token(")", ")"),
+        Token("{", "{"),
+        Token("return", "return"),
+        Token(TokenType_Int, "0"),
+        Token(";", ";"),
+        Token("{", "}"),
     };
 
     EXPECT_EQ(expected.size(), lexer.size());
