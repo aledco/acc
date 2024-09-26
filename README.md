@@ -2,7 +2,7 @@
 This is another C compiler (acc), or Alexander Cooper's compiler (acc).
 
 # Dependencies
-All instructions are assuming an Ubuntu 22 environment.
+All instructions are assuming an Ubuntu environment with codename jammy.
 
 ## Install LLVM
 ```
@@ -37,4 +37,14 @@ make test
 ./test
 ```
 
+# VS Code Settings
+Run the command **C/C++: Edit Configurations (UI)** using the Command Palette (`Ctrl+Shift+P`) to open the C++ configuration settings.
 
+## Compiler Path
+Set the Compiler path to `/usr/bin/clang++-18`.
+
+## Include Path
+In the Include path text box, and add `/usr/lib/llvm-18/include` on a new line.
+
+## C++ Standard
+Set the C++ Standard to `C++17`.

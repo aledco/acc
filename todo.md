@@ -1,5 +1,4 @@
 # TODO
 
-- Finish running `ninja -C build check-llvm`
-- Finish setting up LLVM
-- Start on parser
+- Fix SyntaxTree.dump()
+- Start on codegen
