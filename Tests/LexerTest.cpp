@@ -4,7 +4,7 @@
 #include "test_util.hpp"
 #include "Lexer.hpp"
 
-TEST(LexerTest, Test1)
+TEST(Lexer, Test1)
 {
     auto input = read_input(1);
     Lexer lexer(input);

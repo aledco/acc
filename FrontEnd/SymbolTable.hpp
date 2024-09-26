@@ -8,10 +8,10 @@
 struct Symbol
 {
     std::string name;
-    Type type;
+    std::shared_ptr<Type> type;
     bool isparam;
 
-    Symbol(std::string name, Type type, bool isparam): name(name), type(type), isparam(isparam) {}
+    Symbol(std::string name, std::shared_ptr<Type> type, bool isparam): name(name), type(type), isparam(isparam) {}
 };
 
 class SymbolTable
@@ -24,6 +24,6 @@ public:
     SymbolTable(): parent(nullptr) {}
     SymbolTable(std::shared_ptr<SymbolTable> parent): parent(parent) {}
 
-    std::shared_ptr<Symbol> add_symbol(std::string name, Type type, bool isparam);
+    std::shared_ptr<Symbol> add_symbol(std::string name, std::shared_ptr<Type> type, bool isparam);
     std::shared_ptr<Symbol> lookup(std::string name);
 };

@@ -1,9 +1,18 @@
+#include <vector>
 #include "Parser.hpp"
 
-SyntaxTree Parser::parse()
+std::unique_ptr<Program> Parser::parse()
 {
+    ParserContext context;
+    context.global_symbol_table = std::make_shared<SymbolTable>();
 
-    return {};
+    std::vector<std::unique_ptr<FunctionDef>> functions;
+    while (is_currently({"void", "int"}))
+    {
+        functions.push_back(std::move(parse_function(context)));
+    }
+
+    return std::make_unique<Program>(functions);
 }
 
 // SyntaxTree Parser::parse_varable_declaration()
@@ -11,7 +20,7 @@ SyntaxTree Parser::parse()
 
 // }
 
-FunctionDef Parser::parse_function(ParserContext& context)
+std::unique_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
     context.local_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
     
@@ -20,61 +29,76 @@ FunctionDef Parser::parse_function(ParserContext& context)
 
     match("(");
 
-    std::vector<std::shared_ptr<Symbol>> params;
+    std::vector<std::shared_ptr<Symbol>> param_symbols;
+    std::vector<std::shared_ptr<Type>> param_types;
     while (is_currently({ "void", "int" }))
     {
         auto param_type = parse_type(context);
+        param_types.push_back(param_type);
+
         auto param_token = match(TokenType_Id);
         if (is_currently({ "," }))
         {
             match(","); // TODO this will allow us to not use commas
         }
 
-        auto paramSymbol = context.local_symbol_table->add_symbol(param_token.value, param_type, true);
-        params.push_back(paramSymbol);
+        auto param_symbol = context.local_symbol_table->add_symbol(param_token.value, param_type, true);
+        param_symbols.push_back(param_symbol);
     }
 
     match(")");
 
-    FunctionType type(return_type);
+    auto function_type = std::make_shared<FunctionType>(return_type, param_types);
+    auto function_symbol = context.local_symbol_table->add_symbol(function_name_token.value, function_type, false);
+    
+    auto body = parse_compound_statement(context);
+    return std::make_unique<FunctionDef>(function_symbol, param_symbols, std::move(body));
 }
 
-Statement Parser::parse_statement(ParserContext& context)
+std::unique_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
     if (is_currently({ "return" }))
     {
         return parse_return_statement(context);
+    }
+    else if (is_currently({ "{" }))
+    {
+        return parse_compound_statement(context);
     }
 
     // TODO error
     exit(1);
 }
 
-CompoundStatement Parser::parse_compound_statement(ParserContext& context)
+std::unique_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
-    std::vector<Statement> statements;
-    while (is_currently({ "return" }))
+    match("{");;
+    std::vector<std::unique_ptr<Statement>> statements;
+    while (is_currently({ "return", "{" }))
     {
-        statements.push_back(parse_statement(context));
+        statements.push_back(std::move(parse_statement(context)));
     }
 
-    return CompoundStatement(statements);
+    match("}");
+
+    return std::make_unique<CompoundStatement>(statements);
 }
 
-Return Parser::parse_return_statement(ParserContext& context)
+std::unique_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     match("return");
-
-    std::unique_ptr<Expression> expr = nullptr;
     if (is_currently({ TokenType_Int }))
     {
-        expr = std::make_unique<Expression>(parse_expression());
+        auto expr = parse_expression(context);
+        return std::make_unique<Return>(expr);
     }
-
-    return Return(std::move(expr));
+    else
+    {
+        return std::make_unique<Return>();
+    }
 }
 
-Expression Parser::parse_expression(ParserContext& context)
+std::unique_ptr<Expression> Parser::parse_expression(ParserContext& context)
 {
     if (is_currently({ TokenType_Int }))
     {
@@ -85,23 +109,23 @@ Expression Parser::parse_expression(ParserContext& context)
     std::exit(1);
 }
 
-IntegerConstant Parser::parse_integer_constant(ParserContext& context)
+std::unique_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
 {
     auto token = match(TokenType_Int);
-    return IntegerConstant(std::stol(token.value));
+    return std::make_unique<IntegerConstant>(std::stol(token.value));
 }
 
-Type Parser::parse_type(ParserContext& context)
+std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
 {
     if (is_currently({ "void" }))
     {
         match("void");
-        return VoidType();
+        return std::make_shared<VoidType>();
     }
     else if (is_currently({ "int" }))
     {
         match("int");
-        return IntType();
+        return std::make_shared<IntType>();
     }
     
     // TODO error
@@ -112,26 +136,11 @@ Token& Parser::match(std::string token_type)
 {
     if (current().type == token_type)
     {
-        auto prev = current();
+        auto& prev = current();
         next();
         return prev;
     }
     
-    // TODO error
-    std::exit(1);
-}
-
-Token& Parser::match_type()
-{
-    if (current().type == "void")
-    {
-        return match("void");
-    }
-    else if (current().type == "int")
-    {
-        return match("int");
-    }
-
     // TODO error
     std::exit(1);
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <memory>
 #include "Lexer.hpp"
 #include "SyntaxTree.hpp"
@@ -19,7 +18,6 @@ private:
     inline Token& next() { index++; return current(); }
 
     Token& match(std::string token_type);
-    Token& Parser::match_type();
     bool is_currently(std::initializer_list<std::string> options);
 
     struct ParserContext
@@ -28,19 +26,19 @@ private:
         std::shared_ptr<SymbolTable> local_symbol_table;
     };
 
-    SyntaxTree parse_varable_declaration(ParserContext& context);
-    FunctionDef parse_function(ParserContext& context);
-    Statement parse_statement(ParserContext& context);
-    CompoundStatement parse_compound_statement(ParserContext& context);
-    Return parse_return_statement(ParserContext& context);
-    Expression parse_expression(ParserContext& context);
-    IntegerConstant parse_integer_constant(ParserContext& context);
+    //std::unique_ptr<SyntaxTree> parse_varable_declaration(ParserContext& context);
+    std::unique_ptr<FunctionDef> parse_function(ParserContext& context);
+    std::unique_ptr<Statement> parse_statement(ParserContext& context);
+    std::unique_ptr<CompoundStatement> parse_compound_statement(ParserContext& context);
+    std::unique_ptr<Return> parse_return_statement(ParserContext& context);
+    std::unique_ptr<Expression> parse_expression(ParserContext& context);
+    std::unique_ptr<IntegerConstant> parse_integer_constant(ParserContext& context);
     //Variable parse_variable();
 
-    Type Parser::parse_type(ParserContext& context);
+    std::shared_ptr<Type> parse_type(ParserContext& context);
 
 public:
     Parser(Lexer& lexer): lexer{lexer} {}
 
-    SyntaxTree parse();
+    std::unique_ptr<Program> parse();
 };

@@ -1,6 +1,6 @@
 #include "SymbolTable.hpp"
 
-std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, Type type, bool isparam)
+std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type, bool isparam)
 {
     if (table.find(name) != table.end())
     {

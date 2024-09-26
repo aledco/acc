@@ -22,5 +22,5 @@ struct FunctionType : Type
     std::shared_ptr<Type> return_type;
     std::vector<std::shared_ptr<Type>> param_types;
 
-    FunctionType(Type& return_type, std::vector<Type>& param_types) : return_type(return_type), param_types(param_types) {}
+    FunctionType(std::shared_ptr<Type> return_type, std::vector<std::shared_ptr<Type>> param_types) : return_type(return_type), param_types(param_types) {}
 };
