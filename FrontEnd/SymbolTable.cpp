@@ -1,6 +1,6 @@
 #include "SymbolTable.hpp"
 
-std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type, bool isparam)
+std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type)
 {
     if (table.find(name) != table.end())
     {
@@ -8,7 +8,7 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_pt
         std::exit(1);
     }
 
-    auto symbol = std::make_shared<Symbol>(name, type, isparam);
+    auto symbol = std::make_shared<Symbol>(name, type);
     table[name] = symbol;
     return symbol;
 }

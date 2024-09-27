@@ -42,14 +42,14 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
             match(","); // TODO this will allow us to not use commas
         }
 
-        auto param_symbol = context.local_symbol_table->add_symbol(param_token.value, param_type, true);
+        auto param_symbol = context.local_symbol_table->add_symbol(param_token.value, param_type);
         param_symbols.push_back(param_symbol);
     }
 
     match(")");
 
-    auto function_type = std::make_shared<FunctionType>(return_type, param_types);
-    auto function_symbol = context.local_symbol_table->add_symbol(function_name_token.value, function_type, false);
+    auto function_type = std::make_shared<Type>(TypeType::Function, return_type); // TODO might need param types too
+    auto function_symbol = context.local_symbol_table->add_symbol(function_name_token.value, function_type);
     
     auto body = parse_compound_statement(context);
     return std::make_shared<FunctionDef>(function_symbol, param_symbols, std::move(body));
@@ -122,12 +122,12 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
     if (is_currently({ "void" }))
     {
         match("void");
-        return std::make_shared<VoidType>();
+        return std::make_shared<Type>(TypeType::Void);
     }
     else if (is_currently({ "int" }))
     {
         match("int");
-        return std::make_shared<IntType>();
+        return std::make_shared<Type>(TypeType::Int);
     }
     
     // TODO error

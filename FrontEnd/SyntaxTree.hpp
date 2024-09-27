@@ -6,11 +6,12 @@
 #include "SymbolTable.hpp"
 #include "Type.hpp"
 #include "CodegenContext.hpp"
+#include "CodegenResult.hpp"
 
 struct SyntaxTree 
 {
     virtual void dump(int depth = 0) = 0;
-    virtual void codegen(CodegenContext& context) = 0;
+    virtual std::unique_ptr<CodegenResult> codegen(CodegenContext& context) = 0;
 };
 
 struct Expression : SyntaxTree
@@ -23,7 +24,7 @@ struct IntegerConstant : Expression
     long value;
     IntegerConstant(long value): value(value) {}
     void dump(int depth = 0) override;
-    void codegen(CodegenContext& context) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };
 
 struct Statement : SyntaxTree
@@ -35,7 +36,7 @@ struct CompoundStatement : Statement
     std::vector<std::shared_ptr<Statement>> statements;
     CompoundStatement(std::vector<std::shared_ptr<Statement>> statements): statements(statements) {}
     void dump(int depth = 0) override;
-    void codegen(CodegenContext& context) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };
 
 struct Return : Statement
@@ -44,7 +45,7 @@ struct Return : Statement
     Return(): expr(nullptr) {}
     Return(std::shared_ptr<Expression> expr): expr(expr) {}
     void dump(int depth = 0) override;
-    void codegen(CodegenContext& context) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };
 
 struct FunctionDef : SyntaxTree
@@ -58,7 +59,7 @@ struct FunctionDef : SyntaxTree
         body(body)
     {}
     void dump(int depth = 0) override;
-    void codegen(CodegenContext& context) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };
 
 struct Program : SyntaxTree
@@ -66,6 +67,6 @@ struct Program : SyntaxTree
     std::vector<std::shared_ptr<FunctionDef>> functions;
     Program(const std::vector<std::shared_ptr<FunctionDef>>& functions) : functions(functions) {}
     void dump(int depth = 0) override;
-    void codegen(CodegenContext& context) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
     void codegen();
 };
