@@ -1,14 +1,42 @@
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include "Lexer.hpp"
 #include "Parser.hpp"
 
-int main()
+static _GLIBCXX_NORETURN void error(const std::string& msg)
+{
+    std::cerr << "error: " << msg << "\n";
+    std::exit(1);
+}
+
+static std::string read_file(const char *filepath) 
+{
+    std::ifstream file(filepath);
+    if (!file.good())
+    {
+        error("file not found");
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+int main(int argc, char *argv[])
 {
     // TODO add command line arg parsing
-    std::string input = "int main() { return 0; }"; // TODO read from file
+    if (argc < 2)
+    {
+        error("no input file");
+    }
+
+    char *filepath = argv[1];
+    std::string input = read_file(filepath);
     Lexer lexer(input);
     Parser parser(lexer);
     auto program = parser.parse();
-    program->dump();
+    program->codegen();
     return 0;
 }

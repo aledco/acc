@@ -2,21 +2,20 @@
 #include <memory>
 #include <vector>
 
-#include <clang/Driver/Driver.h>
-#include <clang/Driver/Compilation.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
+// #include <clang/Driver/Driver.h>
+// #include <clang/Driver/Compilation.h>
+// #include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Target/TargetOptions.h>
-#include <llvm/ADT/STLExtras.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Target/TargetMachine.h>
+
+// #include <llvm/Target/TargetOptions.h>
+// #include <llvm/ADT/STLExtras.h>
+// #include <llvm/Support/FileSystem.h>
+// #include <llvm/Support/TargetSelect.h>
+// #include <llvm/IR/LegacyPassManager.h>
+// #include <llvm/Target/TargetMachine.h>
 
 #include "SyntaxTree.hpp"
 #include "Type.hpp"
@@ -37,65 +36,65 @@ static llvm::Type *get_llvm_type(CodegenContext& context, std::shared_ptr<Type> 
 }
 
 // TODO get this function to work, need to link to clang, add namespace prefixes, etc
-static void generate_object_file(CodegenContext& context)
-{
-    auto TargetTriple = getDefaultTargetTriple();
-    InitializeAllTargetInfos();
-    InitializeAllTargets();
-    InitializeAllTargetMCs();
-    InitializeAllAsmParsers();
-    InitializeAllAsmPrinters();
+// static void generate_object_file(CodegenContext& context)
+// {
+//     auto TargetTriple = llvm::getDefaultTargetTriple();
+//     llvm::InitializeAllTargetInfos();
+//     llvm::InitializeAllTargets();
+//     llvm::InitializeAllTargetMCs();
+//     llvm::InitializeAllAsmParsers();
+//     llvm::InitializeAllAsmPrinters();
 
-    std::string Error;
-    auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
-    auto CPU = "generic";
-    auto Features = "";
+//     std::string Error;
+//     auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+//     auto CPU = "generic";
+//     auto Features = "";
 
-    TargetOptions opt;
-    auto RM = Optional<Reloc::Model>();
-    auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+//     TargetOptions opt;
+//     auto RM = Optional<Reloc::Model>();
+//     auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
-    module->setDataLayout(TargetMachine->createDataLayout());
-    module->setTargetTriple(TargetTriple);
+//     module->setDataLayout(TargetMachine->createDataLayout());
+//     module->setTargetTriple(TargetTriple);
 
-    auto Filename = "output.o";
-    std::error_code EC;
-    raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
+//     auto Filename = "output.o";
+//     std::error_code EC;
+//     llvm::raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
-    legacy::PassManager pass;
-    auto FileType = CGFT_ObjectFile;
+//     legacy::PassManager pass;
+//     auto FileType = CGFT_ObjectFile;
 
-    if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
-    {
-        errs() << "TargetMachine can't emit a file of this type";
-        return;
-    }
-    pass.run(*module);
-    dest.flush();
+//     if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
+//     {
+//         errs() << "TargetMachine can't emit a file of this type";
+//         return;
+//     }
+//     pass.run(*module);
+//     dest.flush();
 
-    llvm::sys::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
-    clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(errs(), &*DiagOpts);
-    IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
-    clang::driver::Driver TheDriver("/usr/bin/clang++-12", TargetTriple, Diags);
+//     //llvm::sIntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
+//     //clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(errs(), &*DiagOpts);
+//     //IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+//     //clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
+//     //clang::driver::Driver TheDriver("/usr/bin/clang++-12", TargetTriple, Diags);
 
-    auto args = ArrayRef<const char *>{"-g", "output.o", "-o", "main"};
+//     auto args = llvm::ArrayRef<const char *>{"-g", "output.o", "-o", "main"};
 
-    std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
+//     //std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
 
-    if (C && !C->containsError())
-    {
-        SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
-        TheDriver.ExecuteCompilation(*C, FailingCommands);
-    }
+//     if (C && !C->containsError())
+//     {
+//         SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
+//         TheDriver.ExecuteCompilation(*C, FailingCommands);
+//     }
 
-    remove(Filename);
-}
+//     remove(Filename);
+// }
 
 std::unique_ptr<CodegenResult> IntegerConstant::codegen(CodegenContext& context)
 {
     // TODO use expr.type.size() for num bytes once type checking is implemented
-    auto llvm_value = llvm::ConstantInt::get(*context.llvm_context, llvm::APInt(4, value));
+    auto llvm_value = llvm::ConstantInt::get(*context.llvm_context, llvm::APInt(32, value));
     return std::make_unique<CodegenResult>(llvm_value);
 }
 
@@ -181,7 +180,8 @@ std::unique_ptr<CodegenResult> Program::codegen(CodegenContext& context)
     for (auto &function : functions)
     {
         auto result = function->codegen(context);
-        result->value->print(llvm::errs());
+        //result->value->print(llvm::errs());
+        result->value->dump();
     }
 
     return nullptr;
