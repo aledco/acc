@@ -91,26 +91,28 @@ static llvm::Type *get_llvm_type(CodegenContext& context, std::shared_ptr<Type> 
 //     remove(Filename);
 // }
 
-std::unique_ptr<CodegenResult> IntegerConstant::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> IntegerConstant::codegen(CodegenContext& context, bool lvalue = false)
 {
     // TODO use expr.type.size() for num bytes once type checking is implemented
     auto llvm_value = llvm::ConstantInt::get(*context.llvm_context, llvm::APInt(32, value));
     return std::make_unique<CodegenResult>(llvm_value);
 }
 
-std::unique_ptr<CodegenResult> Variable::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> Variable::codegen(CodegenContext& context, bool lvalue = false)
 {
     auto alloca = context.named_values[symbol->name];
     auto llvm_value = context.llvm_builder->CreateLoad(alloca->getType(), alloca, symbol->name);
     return std::make_unique<CodegenResult>(llvm_value);
 }
 
-std::unique_ptr<CodegenResult> Assignment::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> Assignment::codegen(CodegenContext& context, bool lvalue = false)
 {
-    // TODO 
+    auto lhs_value = lhs->codegen(context, true);
+    auto rhs_value = rhs->codegen(context);
+    
 }
 
-std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& context, bool lvalue = false)
 {
     // TODO once control structures are implemeted, will need to create the control flow graph to seperate the body into basic blocks
     for (auto &statement : statements)
@@ -121,7 +123,7 @@ std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& contex
     return std::make_unique<CodegenResult>();
 }
 
-std::unique_ptr<CodegenResult> VariableDeclaration::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> VariableDeclaration::codegen(CodegenContext& context, bool lvalue = false)
 {
     auto llvm_type = get_llvm_type(context, type);
     auto alloca = context.llvm_builder->CreateAlloca(llvm_type, nullptr, symbol->name);
@@ -129,7 +131,7 @@ std::unique_ptr<CodegenResult> VariableDeclaration::codegen(CodegenContext& cont
     return std::make_unique<CodegenResult>(alloca);
 }
 
-std::unique_ptr<CodegenResult> Return::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> Return::codegen(CodegenContext& context, bool lvalue = false)
 {
     if (expr != nullptr)
     {
@@ -144,7 +146,7 @@ std::unique_ptr<CodegenResult> Return::codegen(CodegenContext& context)
     return std::make_unique<CodegenResult>();
 }
 
-std::unique_ptr<CodegenResult> FunctionDef::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> FunctionDef::codegen(CodegenContext& context, bool lvalue = false)
 {
     // first, check for the function from a previous declaration
     auto llvm_function = context.llvm_module->getFunction(function->name);
@@ -194,7 +196,7 @@ std::unique_ptr<CodegenResult> FunctionDef::codegen(CodegenContext& context)
     return std::make_unique<CodegenResult>(llvm_function);
 }
 
-std::unique_ptr<CodegenResult> Program::codegen(CodegenContext& context)
+std::unique_ptr<CodegenResult> Program::codegen(CodegenContext& context, bool lvalue = false)
 {
     for (auto &function : functions)
     {
