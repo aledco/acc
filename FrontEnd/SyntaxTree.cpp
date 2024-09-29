@@ -12,6 +12,14 @@ void Variable::dump(int depth)
     std::cout << std::string(depth, '\t') << "Variable(" << symbol->name << ")\n";
 }
 
+void Assignment::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "Assignment(";
+    lhs->dump(depth + 1);
+    rhs->dump(depth + 1);
+    std::cout <<")\n";
+}
+
 void CompoundStatement::dump(int depth)
 {
     std::cout << std::string(depth, '\t') << "CompoundStatement(";

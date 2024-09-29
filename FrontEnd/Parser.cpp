@@ -61,7 +61,11 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
-    if (is_currently({ "return" }))
+    if (is_currently({ "void", "int" }))
+    {
+        return parse_variable_declaration(context);
+    }
+    else if (is_currently({ "return" }))
     {
         return parse_return_statement(context);
     }
@@ -78,7 +82,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
 {
     match("{");;
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "return", "{" }))
+    while (is_currently({ "void", "int", "return", "{" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -88,11 +92,12 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     return std::make_shared<CompoundStatement>(statements);
 }
 
-std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context)
+std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserContext& context)
 {
     auto type = parse_type(context);
     auto token = match(TokenType_Id);
-    return context.current_symbol_table->add_symbol(token.value, type);
+    auto symbol = context.current_symbol_table->add_symbol(token.value, type);
+    return std::make_shared<VariableDeclaration>(type, symbol);
 }
 
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
@@ -122,9 +127,9 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
     std::exit(1);
 }
 
-std::shared_ptr<Variable> parse_variable(ParserContext& context)
+std::shared_ptr<Variable> Parser::parse_variable(ParserContext& context)
 {
-    var symbol = parse_identifier(context);
+    auto symbol = parse_identifier(context);
     return std::make_shared<Variable>(symbol);
 }
 

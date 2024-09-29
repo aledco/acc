@@ -27,6 +27,15 @@ struct Variable : Expression
     std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };
 
+struct Assignment : Expression
+{
+    std::shared_ptr<Expression> lhs;
+    std::shared_ptr<Expression> rhs;
+    Assignment(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs): lhs(lhs), rhs(rhs) {}
+    void dump(int depth = 0) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
+}
+
 struct IntegerConstant : Expression
 {
     long value;

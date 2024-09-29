@@ -101,8 +101,13 @@ std::unique_ptr<CodegenResult> IntegerConstant::codegen(CodegenContext& context)
 std::unique_ptr<CodegenResult> Variable::codegen(CodegenContext& context)
 {
     auto alloca = context.named_values[symbol->name];
-    auto llvm_value = context.llvm_builder->CreateLoad(alloca->getAllocatedType(), alloca, symbol->name);
+    auto llvm_value = context.llvm_builder->CreateLoad(alloca->getType(), alloca, symbol->name);
     return std::make_unique<CodegenResult>(llvm_value);
+}
+
+std::unique_ptr<CodegenResult> Assignment::codegen(CodegenContext& context)
+{
+    // TODO 
 }
 
 std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& context)
