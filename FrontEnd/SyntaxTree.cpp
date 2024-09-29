@@ -7,6 +7,11 @@ void IntegerConstant::dump(int depth)
     std::cout << std::string(depth, '\t') << "IntegerConstant(" << value << ")\n";
 }
 
+void Variable::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "Variable(" << symbol->name << ")\n";
+}
+
 void CompoundStatement::dump(int depth)
 {
     std::cout << std::string(depth, '\t') << "CompoundStatement(";
@@ -17,6 +22,11 @@ void CompoundStatement::dump(int depth)
     }
 
     std::cout << ")\n";
+}
+
+void VariableDeclaration::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "VariableDeclaration(" << symbol->name << ")\n";
 }
 
 void Return::dump(int depth)

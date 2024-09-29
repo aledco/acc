@@ -14,5 +14,6 @@ struct CodegenContext
     std::unique_ptr<llvm::Module> llvm_module;
     std::map<std::string, llvm::Value *> named_values;
     llvm::Function *llvm_function;
+    llvm::BasicBlock *current_block;
     CodegenContext();
 };

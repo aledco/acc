@@ -1,5 +1,7 @@
 # TODO
 
 - Fix SyntaxTree.dump()
-- Start on codegen
+- Write typechecking
 - Add const to everything
+- May need to add an IR between AST and LLVM
+- Add errors

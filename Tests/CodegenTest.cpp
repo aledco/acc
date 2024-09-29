@@ -5,9 +5,21 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 
-TEST(Parser2, Test2)
+TEST(Codegen, Test1)
 {
     auto input = read_input(1);
+    Lexer lexer(input);
+    Parser parser(lexer);
+    auto program = parser.parse();
+
+    program->codegen();
+
+    EXPECT_TRUE(true);
+}
+
+TEST(Codegen, Test2)
+{
+    auto input = read_input(2);
     Lexer lexer(input);
     Parser parser(lexer);
     auto program = parser.parse();

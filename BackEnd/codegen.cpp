@@ -98,6 +98,12 @@ std::unique_ptr<CodegenResult> IntegerConstant::codegen(CodegenContext& context)
     return std::make_unique<CodegenResult>(llvm_value);
 }
 
+std::unique_ptr<CodegenResult> Variable::codegen(CodegenContext& context)
+{
+    auto alloca = context.named_values[symbol->name];
+    auto llvm_value = context.llvm_builder->CreateLoad(alloca->getAllocatedType(), alloca, symbol->name);
+    return std::make_unique<CodegenResult>(llvm_value);
+}
 
 std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& context)
 {
@@ -108,6 +114,14 @@ std::unique_ptr<CodegenResult> CompoundStatement::codegen(CodegenContext& contex
     }
 
     return std::make_unique<CodegenResult>();
+}
+
+std::unique_ptr<CodegenResult> VariableDeclaration::codegen(CodegenContext& context)
+{
+    auto llvm_type = get_llvm_type(context, type);
+    auto alloca = context.llvm_builder->CreateAlloca(llvm_type, nullptr, symbol->name);
+    context.named_values[symbol->name] = alloca; // TODO using named_values this way isn't as flexible as a symbol table, may override variable in outer scope 
+    return std::make_unique<CodegenResult>(alloca);
 }
 
 std::unique_ptr<CodegenResult> Return::codegen(CodegenContext& context)

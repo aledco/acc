@@ -19,6 +19,14 @@ struct Expression : SyntaxTree
     std::shared_ptr<Type> type;
 };
 
+struct Variable : Expression
+{
+    std::shared_ptr<Symbol> symbol;
+    Variable(std::shared_ptr<Symbol> symbol) : symbol(symbol) {}
+    void dump(int depth = 0) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
+};
+
 struct IntegerConstant : Expression
 {
     long value;
@@ -35,6 +43,15 @@ struct CompoundStatement : Statement
 {
     std::vector<std::shared_ptr<Statement>> statements;
     CompoundStatement(std::vector<std::shared_ptr<Statement>> statements): statements(statements) {}
+    void dump(int depth = 0) override;
+    std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
+};
+
+struct VariableDeclaration : Statement
+{
+    std::shared_ptr<Type> type;
+    std::shared_ptr<Symbol> symbol;
+    VariableDeclaration(std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol) : type(type), symbol(symbol) {}
     void dump(int depth = 0) override;
     std::unique_ptr<CodegenResult> codegen(CodegenContext& context) override;
 };

@@ -1,10 +1,12 @@
 #include <vector>
+#include <algorithm>
 #include "Parser.hpp"
 
 std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
     context.global_symbol_table = std::make_shared<SymbolTable>();
+    context.current_symbol_table = context.global_symbol_table;
 
     std::vector<std::shared_ptr<FunctionDef>> functions;
     while (is_currently({"void", "int"}))
@@ -15,44 +17,46 @@ std::shared_ptr<Program> Parser::parse()
     return std::make_shared<Program>(functions);
 }
 
-// SyntaxTree Parser::parse_varable_declaration()
-// {
-
-// }
-
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
-    context.local_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
+    context.current_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
     
     auto return_type = parse_type(context);
     auto function_name_token = match(TokenType_Id);
 
     match("(");
 
-    std::vector<std::shared_ptr<Symbol>> param_symbols;
-    std::vector<std::shared_ptr<Type>> param_types;
-    while (is_currently({ "void", "int" }))
+    std::vector<std::shared_ptr<Symbol>> params;
+    if (is_currently({ "void", "int" }))
     {
-        auto param_type = parse_type(context);
-        param_types.push_back(param_type);
-
-        auto param_token = match(TokenType_Id);
-        if (is_currently({ "," }))
-        {
-            match(","); // TODO this will allow us to not use commas
-        }
-
-        auto param_symbol = context.local_symbol_table->add_symbol(param_token.value, param_type);
-        param_symbols.push_back(param_symbol);
+        auto param = parse_parameter(context);
+        params.push_back(param);
+    }
+    while (is_currently({ "," }))
+    {
+        match(",");
+        auto param = parse_parameter(context);
+        params.push_back(param);
     }
 
     match(")");
 
-    auto function_type = std::make_shared<Type>(TypeType::Function, return_type); // TODO might need param types too
-    auto function_symbol = context.local_symbol_table->add_symbol(function_name_token.value, function_type);
+    std::vector<std::shared_ptr<Type>> param_types;
+    std::transform(std::begin(params), std::end(params), std::begin(param_types), 
+        [](const auto& param) -> auto { return param->type; });
+    
+    auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
+    auto function_symbol = context.current_symbol_table->add_symbol(function_name_token.value, function_type);
     
     auto body = parse_compound_statement(context);
-    return std::make_shared<FunctionDef>(function_symbol, param_symbols, std::move(body));
+    return std::make_shared<FunctionDef>(function_symbol, params, std::move(body));
+}
+
+std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
+{
+    auto param_type = parse_type(context);
+    auto param_token = match(TokenType_Id);
+    return context.current_symbol_table->add_symbol(param_token.value, param_type);
 }
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
@@ -84,6 +88,13 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     return std::make_shared<CompoundStatement>(statements);
 }
 
+std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context)
+{
+    auto type = parse_type(context);
+    auto token = match(TokenType_Id);
+    return context.current_symbol_table->add_symbol(token.value, type);
+}
+
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     match("return");
@@ -111,6 +122,12 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
     std::exit(1);
 }
 
+std::shared_ptr<Variable> parse_variable(ParserContext& context)
+{
+    var symbol = parse_identifier(context);
+    return std::make_shared<Variable>(symbol);
+}
+
 std::shared_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
 {
     auto token = match(TokenType_Int);
@@ -132,6 +149,12 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
     
     // TODO error
     std::exit(1);
+}
+
+std::shared_ptr<Symbol> Parser::parse_identifier(ParserContext& context)
+{
+    auto token = match(TokenType_Id);
+    return context.current_symbol_table->lookup(token.value);
 }
 
 Token& Parser::match(std::string token_type)
