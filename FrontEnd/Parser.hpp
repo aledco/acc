@@ -26,12 +26,11 @@ private:
         std::shared_ptr<SymbolTable> current_symbol_table;
     };
 
-    //std::unique_ptr<SyntaxTree> parse_varable_declaration(ParserContext& context);
     std::shared_ptr<FunctionDef> parse_function(ParserContext& context);
     std::shared_ptr<Symbol> parse_parameter(ParserContext& context);
     std::shared_ptr<Statement> parse_statement(ParserContext& context);
     std::shared_ptr<CompoundStatement> parse_compound_statement(ParserContext& context);
-    //std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context);
+    std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context);
     std::shared_ptr<Return> parse_return_statement(ParserContext& context);
     std::shared_ptr<Expression> parse_expression(ParserContext& context);
     std::shared_ptr<Variable> parse_variable(ParserContext& context);
