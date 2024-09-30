@@ -1,24 +1,26 @@
-# CPPC = g++
 CPPC = clang++-18
 CPPFLAGS = -g $(shell llvm-config --cxxflags --ldflags --libs) -Wno-unused-command-line-argument
-INCLUDE = -IFrontEnd -IBackEnd
+INCLUDE = -IFront -IIR -IBack
 
 export CPPC
 export CPPFLAGS
 
 DEST = acc
 
-$(DEST): main.cpp FrontEnd BackEnd
-	$(CPPC) main.cpp $(CPPFLAGS) $(INCLUDE) -o $(DEST) FrontEnd/*.o BackEnd/*.o
+$(DEST): main.cpp Front IR Back
+	$(CPPC) main.cpp $(CPPFLAGS) $(INCLUDE) -o $(DEST) Front/*.o Back/*.o
 
-test: Tests/main.cpp FrontEnd BackEnd Tests
-	$(CPPC) Tests/main.cpp $(CPPFLAGS) $(INCLUDE) -o test Tests/*.o FrontEnd/*.o BackEnd/*.o -lgtest
+test: Tests/main.cpp Front IR Back Tests
+	$(CPPC) Tests/main.cpp $(CPPFLAGS) $(INCLUDE) -o test Tests/*.o Front/*.o IR/*.o Back/*.o -lgtest
 
-FrontEnd:
-	$(MAKE) -C FrontEnd
+Front:
+	$(MAKE) -C Front
 
-BackEnd:
-	$(MAKE) -C BackEnd
+IR:
+	$(MAKE) -C IR
+
+Back:
+	$(MAKE) -C Back
 
 Tests:
 	$(MAKE) -C Tests
@@ -26,9 +28,10 @@ Tests:
 toy: toy.cpp
 	$(CPPC) -g -O3 toy.cpp `llvm-config --cxxflags --ldflags --system-libs --libs core` -o toy
 
-.PHONY: clean FrontEnd BackEnd Tests
+.PHONY: clean Front Back Tests
 clean:
 	rm -f *.o $(DEST) toy test
-	$(MAKE) -C FrontEnd clean
-	$(MAKE) -C BackEnd clean
+	$(MAKE) -C Front clean
+	$(MAKE) -C IR clean
+	$(MAKE) -C Back clean
 	$(MAKE) -C Tests clean

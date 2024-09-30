@@ -9,5 +9,5 @@
 # Plan
 - Finish parser
 - Convert the AST into a three address code IR
-- Split the IR into a control flow graph
+- Construct a control flow graph using the IR
 - Generate LLVM using control flow graph
