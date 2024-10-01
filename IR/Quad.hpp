@@ -93,6 +93,7 @@ private:
         bool operator==(Iterator i) const { return quad == i.quad; }
         bool operator!=(Iterator i) const { return quad != i.quad; }
 
+        Iterator(std::shared_ptr<Quad> quad)
         // TODO finish implementing
     };
 
@@ -108,6 +109,6 @@ public:
 
     inline bool empty() { return head == nullptr; }
 
-    auto begin() { return head; }
-    auto end() { return tail; }
+    Iterator *begin() { return empty() ? nullptr : head; }
+    Iterator *end() { return empty() ? nullptr : tail->next; }
 };
