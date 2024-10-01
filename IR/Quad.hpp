@@ -81,22 +81,6 @@ struct Quad
 class QuadList
 {
 private:
-    struct Iterator
-    {
-        std::shared_ptr<Quad> quad;
-        Iterator& operator++()
-        {
-            quad = quad->next;
-            return *this;
-        }
-
-        bool operator==(Iterator i) const { return quad == i.quad; }
-        bool operator!=(Iterator i) const { return quad != i.quad; }
-
-        Iterator(std::shared_ptr<Quad> quad)
-        // TODO finish implementing
-    };
-
     std::shared_ptr<Quad> head;
     std::shared_ptr<Quad> tail;
     
@@ -105,10 +89,8 @@ public:
     QuadList(std::shared_ptr<Quad> head, std::shared_ptr<Quad> tail): head(head), tail(tail) {}
 
     void push_back(std::shared_ptr<Quad> quad);
-    static QuadList concat(QuadList& list1, QuadList& list2);
-
     inline bool empty() { return head == nullptr; }
+    inline std::shared_ptr<Quad> get_head() { return head; }
 
-    Iterator *begin() { return empty() ? nullptr : head; }
-    Iterator *end() { return empty() ? nullptr : tail->next; }
+    static QuadList concat(QuadList& list1, QuadList& list2);
 };

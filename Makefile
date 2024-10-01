@@ -28,7 +28,7 @@ Tests:
 toy: toy.cpp
 	$(CPPC) -g -O3 toy.cpp `llvm-config --cxxflags --ldflags --system-libs --libs core` -o toy
 
-.PHONY: clean Front Back Tests
+.PHONY: clean Front IR Back Tests
 clean:
 	rm -f *.o $(DEST) toy test
 	$(MAKE) -C Front clean

@@ -5,11 +5,13 @@
 #include <memory>
 #include "SymbolTable.hpp"
 #include "Type.hpp"
+#include "Quad.hpp"
 #include "CodegenContext.hpp"
 #include "CodegenResult.hpp"
 
 struct SyntaxTree 
 {
+    QuadList ir_list;
     virtual void dump(int depth = 0) = 0;
     virtual std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue = false) = 0;
 };

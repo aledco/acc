@@ -1,6 +1,6 @@
 CPPC ?= clang++-18
 CPPFLAGS ?= 
-CPPFLAGS := $(CPPFLAGS) -I../Front -I.
+CPPFLAGS := $(CPPFLAGS) -I../Front -I../IR -I.
 
 CPPFILES = $(wildcard *.cpp)
 OFILES = $(CPPFILES:.cpp=.o)

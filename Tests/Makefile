@@ -1,6 +1,6 @@
 CPPC ?= g++
 CPPFLAGS ?= -g 
-CPPFLAGS := $(CPPFLAGS) -I../Front -I../Back
+CPPFLAGS := $(CPPFLAGS) -I../Front -I../IR -I../Back 
 
 TEST_CPPFILES = $(wildcard *Test.cpp)
 TEST_OFILES = $(TEST_CPPFILES:.cpp=.o)
