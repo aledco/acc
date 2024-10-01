@@ -68,3 +68,41 @@ std::shared_ptr<Quad> Quad::MakeRetrieveOp(std::shared_ptr<Operand> res)
 {
     return std::make_shared<Quad>(QuadOp::Retrieve, nullptr, nullptr, res);
 }
+
+/********************************************************************************/
+/*                                    QuadList                                  */
+/********************************************************************************/
+
+void QuadList::push_back(std::shared_ptr<Quad> quad)
+{
+    if (empty())
+    {
+        head = tail = quad;
+    }
+    else
+    {
+        tail->next = quad;
+        tail = quad;
+    }
+}
+
+QuadList QuadList::concat(QuadList& list1, QuadList& list2)
+{
+    if (list1.empty() && list2.empty())
+    {
+        return QuadList();
+    }
+    else if (list1.empty())
+    {
+        return QuadList(list2.head, list2.tail);
+    }
+    else if (list2.empty())
+    {
+        return QuadList(list1.head, list1.tail);
+    }
+    else
+    {
+        list1.tail->next = list2.head;
+        return QuadList(list1.head, list2.tail);
+    }
+}

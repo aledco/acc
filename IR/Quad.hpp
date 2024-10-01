@@ -60,7 +60,8 @@ struct Quad
     std::shared_ptr<Operand> arg1;
     std::shared_ptr<Operand> arg2;
     std::shared_ptr<Operand> res;
-    Quad(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res) : op(op), arg1(arg1), arg2(arg2), res(res) {}
+    std::shared_ptr<Quad> next;
+    Quad(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res) : op(op), arg1(arg1), arg2(arg2), res(res), next(nullptr) {}
 
     static std::shared_ptr<Quad> MakeBinOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeUnOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
@@ -80,10 +81,33 @@ struct Quad
 class QuadList
 {
 private:
+    struct Iterator
+    {
+        std::shared_ptr<Quad> quad;
+        Iterator& operator++()
+        {
+            quad = quad->next;
+            return *this;
+        }
+
+        bool operator==(Iterator i) const { return quad == i.quad; }
+        bool operator!=(Iterator i) const { return quad != i.quad; }
+
+        // TODO finish implementing
+    };
+
     std::shared_ptr<Quad> head;
     std::shared_ptr<Quad> tail;
-
+    
 public:
     QuadList(): head(nullptr), tail(nullptr) {}
-    QuadList(std::shared_ptr<Quad> head, std::shared_ptr<Quad> tail): head(head), tail(tail) {} 
+    QuadList(std::shared_ptr<Quad> head, std::shared_ptr<Quad> tail): head(head), tail(tail) {}
+
+    void push_back(std::shared_ptr<Quad> quad);
+    static QuadList concat(QuadList& list1, QuadList& list2);
+
+    inline bool empty() { return head == nullptr; }
+
+    auto begin() { return head; }
+    auto end() { return tail; }
 };
