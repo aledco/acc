@@ -37,6 +37,5 @@ int main(int argc, char *argv[])
     Lexer lexer(input);
     Parser parser(lexer);
     auto program = parser.parse();
-    program->codegen();
     return 0;
 }

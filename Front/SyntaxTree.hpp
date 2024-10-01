@@ -6,14 +6,11 @@
 #include "SymbolTable.hpp"
 #include "Type.hpp"
 #include "Quad.hpp"
-#include "CodegenContext.hpp"
-#include "CodegenResult.hpp"
 
 struct SyntaxTree 
 {
     QuadList ir_list;
     virtual void dump(int depth = 0) = 0;
-    virtual std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue = false) = 0;
 };
 
 struct Expression : SyntaxTree
@@ -26,7 +23,6 @@ struct Variable : Expression
     std::shared_ptr<Symbol> symbol;
     Variable(std::shared_ptr<Symbol> symbol) : symbol(symbol) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
 };
 
 struct Assignment : Expression
@@ -35,7 +31,51 @@ struct Assignment : Expression
     std::shared_ptr<Expression> rhs;
     Assignment(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs): lhs(lhs), rhs(rhs) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
+};
+
+struct FunctionCall : Expression
+{
+    std::shared_ptr<Symbol> function;
+    std::vector<std::shared_ptr<Expression>> args;
+    FunctionCall(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Expression>> args): function(function), args(args) {}
+    void dump(int depth = 0) override;
+};
+
+enum class BinOp
+{
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Modulo
+};
+
+struct BinaryOperation : Expression
+{
+    BinOp op;
+    std::shared_ptr<Expression> lhs;
+    std::shared_ptr<Expression> rhs;
+    BinaryOperation(BinOp op, std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs): op(op), lhs(lhs), rhs(rhs) {}
+    void dump(int depth = 0) override;
+};
+
+enum class UnOp
+{
+    Negation,
+    Deref,
+    AddrOf,
+    Pre_PlusPlus,
+    Post_PlusPlus,
+    Pre_MinusMinus,
+    Post_MinusMinus
+};
+
+struct UnaryOperation : Expression
+{
+    UnOp op;
+    std::shared_ptr<Expression> expr;
+    UnaryOperation(UnOp op, std::shared_ptr<Expression> expr): op(op), expr(expr) {}
+    void dump(int depth = 0) override;
 };
 
 struct IntegerConstant : Expression
@@ -43,7 +83,13 @@ struct IntegerConstant : Expression
     long value;
     IntegerConstant(long value): value(value) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
+};
+
+struct CharConstant : Expression
+{
+    char value;
+    CharConstant(long value): value(value) {}
+    void dump(int depth = 0) override;
 };
 
 struct Statement : SyntaxTree
@@ -55,7 +101,6 @@ struct CompoundStatement : Statement
     std::vector<std::shared_ptr<Statement>> statements;
     CompoundStatement(std::vector<std::shared_ptr<Statement>> statements): statements(statements) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
 };
 
 struct VariableDeclaration : Statement
@@ -64,7 +109,6 @@ struct VariableDeclaration : Statement
     std::shared_ptr<Symbol> symbol;
     VariableDeclaration(std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol) : type(type), symbol(symbol) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
 };
 
 struct Return : Statement
@@ -73,7 +117,6 @@ struct Return : Statement
     Return(): expr(nullptr) {}
     Return(std::shared_ptr<Expression> expr): expr(expr) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
 };
 
 struct FunctionDef : SyntaxTree
@@ -87,7 +130,6 @@ struct FunctionDef : SyntaxTree
         body(body)
     {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
 };
 
 struct Program : SyntaxTree
@@ -95,6 +137,4 @@ struct Program : SyntaxTree
     std::vector<std::shared_ptr<FunctionDef>> functions;
     Program(const std::vector<std::shared_ptr<FunctionDef>>& functions) : functions(functions) {}
     void dump(int depth = 0) override;
-    std::unique_ptr<CodegenResult> codegen(CodegenContext& context, bool lvalue) override;
-    void codegen();
 };

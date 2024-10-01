@@ -7,6 +7,11 @@ void IntegerConstant::dump(int depth)
     std::cout << std::string(depth, '\t') << "IntegerConstant(" << value << ")\n";
 }
 
+void CharConstant::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "CharConstant('" << value << "')\n";
+}
+
 void Variable::dump(int depth)
 {
     std::cout << std::string(depth, '\t') << "Variable(" << symbol->name << ")\n";
@@ -17,6 +22,24 @@ void Assignment::dump(int depth)
     std::cout << std::string(depth, '\t') << "Assignment(";
     lhs->dump(depth + 1);
     rhs->dump(depth + 1);
+    std::cout <<")\n";
+}
+
+void FunctionCall::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "FunctionCall(";
+    std::cout <<")\n";
+}
+
+void BinaryOperation::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "BinaryOperation(";
+    std::cout <<")\n";
+}
+
+void UnaryOperation::dump(int depth)
+{
+    std::cout << std::string(depth, '\t') << "UnaryOperation(";
     std::cout <<")\n";
 }
 

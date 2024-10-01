@@ -127,6 +127,43 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
     std::exit(1);
 }
 
+// term := unary_operation = (+ | - | * | & | ++ | --)? term | term (++ | --)?;
+std::shared_ptr<Expression> Parser::parse_unary_operation(ParserContext& context)
+{
+    if (is_currently({"+", "-", "*", "&", "++", "--" }))
+    {
+        // TODO
+        auto term = parse_term(context);
+    }
+    else if (is_currently({ TokenType_Int, TokenType_Id }))
+    {
+        auto term = parse_term(context);
+        if (is_currently({ "++", "--" }))
+        {
+            // TODO
+        }
+    }
+
+    // TODO error
+    std::exit(1);
+}
+
+// term := constant | id; 
+std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
+{
+    if (is_currently({ TokenType_Int }))
+    {
+        return parse_integer_constant(context);
+    }
+    else if (is_currently({ TokenType_Id }))
+    {
+        return parse_variable(context);
+    }
+
+    // TODO error
+    std::exit(1);
+}
+
 std::shared_ptr<Variable> Parser::parse_variable(ParserContext& context)
 {
     auto symbol = parse_identifier(context);

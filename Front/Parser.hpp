@@ -33,8 +33,14 @@ private:
     std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context);
     std::shared_ptr<Return> parse_return_statement(ParserContext& context);
     std::shared_ptr<Expression> parse_expression(ParserContext& context);
+    std::shared_ptr<Expression> parse_expression1(ParserContext& context
+    std::shared_ptr<Expression> parse_expression2(ParserContext& context);
+    std::shared_ptr<Expression> parse_unary_operation(ParserContext& context);
+    std::shared_ptr<Expression> parse_term(ParserContext& context);
     std::shared_ptr<Variable> parse_variable(ParserContext& context);
     //std::shared_ptr<Assignment> parse_assignment(ParserContext& context);
+    //std::shared_ptr<FunctionCall> parse_function_call(ParserContext& context);
+    //std::shared_ptr<BinaryOperation> parse_binary_operation()
     std::shared_ptr<IntegerConstant> parse_integer_constant(ParserContext& context);
 
     std::shared_ptr<Type> parse_type(ParserContext& context);
