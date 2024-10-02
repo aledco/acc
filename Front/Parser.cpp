@@ -1,5 +1,6 @@
 #include <vector>
 #include <algorithm>
+#include "Operator.hpp"
 #include "Parser.hpp"
 
 std::shared_ptr<Program> Parser::parse()
@@ -118,31 +119,38 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 
 std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
 {
-    if (is_currently({ TokenType_Int }))
-    {
-        return parse_integer_constant(context);
-    }
-
-    // TODO error
-    std::exit(1);
+    return parse_expression(context, operator_precedence.size() - 1);
 }
 
-// term := unary_operation = (+ | - | * | & | ++ | --)? term | term (++ | --)?;
-std::shared_ptr<Expression> Parser::parse_unary_operation(ParserContext& context)
+std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p)
 {
-    if (is_currently({"+", "-", "*", "&", "++", "--" }))
+    if (p == -1)
     {
-        // TODO
-        auto term = parse_term(context);
+        return parse_unary(context);
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id }))
+
+    auto lhs = parse_expression(context, p-1);
+    while (is_currently(operator_precedence[p]))
     {
-        auto term = parse_term(context);
-        if (is_currently({ "++", "--" }))
-        {
-            // TODO
-        }
+        auto op = match(operator_precedence[p]);
+        auto rhs = parse_expression(context, p-1);
+        lhs = std::make_shared<BinaryOperation>(getBinOp(op.value), lhs, rhs);
     }
+
+    return lhs;
+}
+
+// unary := (+ | - | * | & | ++ | --)? term | term (++ | --)?;
+std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
+{
+    if (is_currently({ "-", "*", "&" }))
+    {
+        auto op = match({ "-", "*", "&" });
+        auto expr = parse_term(context);
+        return std::make_shared<UnaryOperation>(getUnOp(op.value), expr);
+    }
+
+    // TODO handle increment operators later
 
     // TODO error
     std::exit(1);
@@ -157,17 +165,25 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
     }
     else if (is_currently({ TokenType_Id }))
     {
-        return parse_variable(context);
+        auto symbol = parse_identifier(context);
+        if (is_currently({ "(" }))
+        {
+            // TODO parse function
+        }
+        else if (is_currently({ "[" }))
+        {
+            // TODO parse array
+        }
+        else
+        {
+            return std::make_shared<Variable>(symbol);
+        }
     }
+
+    // TODO add parens, function calls, arrays, etc
 
     // TODO error
     std::exit(1);
-}
-
-std::shared_ptr<Variable> Parser::parse_variable(ParserContext& context)
-{
-    auto symbol = parse_identifier(context);
-    return std::make_shared<Variable>(symbol);
 }
 
 std::shared_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
@@ -212,7 +228,33 @@ Token& Parser::match(std::string token_type)
     std::exit(1);
 }
 
+Token& Parser::match(std::initializer_list<std::string> token_types)
+{
+    std::vector<std::string> vec = token_types;
+    return match(vec);
+}
+
+Token& Parser::match(std::vector<std::string> token_types)
+{
+    for (auto& token_type : token_types)
+    {
+        if (current().type == token_type)
+        {
+            return match(token_type);
+        }
+    }
+    
+    // TODO error
+    std::exit(1);
+}
+
 bool Parser::is_currently(std::initializer_list<std::string> options)
+{
+    std::vector<std::string> vec = options;
+    return is_currently(vec);
+}
+
+bool Parser::is_currently(std::vector<std::string> options)
 {
     for (auto& option : options)
     {

@@ -5,6 +5,7 @@
 #include <memory>
 #include "SymbolTable.hpp"
 #include "Type.hpp"
+#include "Operator.hpp"
 #include "Quad.hpp"
 
 struct SyntaxTree 
@@ -41,15 +42,6 @@ struct FunctionCall : Expression
     void dump(int depth = 0) override;
 };
 
-enum class BinOp
-{
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Modulo
-};
-
 struct BinaryOperation : Expression
 {
     BinOp op;
@@ -57,17 +49,6 @@ struct BinaryOperation : Expression
     std::shared_ptr<Expression> rhs;
     BinaryOperation(BinOp op, std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs): op(op), lhs(lhs), rhs(rhs) {}
     void dump(int depth = 0) override;
-};
-
-enum class UnOp
-{
-    Negation,
-    Deref,
-    AddrOf,
-    Pre_PlusPlus,
-    Post_PlusPlus,
-    Pre_MinusMinus,
-    Post_MinusMinus
 };
 
 struct UnaryOperation : Expression

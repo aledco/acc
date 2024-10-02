@@ -2,11 +2,11 @@
 
 #include <string>
 #include <memory>
+#include <map>
 #include "Lexer.hpp"
 #include "SyntaxTree.hpp"
 #include "SymbolTable.hpp"
 #include "Type.hpp"
-
 
 class Parser
 {
@@ -18,7 +18,10 @@ private:
     inline Token& next() { index++; return current(); }
 
     Token& match(std::string token_type);
+    Token& match(std::initializer_list<std::string> token_types);
+    Token& match(std::vector<std::string> token_types);
     bool is_currently(std::initializer_list<std::string> options);
+    bool is_currently(std::vector<std::string> options);
 
     struct ParserContext
     {
@@ -33,11 +36,9 @@ private:
     std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context);
     std::shared_ptr<Return> parse_return_statement(ParserContext& context);
     std::shared_ptr<Expression> parse_expression(ParserContext& context);
-    std::shared_ptr<Expression> parse_expression1(ParserContext& context
-    std::shared_ptr<Expression> parse_expression2(ParserContext& context);
-    std::shared_ptr<Expression> parse_unary_operation(ParserContext& context);
+    std::shared_ptr<Expression> parse_expression(ParserContext& context, int p);
+    std::shared_ptr<Expression> parse_unary(ParserContext& context);
     std::shared_ptr<Expression> parse_term(ParserContext& context);
-    std::shared_ptr<Variable> parse_variable(ParserContext& context);
     //std::shared_ptr<Assignment> parse_assignment(ParserContext& context);
     //std::shared_ptr<FunctionCall> parse_function_call(ParserContext& context);
     //std::shared_ptr<BinaryOperation> parse_binary_operation()
