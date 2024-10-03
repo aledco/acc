@@ -147,7 +147,6 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
     return lhs;
 }
 
-// unary := (+ | - | * | & | ++ | --)? term | term (++ | --)?;
 std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 {
     if (is_currently({ "-", "*", "&" }))
@@ -156,17 +155,16 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
         auto expr = parse_term(context);
         return std::make_shared<UnaryOperation>(getUnOp(op.value), expr);
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id }))
+    else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
     {
         return parse_term(context);
     }
 
     // TODO handle increment operators later
 
-    error({ "-", "*", "&", TokenType_Int, TokenType_Id });
+    error({ "-", "*", "&", TokenType_Int, TokenType_Id, "(" });
 }
 
-// term := constant | id; 
 std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 {
     if (is_currently({ TokenType_Int }))
@@ -190,10 +188,17 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             return std::make_shared<Variable>(symbol);
         }
     }
+    else if (is_currently({ "(" }))
+    {
+        match("(");
+        auto expr = parse_expression(context);
+        match(")");
+        return expr;
+    }
 
     // TODO add parens, function calls, arrays, etc
 
-    error({ TokenType_Int, TokenType_Id });
+    error({ TokenType_Int, TokenType_Id, "(" });
 }
 
 std::shared_ptr<Type> Parser::parse_type(ParserContext& context)

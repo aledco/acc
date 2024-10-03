@@ -6,7 +6,7 @@
 void Lexer::lex()
 {
     // TODO handle the rest of the tokens later, like floats
-
+    
     LexerContext context;
     while (!eof())
     {

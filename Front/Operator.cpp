@@ -77,12 +77,18 @@ std::string toString(UnOp op)
     switch (op)
     {
         case UnOp::Negation:
+            return "-";
         case UnOp::Deref:
+            return "*";
         case UnOp::AddrOf:
+            return "&";
         case UnOp::Pre_PlusPlus:
+            return "++<";
         case UnOp::Post_PlusPlus:
+            return ">++";
         case UnOp::Pre_MinusMinus:
+            return "--<";
         case UnOp::Post_MinusMinus:
-            return "TODO";
+            return ">--";
     }
 }

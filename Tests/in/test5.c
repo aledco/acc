@@ -1,6 +1,6 @@
 int main()
 {
-    *int x;
+    int x;
     x = 1 + 1;
-    return x;
+    return 0;
 }

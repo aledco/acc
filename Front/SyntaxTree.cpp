@@ -100,7 +100,7 @@ void FunctionDef::dump(int depth)
     std::cout << "name = " << function->name << ",\n";
     
     indent(depth);
-    std::cout << "parms = (";
+    std::cout << "params = (";
     for (auto& param : params)
     {
         std::cout << param->name << ", ";
