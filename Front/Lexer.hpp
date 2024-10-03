@@ -8,11 +8,33 @@
 inline std::string TokenType_Id = "ID";
 inline std::string TokenType_Int = "INT";
 
+struct Point
+{
+    int line;
+    int col;
+    Point(int line, int col): line(line), col(col) {}
+    friend Point operator+(const Point& a, const Point& b) { return Point(a.line + b.line, a.col + b.col); }
+};
+
+struct Span
+{
+    Point start;
+    Point end;
+    Span(Point start, Point end): start(start), end(end) {}
+};
+
 struct Token
 {
     std::string type;
     std::string value;
-    Token(const std::string type, const std::string value) : type(type), value(value) {}
+    Span span;
+    Token(const std::string type, const std::string value, const Span span) : type(type), value(value), span(Span(span.start, span.end)) {}
+};
+
+struct LexerContext
+{
+    Point pos;
+    LexerContext(): pos(Point(1, 1)) {}
 };
 
 inline std::vector<std::string> seperators = {
@@ -33,6 +55,14 @@ inline std::vector<std::string> operators = {
     "/",
     "%",
     "&",
+    "=",
+    "!",
+    "==",
+    "!=",
+    "<",
+    "<=",
+    ">",
+    ">=",
     "++",
     "--",
     "+=",
@@ -49,18 +79,7 @@ inline std::vector<std::string> keywords = {
 };
 
 
-inline bool vector_contains_char(std::vector<std::string>&, char c)
-{
-    for (auto sep : seperators)
-    {
-        if (sep.find(c) != std::string::npos) 
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
+bool vector_contains_char(std::vector<std::string>& vec, char c);
 
 class Lexer
 {
@@ -71,13 +90,13 @@ private:
 
     void lex();
 
-    std::optional<Token> attempt_lex_keyword();
-    Token lex_integer();
-    Token lex_id();
-    Token lex_sep();
-    Token lex_op();
+    std::optional<Token> attempt_lex_keyword(LexerContext& context);
+    Token lex_integer(LexerContext& context);
+    Token lex_id(LexerContext& context);
+    Token lex_sep(LexerContext& context);
+    Token lex_op(LexerContext& context);
 
-    _GLIBCXX_NORETURN void error(); 
+    _GLIBCXX_NORETURN void error(LexerContext& context); 
 
     inline bool eof() const { return index >= input.length(); }
     inline char current() const { return input[index]; }
@@ -85,6 +104,7 @@ private:
     inline void advance() { index++; }
     inline void advance(int i) { index += i; }
 
+    inline bool isnewline() const { return current() == '\n'; }
     inline bool iswhitespace() const { return std::isspace(current()); }
     inline bool isdigit() const { return std::isdigit(current()); }
     inline bool isfloat() const { return isdigit() || current() == '.'; }
@@ -95,6 +115,7 @@ private:
     inline bool isop() const { return vector_contains_char(operators, current()); }
 
     inline void add(Token& token) { tokens.push_back(token); }
+    inline Span mkSpan(LexerContext& context, std::string& value) { return Span(context.pos, context.pos + Point(0, value.length())); }
 public:
     Lexer(const std::string& input) : input(input)
     {

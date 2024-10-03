@@ -1,5 +1,5 @@
-#include <vector>
 #include <algorithm>
+#include <iostream>
 #include "Operator.hpp"
 #include "Parser.hpp"
 
@@ -62,28 +62,37 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
+    std::shared_ptr<Statement> statement;
     if (is_currently({ "void", "int" }))
     {
-        return parse_variable_declaration(context);
+        statement = parse_variable_declaration(context);
     }
     else if (is_currently({ "return" }))
     {
-        return parse_return_statement(context);
+        statement = parse_return_statement(context);
     }
     else if (is_currently({ "{" }))
     {
-        return parse_compound_statement(context);
+        statement = parse_compound_statement(context);
+    }
+    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" })) // TODO add any other tokens that can start an expression
+    {
+        statement = parse_expression(context);
+    }
+    else
+    {
+        error({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }); // TODO should make these long lists of tokens constants
     }
 
-    // TODO error
-    exit(1);
+    match(";");
+    return statement;
 }
 
 std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
     match("{");;
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "return", "{" }))
+    while (is_currently({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -104,15 +113,13 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     match("return");
-    if (is_currently({ TokenType_Int }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
         auto expr = parse_expression(context);
-        match(";");
         return std::make_shared<Return>(expr);
     }
     else
     {
-        match(";");
         return std::make_shared<Return>();
     }
 }
@@ -149,11 +156,14 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
         auto expr = parse_term(context);
         return std::make_shared<UnaryOperation>(getUnOp(op.value), expr);
     }
+    else if (is_currently({ TokenType_Int, TokenType_Id }))
+    {
+        return parse_term(context);
+    }
 
     // TODO handle increment operators later
 
-    // TODO error
-    std::exit(1);
+    error({ "-", "*", "&", TokenType_Int, TokenType_Id });
 }
 
 // term := constant | id; 
@@ -161,7 +171,8 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 {
     if (is_currently({ TokenType_Int }))
     {
-        return parse_integer_constant(context);
+        auto token = match(TokenType_Int);
+        return std::make_shared<IntegerConstant>(std::stol(token.value));
     }
     else if (is_currently({ TokenType_Id }))
     {
@@ -182,14 +193,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 
     // TODO add parens, function calls, arrays, etc
 
-    // TODO error
-    std::exit(1);
-}
-
-std::shared_ptr<IntegerConstant> Parser::parse_integer_constant(ParserContext& context)
-{
-    auto token = match(TokenType_Int);
-    return std::make_shared<IntegerConstant>(std::stol(token.value));
+    error({ TokenType_Int, TokenType_Id });
 }
 
 std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
@@ -205,8 +209,7 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
         return std::make_shared<Type>(TypeType::Int);
     }
     
-    // TODO error
-    std::exit(1);
+    error({ "void", "int" });
 }
 
 std::shared_ptr<Symbol> Parser::parse_identifier(ParserContext& context)
@@ -224,8 +227,7 @@ Token& Parser::match(std::string token_type)
         return prev;
     }
     
-    // TODO error
-    std::exit(1);
+    error({ token_type });
 }
 
 Token& Parser::match(std::initializer_list<std::string> token_types)
@@ -244,8 +246,7 @@ Token& Parser::match(std::vector<std::string> token_types)
         }
     }
     
-    // TODO error
-    std::exit(1);
+    error(token_types);
 }
 
 bool Parser::is_currently(std::initializer_list<std::string> options)
@@ -265,4 +266,26 @@ bool Parser::is_currently(std::vector<std::string> options)
     }
 
     return false;
+}
+
+_GLIBCXX_NORETURN void Parser::error(std::initializer_list<std::string> token_types)
+{
+    std::vector<std::string> vec = token_types;
+    error(vec);
+}
+
+_GLIBCXX_NORETURN void Parser::error(std::vector<std::string> token_types)
+{
+    std::cerr << "Parse Error: around " << current().span.end.line << ":" << current().span.end.col << ": expected ";
+    for (auto i = 0; i < token_types.size(); i++)
+    {
+        std::cerr << token_types[i]; 
+        if (i < token_types.size() - 1)
+        {
+            std::cerr << ", ";
+        }
+    }
+
+    std::cerr << " got " << current().value << "\n";
+    std::exit(1);
 }

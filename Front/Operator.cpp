@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Operator.hpp"
 
 BinOp getBinOp(std::string op)
@@ -22,9 +23,32 @@ BinOp getBinOp(std::string op)
     {
         return BinOp::Modulo;
     }
+    else if (op == "=")
+    {
+        return BinOp::Assign;
+    }
 
-    // TODO error
+    std::cerr << "Error: unrecognized binary operator " << op << "\n";
     std::exit(1);
+}
+
+std::string toString(BinOp op)
+{
+    switch (op)
+    {
+        case BinOp::Plus:
+            return "+";
+        case BinOp::Minus:
+            return "-";
+        case BinOp::Times:
+            return "*";
+        case BinOp::Divide:
+            return "/";
+        case BinOp::Modulo:
+            return "%";
+        case BinOp::Assign:
+            return "=";
+    }
 }
 
 UnOp getUnOp(std::string op)
@@ -44,6 +68,21 @@ UnOp getUnOp(std::string op)
 
     // TODO do the rest later
 
-    // TODO error
+    std::cerr << "Error: unrecognized unary operator " << op << "\n";
     std::exit(1);
+}
+
+std::string toString(UnOp op)
+{
+    switch (op)
+    {
+        case UnOp::Negation:
+        case UnOp::Deref:
+        case UnOp::AddrOf:
+        case UnOp::Pre_PlusPlus:
+        case UnOp::Post_PlusPlus:
+        case UnOp::Pre_MinusMinus:
+        case UnOp::Post_MinusMinus:
+            return "TODO";
+    }
 }

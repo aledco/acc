@@ -5,7 +5,8 @@
 
 inline std::vector<std::vector<std::string>> operator_precedence = {
     { "*", "/", "%" },
-    { "+", "-" } // TODO add more later
+    { "+", "-" }, // TODO add more later
+    { "=" }
 };
 
 enum class BinOp
@@ -14,7 +15,8 @@ enum class BinOp
     Minus,
     Times,
     Divide,
-    Modulo
+    Modulo,
+    Assign
 };
 
 enum class UnOp
@@ -29,4 +31,7 @@ enum class UnOp
 };
 
 BinOp getBinOp(std::string op);
+std::string toString(BinOp op);
+
 UnOp getUnOp(std::string op);
+std::string toString(UnOp op);

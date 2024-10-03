@@ -26,16 +26,19 @@ static std::string read_file(const char *filepath)
 
 int main(int argc, char *argv[])
 {
-    // TODO add command line arg parsing
-    if (argc < 2)
-    {
-        error("no input file");
-    }
+    // // TODO add command line arg parsing
+    // if (argc < 2)
+    // {
+    //     error("no input file");
+    // }
 
-    char *filepath = argv[1];
-    std::string input = read_file(filepath);
+    // char *filepath = argv[1];
+    std::string filepath = "test.c";
+    std::string input = read_file(filepath.c_str());
     Lexer lexer(input);
     Parser parser(lexer);
     auto program = parser.parse();
+    std::cout << "HERE\n";
+    program->dump();
     return 0;
 }

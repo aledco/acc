@@ -2,7 +2,7 @@
 
 #include <string>
 #include <memory>
-#include <map>
+#include <vector>
 #include "Lexer.hpp"
 #include "SyntaxTree.hpp"
 #include "SymbolTable.hpp"
@@ -41,11 +41,12 @@ private:
     std::shared_ptr<Expression> parse_term(ParserContext& context);
     //std::shared_ptr<Assignment> parse_assignment(ParserContext& context);
     //std::shared_ptr<FunctionCall> parse_function_call(ParserContext& context);
-    //std::shared_ptr<BinaryOperation> parse_binary_operation()
-    std::shared_ptr<IntegerConstant> parse_integer_constant(ParserContext& context);
 
     std::shared_ptr<Type> parse_type(ParserContext& context);
     std::shared_ptr<Symbol> parse_identifier(ParserContext& context);
+
+    _GLIBCXX_NORETURN void error(std::initializer_list<std::string> token_types);
+    _GLIBCXX_NORETURN void error(std::vector<std::string> token_types);
 
 public:
     Parser(Lexer& lexer): lexer{lexer} {}
