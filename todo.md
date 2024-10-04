@@ -1,6 +1,7 @@
 # TODO
 
 - Finish SyntaxTree.dump()
+- Add a stack for symbol tables in ParserContext
 - Add typechecking
 - Add const to everything
 - Add failure tests

@@ -39,7 +39,6 @@ private:
     std::shared_ptr<Expression> parse_expression(ParserContext& context, int p);
     std::shared_ptr<Expression> parse_unary(ParserContext& context);
     std::shared_ptr<Expression> parse_term(ParserContext& context);
-    //std::shared_ptr<Assignment> parse_assignment(ParserContext& context);
     //std::shared_ptr<FunctionCall> parse_function_call(ParserContext& context);
 
     std::shared_ptr<Type> parse_type(ParserContext& context);

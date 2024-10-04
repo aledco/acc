@@ -21,6 +21,7 @@ std::shared_ptr<Program> Parser::parse()
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
     context.current_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
+    // TODO need a stack for the local symbol tables to push and pop when entering scopes
     
     auto return_type = parse_type(context);
     auto function_name_token = match(TokenType_Id);
@@ -47,7 +48,7 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         [](const auto& param) -> auto { return param->type; });
     
     auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
-    auto function_symbol = context.current_symbol_table->add_symbol(function_name_token, function_type);
+    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
 
     auto body = parse_compound_statement(context);
     return std::make_shared<FunctionDef>(function_symbol, params, std::move(body));
@@ -90,7 +91,8 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 
 std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
-    match("{");;
+    match("{");
+    //context.current_symbol_table = std::make_shared<SymbolTable>(context.current_symbol_table);
     std::vector<std::shared_ptr<Statement>> statements;
     while (is_currently({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
@@ -177,7 +179,21 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         auto symbol = parse_identifier(context);
         if (is_currently({ "(" }))
         {
-            // TODO parse function
+            match("(");
+
+            std::vector<std::shared_ptr<Expression>> args;
+            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
+            {
+                args.push_back(parse_expression(context));
+                while (is_currently({ "," }))
+                {
+                    match(",");
+                    args.push_back(parse_expression(context));
+                }
+            }
+
+            match(")");
+            return std::make_shared<FunctionCall>(symbol, args);
         }
         else if (is_currently({ "[" }))
         {
