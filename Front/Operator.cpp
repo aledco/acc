@@ -29,7 +29,7 @@ BinOp getBinOp(std::string op)
     }
 
     std::cerr << "Error: unrecognized binary operator " << op << "\n";
-    std::exit(1);
+    throw std::exception();
 }
 
 std::string toString(BinOp op)
@@ -69,7 +69,7 @@ UnOp getUnOp(std::string op)
     // TODO do the rest later
 
     std::cerr << "Error: unrecognized unary operator " << op << "\n";
-    std::exit(1);
+    throw std::exception();
 }
 
 std::string toString(UnOp op)

@@ -6,7 +6,7 @@
 void Lexer::lex()
 {
     // TODO handle the rest of the tokens later, like floats
-    
+
     LexerContext context;
     while (!eof())
     {
@@ -146,7 +146,7 @@ Token Lexer::lex_op(LexerContext& context)
 _GLIBCXX_NORETURN void Lexer::error(LexerContext& context)
 {
     std::cerr << "Syntax Error: " << context.pos.line << ":" << context.pos.col << std::endl;
-    std::exit(1);
+    throw std::exception();
 }
 
 bool vector_contains_char(std::vector<std::string>& vec, char c)

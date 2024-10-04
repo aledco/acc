@@ -3,7 +3,7 @@
 - Finish SyntaxTree.dump()
 - Add typechecking
 - Add const to everything
-- Add errors
+- Add failure tests
 
 # Plan
 - Finish parser

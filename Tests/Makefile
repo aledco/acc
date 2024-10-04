@@ -8,7 +8,7 @@ TEST_OFILES = $(TEST_CPPFILES:.cpp=.o)
 .cpp.o:
 	$(CPPC) $(CPPFLAGS) -c $< -lgtest
 
-tests: $(TEST_OFILES) test_util.o
+tests: $(TEST_OFILES) TestUtils.o Environment.o
 
 .PHONY: clean
 clean:

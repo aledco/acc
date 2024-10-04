@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include "Lexer.hpp"
 #include "Type.hpp"
 
 struct Symbol
@@ -23,6 +24,6 @@ public:
     SymbolTable(): parent(nullptr) {}
     SymbolTable(std::shared_ptr<SymbolTable> parent): parent(parent) {}
 
-    std::shared_ptr<Symbol> add_symbol(std::string name, std::shared_ptr<Type> type);
-    std::shared_ptr<Symbol> lookup(std::string name);
+    std::shared_ptr<Symbol> add_symbol(Token& name, std::shared_ptr<Type> type);
+    std::shared_ptr<Symbol> lookup(Token& name);
 };

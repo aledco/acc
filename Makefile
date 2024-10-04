@@ -1,5 +1,5 @@
 CPPC = clang++-18
-CPPFLAGS = -g $(shell llvm-config --cxxflags --ldflags --libs) -Wno-unused-command-line-argument
+CPPFLAGS = -g $(shell llvm-config --cxxflags --ldflags --libs | sed s/-fno-exceptions//) -Wno-unused-command-line-argument
 INCLUDE = -IFront -IIR -IBack
 
 export CPPC

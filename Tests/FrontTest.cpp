@@ -1,18 +1,29 @@
 #include <iostream>
 #include <vector>
 #include <gtest/gtest.h>
-#include "test_util.hpp"
+#include "TestUtils.hpp"
+#include "Environment.hpp"
 #include "Lexer.hpp"
 #include "Parser.hpp"
 
-static void NormalExit()
-{
-
-}
-
 TEST(Front, Lexer)
 {
-    auto input = read_input(1);
-    Lexer lexer(input); // TODO need a way to test that no errors happened
-    EXPECT_NEQ(lexer.size(), 0);
+    for (auto& input : all_inputs)
+    {
+        EXPECT_NO_THROW({
+            Lexer lexer(input);
+        });
+    }
+}
+
+TEST(Front, Parser)
+{
+    for (auto& input : all_inputs)
+    {
+        Lexer lexer(input);
+        EXPECT_NO_THROW({
+            Parser parser(lexer);
+            auto program = parser.parse();
+        });
+    }
 }

@@ -47,8 +47,8 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         [](const auto& param) -> auto { return param->type; });
     
     auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
-    auto function_symbol = context.current_symbol_table->add_symbol(function_name_token.value, function_type);
-    
+    auto function_symbol = context.current_symbol_table->add_symbol(function_name_token, function_type);
+
     auto body = parse_compound_statement(context);
     return std::make_shared<FunctionDef>(function_symbol, params, std::move(body));
 }
@@ -57,7 +57,7 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 {
     auto param_type = parse_type(context);
     auto param_token = match(TokenType_Id);
-    return context.current_symbol_table->add_symbol(param_token.value, param_type);
+    return context.current_symbol_table->add_symbol(param_token, param_type);
 }
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
@@ -106,7 +106,7 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
 {
     auto type = parse_type(context);
     auto token = match(TokenType_Id);
-    auto symbol = context.current_symbol_table->add_symbol(token.value, type);
+    auto symbol = context.current_symbol_table->add_symbol(token, type);
     return std::make_shared<VariableDeclaration>(type, symbol);
 }
 
@@ -220,7 +220,7 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
 std::shared_ptr<Symbol> Parser::parse_identifier(ParserContext& context)
 {
     auto token = match(TokenType_Id);
-    return context.current_symbol_table->lookup(token.value);
+    return context.current_symbol_table->lookup(token);
 }
 
 Token& Parser::match(std::string token_type)
@@ -292,5 +292,5 @@ _GLIBCXX_NORETURN void Parser::error(std::vector<std::string> token_types)
     }
 
     std::cerr << " got " << current().value << "\n";
-    std::exit(1);
+    throw std::exception();
 }

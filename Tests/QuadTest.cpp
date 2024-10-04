@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <gtest/gtest.h>
-#include "test_util.hpp"
+#include "TestUtils.hpp"
 #include "Quad.hpp"
 
 TEST(Quad, Test_QuadList)
