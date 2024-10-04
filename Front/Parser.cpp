@@ -6,9 +6,6 @@
 std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
-    context.global_symbol_table = std::make_shared<SymbolTable>();
-    context.current_symbol_table = context.global_symbol_table;
-
     std::vector<std::shared_ptr<FunctionDef>> functions;
     while (is_currently({"void", "int"}))
     {
@@ -20,11 +17,13 @@ std::shared_ptr<Program> Parser::parse()
 
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
-    context.current_symbol_table = std::make_shared<SymbolTable>(context.global_symbol_table);
-    // TODO need a stack for the local symbol tables to push and pop when entering scopes
-    
     auto return_type = parse_type(context);
     auto function_name_token = match(TokenType_Id);
+
+    auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
+    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+
+    context.push_symbol_table();
 
     match("(");
 
@@ -44,13 +43,13 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     match(")");
 
     std::vector<std::shared_ptr<Type>> param_types;
-    std::transform(std::begin(params), std::end(params), std::begin(param_types), 
-        [](const auto& param) -> auto { return param->type; });
-    
-    auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
-    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+    for (auto& param : params)
+    {
+        param_types.push_back(param->type);
+    }
 
     auto body = parse_compound_statement(context);
+    context.pop_symbol_table();
     return std::make_shared<FunctionDef>(function_symbol, params, std::move(body));
 }
 
@@ -58,7 +57,7 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 {
     auto param_type = parse_type(context);
     auto param_token = match(TokenType_Id);
-    return context.current_symbol_table->add_symbol(param_token, param_type);
+    return context.current_symbol_table()->add_symbol(param_token, param_type);
 }
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
@@ -91,8 +90,9 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 
 std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
+    context.push_symbol_table();
+
     match("{");
-    //context.current_symbol_table = std::make_shared<SymbolTable>(context.current_symbol_table);
     std::vector<std::shared_ptr<Statement>> statements;
     while (is_currently({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
@@ -101,6 +101,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
 
     match("}");
 
+    context.pop_symbol_table();
     return std::make_shared<CompoundStatement>(statements);
 }
 
@@ -108,7 +109,7 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
 {
     auto type = parse_type(context);
     auto token = match(TokenType_Id);
-    auto symbol = context.current_symbol_table->add_symbol(token, type);
+    auto symbol = context.current_symbol_table()->add_symbol(token, type);
     return std::make_shared<VariableDeclaration>(type, symbol);
 }
 
@@ -236,7 +237,7 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
 std::shared_ptr<Symbol> Parser::parse_identifier(ParserContext& context)
 {
     auto token = match(TokenType_Id);
-    return context.current_symbol_table->lookup(token);
+    return context.current_symbol_table()->lookup(token);
 }
 
 Token& Parser::match(std::string token_type)

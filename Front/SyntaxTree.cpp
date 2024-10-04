@@ -29,9 +29,27 @@ void FunctionCall::dump(int depth)
     indent(depth);
     std::cout << "name = " << function->name << ",\n";
     indent(depth);
-    std::cout << "args = (";
-    // TODO put each arg on new line
-    std::cout <<")\n";
+    std::cout << "args = ";
+    if (args.empty())
+    {
+        std::cout << "(";
+    }
+    else 
+    {
+        std::cout << "(\n";
+        for (auto i = 0; i < args.size(); i++)
+        {
+            indent(depth + 1);
+            args[i]->dump(depth + 1);
+            if (i < args.size() - 1)
+            {
+                std::cout << ",\n";
+            }
+        }
+    }
+    
+
+    std::cout << ")";
 }
 
 void BinaryOperation::dump(int depth)
@@ -101,9 +119,13 @@ void FunctionDef::dump(int depth)
     
     indent(depth);
     std::cout << "params = (";
-    for (auto& param : params)
+    for (auto i = 0; i < params.size(); i++)
     {
-        std::cout << param->name << ", ";
+        std::cout << params[i]->name;
+        if (i < params.size() - 1)
+        {
+            std::cout << ", ";
+        }
     }
 
     std::cout << "),\n";

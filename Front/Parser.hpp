@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <stack>
 #include "Lexer.hpp"
 #include "SyntaxTree.hpp"
 #include "SymbolTable.hpp"
@@ -25,8 +26,21 @@ private:
 
     struct ParserContext
     {
+    private:
+        std::stack<std::shared_ptr<SymbolTable>> symbol_table_stack;
+
+    public:
         std::shared_ptr<SymbolTable> global_symbol_table;
-        std::shared_ptr<SymbolTable> current_symbol_table;
+
+        ParserContext()
+        {
+            global_symbol_table = std::make_shared<SymbolTable>();
+            symbol_table_stack.push(global_symbol_table);
+        }
+
+        inline std::shared_ptr<SymbolTable> current_symbol_table() { return symbol_table_stack.top(); }
+        inline void push_symbol_table() { symbol_table_stack.push(std::make_shared<SymbolTable>(current_symbol_table())); }
+        inline void pop_symbol_table() { symbol_table_stack.pop(); }
     };
 
     std::shared_ptr<FunctionDef> parse_function(ParserContext& context);

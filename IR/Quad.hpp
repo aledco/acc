@@ -45,13 +45,19 @@ enum class OperandType
 struct Operand
 {
     OperandType type;
-    union 
-    {
-        long iconst;
-        std::string strconst;
-        std::shared_ptr<Symbol> symbol;
-        std::string label;
-    } value;
+
+    long iconst;
+    std::string strconst;
+    std::shared_ptr<Symbol> symbol;
+
+    Operand(OperandType type, long val): type(type), iconst(val) {}
+    Operand(OperandType type, std::string val): type(type), strconst(val) {}
+    Operand(OperandType type, std::shared_ptr<Symbol> symbol): type(type), symbol(symbol) {}
+
+    static std::shared_ptr<Operand> MakeIntConstOperand(long val);
+    static std::shared_ptr<Operand> MakeStrConstOperand(std::string val);
+    static std::shared_ptr<Operand> MakeVariableOperand(std::shared_ptr<Symbol> val);
+    static std::shared_ptr<Operand> MakeLabelOperand(std::string val);
 };
 
 struct Quad

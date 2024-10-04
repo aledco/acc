@@ -1,6 +1,26 @@
 #include <cassert>
 #include "Quad.hpp"
 
+std::shared_ptr<Operand> Operand::MakeIntConstOperand(long val)
+{
+    return std::make_shared<Operand>(OperandType::IntConst, val);
+}
+
+std::shared_ptr<Operand> Operand::MakeStrConstOperand(std::string val)
+{
+    return std::make_shared<Operand>(OperandType::StrConst, val);
+}
+
+std::shared_ptr<Operand> Operand::MakeVariableOperand(std::shared_ptr<Symbol> val)
+{
+    return std::make_shared<Operand>(OperandType::Variable, val);
+}
+
+std::shared_ptr<Operand> Operand::MakeLabelOperand(std::string val)
+{
+    return std::make_shared<Operand>(OperandType::Label, val);
+}
+
 std::shared_ptr<Quad> Quad::MakeBinOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res)
 {
     assert(op == QuadOp::Add || op == QuadOp::Sub || op == QuadOp::Mul || op == QuadOp::Div || op == QuadOp::Mod);
