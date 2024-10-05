@@ -26,4 +26,6 @@ public:
 
     std::shared_ptr<Symbol> add_symbol(Token& name, std::shared_ptr<Type> type);
     std::shared_ptr<Symbol> lookup(Token& name);
+
+    std::shared_ptr<Symbol> new_temp(); // TODO implement
 };

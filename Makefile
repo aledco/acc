@@ -8,7 +8,7 @@ export CPPFLAGS
 DEST = acc
 
 $(DEST): main.cpp Front IR Back
-	$(CPPC) main.cpp $(CPPFLAGS) $(INCLUDE) -o $(DEST) Front/*.o Back/*.o
+	$(CPPC) main.cpp $(CPPFLAGS) $(INCLUDE) -o $(DEST) Front/*.o IR/*.o Back/*.o
 
 test: Tests/main.cpp Front IR Back Tests
 	$(CPPC) Tests/main.cpp $(CPPFLAGS) $(INCLUDE) -o test Tests/*.o Front/*.o IR/*.o Back/*.o -lgtest

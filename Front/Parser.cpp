@@ -12,7 +12,7 @@ std::shared_ptr<Program> Parser::parse()
         functions.push_back(std::move(parse_function(context)));
     }
 
-    return std::make_shared<Program>(functions);
+    return std::make_shared<Program>(functions, context.global_symbol_table);
 }
 
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
@@ -50,7 +50,7 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 
     auto body = parse_compound_statement(context);
     context.pop_symbol_table();
-    return std::make_shared<FunctionDef>(function_symbol, params, std::move(body));
+    return std::make_shared<FunctionDef>(function_symbol, params, std::move(body), context.current_symbol_table());
 }
 
 std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
@@ -101,8 +101,9 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
 
     match("}");
 
+    auto symbol_table = context.current_symbol_table();
     context.pop_symbol_table();
-    return std::make_shared<CompoundStatement>(statements);
+    return std::make_shared<CompoundStatement>(statements, symbol_table);
 }
 
 std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserContext& context)

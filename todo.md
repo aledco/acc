@@ -5,6 +5,7 @@
 - Add typechecking
 - Add const to everything
 - Add failure tests
+- Add a return statement to the end of a function if there is none
 
 # Plan
 - Finish parser
