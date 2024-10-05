@@ -60,6 +60,7 @@ std::shared_ptr<Symbol> SymbolTable::new_temp(std::shared_ptr<Type> type)
     }
 
     auto name = "$temp" +  std::to_string(temp_count);
+    temp_count++;
     return add_symbol(name, type);
 }
 

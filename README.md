@@ -26,6 +26,11 @@ You may need to run the following command to use the correct llvm-config
 sudo ln -s /usr/bin/llvm-config-18 /usr/bin/llvm-config
 ```
 
+## Install TCLAP
+```
+sudo apt-get install libtclap-dev
+```
+
 # Testing
 
 ## Install Google Test

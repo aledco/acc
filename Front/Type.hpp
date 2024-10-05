@@ -38,4 +38,5 @@ struct Type
     }
 
     int size();
+    void dump();
 };

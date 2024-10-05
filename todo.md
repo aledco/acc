@@ -6,6 +6,8 @@
 - Add const to everything
 - Add failure tests
 - Add a return statement to the end of a function if there is none
+- Free temps in ir codegen
+- Fix segfault for IR dump test11.c
 
 # Plan
 - Finish parser

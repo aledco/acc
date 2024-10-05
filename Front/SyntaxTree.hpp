@@ -29,7 +29,10 @@ struct Expression : Statement
     std::shared_ptr<Type> type;
     std::shared_ptr<Symbol> place;
     std::shared_ptr<Symbol> location;
+
     Expression(std::shared_ptr<SymbolTable> symbol_table) : Statement(symbol_table) {}
+
+    virtual void ir_codegen_lval();
 };
 
 struct CompoundStatement : Statement
@@ -78,6 +81,7 @@ struct Variable : Expression
     Variable(std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), symbol(symbol) {}
 
     void ir_codegen() override;
+    void ir_codegen_lval() override;
     void dump(int depth = 1) override;
 };
 
@@ -121,6 +125,7 @@ struct UnaryOperation : Expression
     UnaryOperation(UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), op(op), expr(expr) {}
 
     void ir_codegen() override;
+    void ir_codegen_lval() override;
     void dump(int depth = 1) override;
 };
 
@@ -149,6 +154,7 @@ struct FunctionDef : SyntaxTree
     std::shared_ptr<Symbol> function;
     std::vector<std::shared_ptr<Symbol>> params;
     std::shared_ptr<CompoundStatement> body;
+    
     FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(symbol_table),
         function(function), 
