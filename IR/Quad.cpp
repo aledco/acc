@@ -106,6 +106,12 @@ void QuadList::push_back(std::shared_ptr<Quad> quad)
     }
 }
 
+QuadList QuadList::append(QuadList& list, std::shared_ptr<Quad> quad)
+{
+    auto list2 = QuadList(quad, quad);
+    return QuadList::concat(list, list2);
+}
+
 QuadList QuadList::concat(QuadList& list1, QuadList& list2)
 {
     if (list1.empty() && list2.empty())

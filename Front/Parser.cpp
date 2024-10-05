@@ -111,7 +111,7 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
     auto type = parse_type(context);
     auto token = match(TokenType_Id);
     auto symbol = context.current_symbol_table()->add_symbol(token, type);
-    return std::make_shared<VariableDeclaration>(type, symbol);
+    return std::make_shared<VariableDeclaration>(type, symbol, context.current_symbol_table());
 }
 
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
@@ -120,11 +120,11 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
     if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
         auto expr = parse_expression(context);
-        return std::make_shared<Return>(expr);
+        return std::make_shared<Return>(expr, context.current_symbol_table());
     }
     else
     {
-        return std::make_shared<Return>();
+        return std::make_shared<Return>(context.current_symbol_table());
     }
 }
 
@@ -145,7 +145,7 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
     {
         auto op = match(operator_precedence[p]);
         auto rhs = parse_expression(context, p-1);
-        lhs = std::make_shared<BinaryOperation>(getBinOp(op.value), lhs, rhs);
+        lhs = std::make_shared<BinaryOperation>(getBinOp(op.value), lhs, rhs, context.current_symbol_table());
     }
 
     return lhs;
@@ -157,7 +157,7 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
     {
         auto op = match({ "-", "*", "&" });
         auto expr = parse_term(context);
-        return std::make_shared<UnaryOperation>(getUnOp(op.value), expr);
+        return std::make_shared<UnaryOperation>(getUnOp(op.value), expr, context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
     {
@@ -174,7 +174,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
     if (is_currently({ TokenType_Int }))
     {
         auto token = match(TokenType_Int);
-        return std::make_shared<IntegerConstant>(std::stol(token.value));
+        return std::make_shared<IntegerConstant>(std::stol(token.value), context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Id }))
     {
@@ -195,7 +195,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             }
 
             match(")");
-            return std::make_shared<FunctionCall>(symbol, args);
+            return std::make_shared<FunctionCall>(symbol, args, context.current_symbol_table());
         }
         else if (is_currently({ "[" }))
         {
@@ -203,7 +203,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         }
         else
         {
-            return std::make_shared<Variable>(symbol);
+            return std::make_shared<Variable>(symbol, context.current_symbol_table());
         }
     }
     else if (is_currently({ "(" }))

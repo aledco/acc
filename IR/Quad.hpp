@@ -98,5 +98,6 @@ public:
     inline bool empty() { return head == nullptr; }
     inline std::shared_ptr<Quad> get_head() { return head; }
 
+    static QuadList append(QuadList& list, std::shared_ptr<Quad> quad);
     static QuadList concat(QuadList& list1, QuadList& list2);
 };

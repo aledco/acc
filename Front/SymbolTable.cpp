@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "SymbolTable.hpp"
 
 std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Type> type)
@@ -9,8 +10,14 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Typ
         throw std::exception();
     }
 
-    auto symbol = std::make_shared<Symbol>(name.value, type);
-    table[name.value] = symbol;
+    return add_symbol(name.value, type);
+}
+
+std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type)
+{
+    assert(table.find(name) == table.end());
+    auto symbol = std::make_shared<Symbol>(name, type);
+    table[name] = symbol;
     return symbol;
 }
 
@@ -28,4 +35,35 @@ std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
 
     std::cerr << "Name Error: around " << name.span.end.line << ":" << name.span.end.col << ": unknown identifier " << name.value << "\n";
     throw std::exception();
+}
+
+ std::shared_ptr<Symbol> SymbolTable::lookup(std::string name)
+ {
+    if (table.find(name) != table.end())
+    {
+        return table[name];
+    }
+
+    assert(parent);
+    return parent->lookup(name);
+ }
+
+std::shared_ptr<Symbol> SymbolTable::new_temp(std::shared_ptr<Type> type)
+{
+    for (auto& temp : free_temps)
+    {
+        if (temp->type == type)
+        {
+            free_temps.remove(temp);
+            return temp;
+        }
+    }
+
+    auto name = "$temp" +  std::to_string(temp_count);
+    return add_symbol(name, type);
+}
+
+void SymbolTable::free_temp(std::shared_ptr<Symbol> temp)
+{
+    free_temps.push_back(temp);
 }
