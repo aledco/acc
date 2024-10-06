@@ -25,11 +25,22 @@ void Type::dump()
             std::cerr << "int";
             break;
         case TypeType::Function:
-            std::cerr << "->";
-            alt_type->dump();
+            std::cerr << "(";
+            for (auto i = 0; i < param_types.size(); i++)
+            {
+                param_types[i]->dump();
+                if (i < param_types.size() - 1)
+                {
+                    std::cerr << ", ";
+                }
+            }
+
+            std::cerr << ")";
+            std::cerr << " -> ";
+            ret_type->dump();
             break;
         case TypeType::Array:
-            alt_type->dump();
+            elem_type->dump();
             std::cerr << "[]";
             break;
     }

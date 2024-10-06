@@ -3,6 +3,151 @@
 #include "Operator.hpp"
 #include "SyntaxTree.hpp"
 
+/********************************************************************************/
+/*                             Type Check                                       */
+/********************************************************************************/
+
+static _GLIBCXX_NORETURN void error(std::string msg) // TODO take a span to show line numbers
+{
+    std::cerr << "Type Error: " << msg << "\n";
+    throw std::exception();
+}
+
+// TODO add type checking
+void CompoundStatement::typecheck(TypecheckContext& context)
+{
+    if (statements.empty() || dynamic_cast<Return*>(statements.back().get()) == nullptr)
+    {
+        // if the last statement of the compound add a return.
+        statements.push_back(std::make_shared<Return>(symbol_table));
+    }
+
+    for (auto& statement : statements)
+    {
+        statement->typecheck(context);
+    }
+}
+
+void VariableDeclaration::typecheck(TypecheckContext& context)
+{
+}
+
+void Return::typecheck(TypecheckContext& context)
+{
+    if (expr)
+    {
+        expr->typecheck(context);
+        if (*expr->type != *context.func_def->function->type->ret_type)
+        {
+            // TODO implicitly cast type if possible
+            error("return type does not match function");
+        }
+    }
+    else if (context.func_def->function->type->ret_type->type != TypeType::Void)
+    {
+        // expr->type->dump();
+        // std::cerr << "\n"; 
+        // context.func_def->function->type->ret_type->dump();
+        // std::cerr << "\n"; 
+
+        error("return type does not match function");
+    }
+}
+
+void Variable::typecheck(TypecheckContext& context)
+{
+    type = symbol->type;
+}
+
+void FunctionCall::typecheck(TypecheckContext& context)
+{
+    // TODO check types of args
+    if (args.size() != function->type->param_types.size())
+    {
+        error("number of arguments do not match the function");
+    }
+
+    for (auto i = 0; i < args.size(); i++)
+    {
+        args[i]->typecheck(context);
+        if (*args[i]->type != *function->type->param_types[i])
+        {
+            // TODO implicitly cast type if possible
+            error("argument type does not match function");
+        }
+    }
+
+    type = function->type->ret_type;
+}
+
+void BinaryOperation::typecheck(TypecheckContext& context)
+{
+    lhs->typecheck(context);
+    rhs->typecheck(context);
+    if (*lhs->type != *rhs->type)
+    {
+        // TODO implicitly cast type if possible
+            error("type mismatch between operands of binary operation");
+    }
+    else
+    {
+        type = lhs->type;
+    }
+}
+
+void UnaryOperation::typecheck(TypecheckContext& context)
+{
+    expr->typecheck(context);
+    switch (op)
+    {
+        case UnOp::Negation:
+            type = expr->type;
+            break;
+        case UnOp::Deref:
+        case UnOp::AddrOf:
+        case UnOp::Pre_PlusPlus:
+        case UnOp::Post_PlusPlus:
+        case UnOp::Pre_MinusMinus:
+        case UnOp::Post_MinusMinus:
+            std::cerr << "Unimplemented\n";
+            throw std::exception(); // TODO handle later
+    }
+}
+
+void IntegerConstant::typecheck(TypecheckContext& context)
+{
+    type = std::make_shared<Type>(TypeType::Int);
+}
+
+void CharConstant::typecheck(TypecheckContext& context)
+{
+    // TODO later
+}
+
+void FunctionDef::typecheck(TypecheckContext& context)
+{
+    body->typecheck(context);
+}
+
+void Program::typecheck(TypecheckContext& context)
+{
+    for (auto& function : functions)
+    {
+        context.func_def = function;
+        function->typecheck(context);
+    }
+}
+
+void Program::typecheck()
+{
+    TypecheckContext context;
+    typecheck(context);
+}
+
+/********************************************************************************/
+/*                                   Dump                                       */
+/********************************************************************************/
+
 static void indent(int depth)
 {
     std::cout << std::string(depth, '\t');

@@ -18,13 +18,13 @@ static bool file_exists(std::string filepath)
     return file.good();
 }
 
-std::vector<std::string> read_all_inputs()
+std::vector<std::tuple<int, std::string>> read_all_inputs()
 {
-    std::vector<std::string> inputs;
+    std::vector<std::tuple<int, std::string>> inputs;
     auto basepath = "Tests/in/test";
     for (auto i  = 1; file_exists(basepath + std::to_string(i) + ".c"); i++)
     {
-        inputs.push_back(read_input(i));
+        inputs.push_back(std::tuple<int, std::string>(i, read_input(i)));
     }
 
     return inputs;

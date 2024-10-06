@@ -45,8 +45,13 @@ void FunctionCall::ir_codegen()
         ir_list = QuadList::append(ir_list, inst);
     }
 
-    auto inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size()));
-    ir_list = QuadList::append(ir_list, inst);
+
+    auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size())); 
+    ir_list = QuadList::append(ir_list, call_inst);
+
+    place = symbol_table->new_temp(type);
+    auto retrieve_inst = Quad::MakeRetrieveOp(Operand::MakeVariableOperand(place));
+    ir_list = QuadList::append(ir_list, retrieve_inst);
 }
 
 void BinaryOperation::ir_codegen()

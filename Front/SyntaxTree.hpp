@@ -8,13 +8,23 @@
 #include "Operator.hpp"
 #include "Quad.hpp"
 
+struct FunctionDef;
+
 struct SyntaxTree 
 {
+protected:
+    struct TypecheckContext 
+    {
+        std::shared_ptr<FunctionDef> func_def;
+    };
+
+public:
     std::shared_ptr<SymbolTable> symbol_table;
     QuadList ir_list;
 
     SyntaxTree(std::shared_ptr<SymbolTable> symbol_table) : symbol_table(symbol_table) {}
 
+    virtual void typecheck(TypecheckContext& context) = 0;
     virtual void ir_codegen() = 0;
     virtual void dump(int depth = 1) = 0;
 };
@@ -44,6 +54,7 @@ struct CompoundStatement : Statement
         statements(statements)
     {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -59,6 +70,7 @@ struct VariableDeclaration : Statement
         symbol(symbol) 
     {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -70,6 +82,7 @@ struct Return : Statement
     Return(std::shared_ptr<SymbolTable> symbol_table): Statement(symbol_table), expr(nullptr) {}
     Return(std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Statement(symbol_table), expr(expr) {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -80,6 +93,7 @@ struct Variable : Expression
 
     Variable(std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), symbol(symbol) {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void ir_codegen_lval() override;
     void dump(int depth = 1) override;
@@ -96,6 +110,7 @@ struct FunctionCall : Expression
         args(args)
     {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -113,6 +128,7 @@ struct BinaryOperation : Expression
         rhs(rhs)
     {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -124,6 +140,7 @@ struct UnaryOperation : Expression
 
     UnaryOperation(UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), op(op), expr(expr) {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void ir_codegen_lval() override;
     void dump(int depth = 1) override;
@@ -135,6 +152,7 @@ struct IntegerConstant : Expression
 
     IntegerConstant(long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), value(value) {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -145,6 +163,7 @@ struct CharConstant : Expression
 
     CharConstant(long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), value(value) {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -154,7 +173,7 @@ struct FunctionDef : SyntaxTree
     std::shared_ptr<Symbol> function;
     std::vector<std::shared_ptr<Symbol>> params;
     std::shared_ptr<CompoundStatement> body;
-    
+
     FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(symbol_table),
         function(function), 
@@ -162,6 +181,7 @@ struct FunctionDef : SyntaxTree
         body(body)
     {}
 
+    void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };
@@ -175,6 +195,8 @@ struct Program : SyntaxTree
         functions(functions)
     {}
 
+    void typecheck(TypecheckContext& context) override;
+    void typecheck();
     void ir_codegen() override;
     void dump(int depth = 1) override;
 };

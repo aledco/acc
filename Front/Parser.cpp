@@ -12,18 +12,18 @@ std::shared_ptr<Program> Parser::parse()
         functions.push_back(std::move(parse_function(context)));
     }
 
-    return std::make_shared<Program>(functions, context.global_symbol_table);
+    auto program = std::make_shared<Program>(functions, context.global_symbol_table);
+    program->typecheck();
+    return program;
 }
 
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
-    auto return_type = parse_type(context);
-    auto function_name_token = match(TokenType_Id);
-
-    auto function_type = std::make_shared<Type>(TypeType::Function, return_type);
-    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
 
     context.push_symbol_table();
+
+    auto return_type = parse_type(context);
+    auto function_name_token = match(TokenType_Id);
 
     match("(");
 
@@ -48,9 +48,13 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         param_types.push_back(param->type);
     }
 
+    auto function_type = std::make_shared<Type>(TypeType::Function, return_type, param_types);
+    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+
     auto body = parse_compound_statement(context);
     context.pop_symbol_table();
-    return std::make_shared<FunctionDef>(function_symbol, params, std::move(body), context.current_symbol_table());
+
+    return std::make_shared<FunctionDef>(function_symbol, params, body, context.current_symbol_table());
 }
 
 std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)

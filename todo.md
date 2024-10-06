@@ -1,18 +1,14 @@
 # TODO
 
-- Finish SyntaxTree.dump()
-- Add a stack for symbol tables in ParserContext
-- Add typechecking
 - Add const to everything
 - Add failure tests
-- Add a return statement to the end of a function if there is none
 - Free temps in ir codegen
-- Fix segfault for IR dump test11.c
+- Need to add spans to AST nodes to show error messages better
 
 # Plan
 - Finish parser
     - Expressions
-        - Char const (ast)
+        - Char const
         - Str const
         - Array index
         - Floats
@@ -26,6 +22,5 @@
     - Misc
         - Type conversion nodes
 
-- Convert the AST into a three address code IR
 - Construct a control flow graph using the IR
 - Generate LLVM using control flow graph

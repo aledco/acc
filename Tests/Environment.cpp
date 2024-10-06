@@ -1,6 +1,6 @@
 #include "Environment.hpp"
 
-std::vector<std::string> all_inputs;
+std::vector<std::tuple<int, std::string>> all_inputs;
 
 void Environment::SetUp() 
 {

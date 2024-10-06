@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <tuple>
 
 std::string read_input(int test_number);
-std::vector<std::string> read_all_inputs();
+std::vector<std::tuple<int, std::string>> read_all_inputs();
