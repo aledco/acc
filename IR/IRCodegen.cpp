@@ -149,8 +149,7 @@ void FunctionDef::ir_codegen()
     cfg = ConstructCFG(ir_list);
 }
 
-void Program::ir_codegen() // TODO dont need to return quad list
-{
+void Program::ir_codegen()
     for (auto& function : functions)
     {
         function->ir_codegen();
