@@ -104,6 +104,7 @@ public:
     void push_back(std::shared_ptr<Quad> quad);
     inline bool empty() { return head == nullptr; }
     inline std::shared_ptr<Quad> get_head() { return head; }
+    inline std::shared_ptr<Quad> get_tail() { return tail; }
     void dump();
 
     static QuadList append(QuadList& list, std::shared_ptr<Quad> quad);

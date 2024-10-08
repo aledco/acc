@@ -7,6 +7,7 @@
 #include "Type.hpp"
 #include "Operator.hpp"
 #include "Quad.hpp"
+#include "CFG.hpp"
 
 struct FunctionDef;
 
@@ -173,6 +174,8 @@ struct FunctionDef : SyntaxTree
     std::shared_ptr<Symbol> function;
     std::vector<std::shared_ptr<Symbol>> params;
     std::shared_ptr<CompoundStatement> body;
+
+    std::vector<std::shared_ptr<BasicBlock>> cfg;
 
     FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(symbol_table),

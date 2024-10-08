@@ -145,6 +145,8 @@ void FunctionDef::ir_codegen()
 
     body->ir_codegen();
     ir_list = QuadList::concat(ir_list, body->ir_list);
+
+    cfg = ConstructCFG(ir_list);
 }
 
 void Program::ir_codegen() // TODO dont need to return quad list
