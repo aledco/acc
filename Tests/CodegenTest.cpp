@@ -1,30 +1,24 @@
-// #include <iostream>
-// #include <vector>
-// #include <gtest/gtest.h>
-// #include "TestUtils.hpp"
-// #include "Lexer.hpp"
-// #include "Parser.hpp"
+#include <iostream>
+#include <vector>
+#include <gtest/gtest.h>
+#include "TestUtils.hpp"
+#include "Environment.hpp"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "Codegen.hpp"
 
-// TEST(Codegen, Test1)
-// {
-//     auto input = read_input(1);
-//     Lexer lexer(input);
-//     Parser parser(lexer);
-//     auto program = parser.parse();
+TEST(Codegen, All)
+{
+    for (auto& input : all_inputs)
+    {
+        Lexer lexer(std::get<1>(input));
+        Parser parser(lexer);
+        auto program = parser.parse();
 
-//     program->codegen();
+        EXPECT_NO_THROW({
+            codegen(program);
+        }) << "Error for test " << std::get<0>(input);
 
-//     EXPECT_TRUE(true);
-// }
-
-// TEST(Codegen, Test2)
-// {
-//     auto input = read_input(2);
-//     Lexer lexer(input);
-//     Parser parser(lexer);
-//     auto program = parser.parse();
-
-//     program->codegen();
-
-//     EXPECT_TRUE(true);
-// }
+        // TODO compile input with clang, compare outputs
+    }
+}

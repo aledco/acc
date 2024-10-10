@@ -5,6 +5,7 @@
 #include <tclap/CmdLine.h>
 #include "Lexer.hpp"
 #include "Parser.hpp"
+#include "Codegen.hpp"
 
 struct Args
 {
@@ -67,6 +68,8 @@ int main(int argc, char *argv[])
         program->ir_list.dump();
         std::cerr << "\n";
     }
+
+    codegen(program);
 
     return 0;
 }

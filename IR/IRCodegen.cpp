@@ -150,6 +150,7 @@ void FunctionDef::ir_codegen()
 }
 
 void Program::ir_codegen()
+{
     for (auto& function : functions)
     {
         function->ir_codegen();

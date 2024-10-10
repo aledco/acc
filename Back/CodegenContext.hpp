@@ -7,6 +7,15 @@
 #include <memory>
 #include <map>
 
+#ifdef __INTELLISENSE__
+    #pragma diag_suppress 135
+    #pragma diag_suppress 283
+    #pragma diag_suppress 77
+    #pragma diag_suppress 65
+    #pragma diag_suppress 439
+    #pragma diag_suppress 40
+#endif
+
 struct CodegenContext
 {
     std::unique_ptr<llvm::LLVMContext> llvm_context;
