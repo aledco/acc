@@ -1,9 +1,12 @@
+#include <filesystem>
 #include "TestUtils.hpp"
 
+static std::string indir = "Tests/in";
+static std::string outdir = "Tests/out";
 
-std::string read_input(int test_number)
+std::string read_input(int test_id)
 {
-    auto filepath = "Tests/in/test" + std::to_string(test_number) + ".c";
+    auto filepath = indir + "/test" + std::to_string(test_id) + ".c";
     std::ifstream file(filepath);
     EXPECT_TRUE(file.good());
 
@@ -18,14 +21,31 @@ static bool file_exists(std::string filepath)
     return file.good();
 }
 
-std::vector<std::tuple<int, std::string>> read_all_inputs()
+std::vector<Input> read_all_inputs()
 {
-    std::vector<std::tuple<int, std::string>> inputs;
-    auto basepath = "Tests/in/test";
+    std::vector<Input> inputs;
+    auto basepath = indir + "/test";
     for (auto i  = 1; file_exists(basepath + std::to_string(i) + ".c"); i++)
     {
-        inputs.push_back(std::tuple<int, std::string>(i, read_input(i)));
+        inputs.push_back(Input(i, basepath + std::to_string(i) + ".c", read_input(i)));
     }
 
     return inputs;
+}
+
+void clear_outdir()
+{
+    if (std::filesystem::is_directory(outdir))
+    {
+        std::filesystem::remove_all(outdir);
+    }
+
+    std::filesystem::create_directory(outdir);
+}
+
+OutputFiles get_output_files(int test_id)
+{
+    auto test_outdir = outdir + "/test" + std::to_string(test_id);
+    std::filesystem::create_directory(test_outdir);
+    return OutputFiles(test_outdir);
 }

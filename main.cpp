@@ -10,16 +10,20 @@
 struct Args
 {
     std::vector<std::string> files;
+    std::string output;
     bool dump;
 
     Args(int argc, char *argv[])
     {
         TCLAP::CmdLine cmd("Alexander's C Compiler", ' ', "1.0");
+        TCLAP::ValueArg<std::string> output_arg("o", "output", "Specify the output file", false, "", "string", cmd);
         TCLAP::SwitchArg dump_arg("d", "dump", "Dump intermediate representations", cmd, false);
         TCLAP::UnlabeledMultiArg<std::string> file_args("files", "The files to compile", true, "string", cmd);
+
         cmd.parse(argc, argv);
 
         files = file_args.getValue();
+        output = output_arg.getValue();
         dump = dump_arg.getValue();
     }
 };
@@ -69,7 +73,15 @@ int main(int argc, char *argv[])
         std::cerr << "\n";
     }
 
-    codegen(program);
+    if (!args.output.empty())
+    {
+        std::ofstream output(args.output);
+        codegen(program, &output);
+    }
+    else
+    {
+        codegen(program);
+    }
 
     return 0;
 }

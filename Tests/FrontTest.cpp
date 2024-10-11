@@ -12,8 +12,8 @@ TEST(Front, Lexer)
     for (auto& input : all_inputs)
     {
         EXPECT_NO_THROW({
-            Lexer lexer(std::get<1>(input));
-        }) << "Error for test " << std::get<0>(input);
+            Lexer lexer(input.content);
+        }) << "Error for test " << input.test_id;
     }
 }
 
@@ -21,10 +21,10 @@ TEST(Front, Parser)
 {
     for (auto& input : all_inputs)
     {
-        Lexer lexer(std::get<1>(input));
+        Lexer lexer(input.content);
         EXPECT_NO_THROW({
             Parser parser(lexer);
             auto program = parser.parse();
-        }) << "Error for test " << std::get<0>(input);
+        }) << "Error for test " << input.test_id;
     }
 }

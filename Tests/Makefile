@@ -10,6 +10,6 @@ TEST_OFILES = $(TEST_CPPFILES:.cpp=.o)
 
 tests: $(TEST_OFILES) TestUtils.o Environment.o
 
-.PHONY: clean
+.PHONY: clean tests
 clean:
 	rm -f *.o

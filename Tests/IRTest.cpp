@@ -11,12 +11,12 @@ TEST(IR, Codegen)
 {
     for (auto& input : all_inputs)
     {
-        Lexer lexer(std::get<1>(input));
+        Lexer lexer(input.content);
         Parser parser(lexer);
         auto program = parser.parse();
         EXPECT_NO_THROW({
             program->ir_codegen();
-        }) << "Error for test " << std::get<0>(input);
+        }) << "Error for test " << input.test_id;
 
         EXPECT_FALSE(program->ir_list.empty());
     }

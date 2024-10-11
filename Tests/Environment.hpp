@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include "TestUtils.hpp"
 
-extern std::vector<std::tuple<int, std::string>> all_inputs;
+extern std::vector<Input> all_inputs;
 
 class Environment : public ::testing::Environment {
 public:

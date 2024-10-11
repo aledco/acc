@@ -6,6 +6,7 @@
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Support/raw_os_ostream.h>
 #include "Type.hpp"
 #include "CodegenContext.hpp"
 #include "Codegen.hpp"
@@ -227,7 +228,7 @@ static llvm::Value *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& co
     return llvm_function;
 }
 
-void codegen(std::shared_ptr<Program> program)
+void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;
     for (auto function : program->functions)
@@ -235,5 +236,13 @@ void codegen(std::shared_ptr<Program> program)
         auto llvm_function = codegen(function, context);
     }
 
-    context.llvm_module->dump();
+    if (file == nullptr)
+    {
+        context.llvm_module->dump();
+    }
+    else
+    {
+        llvm::raw_os_ostream stream(*file);
+        context.llvm_module->print(stream, nullptr);
+    }
 }

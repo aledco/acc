@@ -4,11 +4,42 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <tuple>
 
 #ifdef __INTELLISENSE__
     #pragma diag_suppress 20
 #endif
 
-std::string read_input(int test_number);
-std::vector<std::tuple<int, std::string>> read_all_inputs();
+
+struct Input
+{
+    int test_id;
+    std::string filepath;
+    std::string content;
+    Input(int test_id, std::string filepath, std::string content) : test_id(test_id), filepath(filepath), content(content) {}
+};
+
+struct OutputFiles
+{
+    std::string ll_filepath;
+    std::string s_filepath;
+    std::string exe_filepath;
+    std::string out_filepath;
+    std::string ref_exe_filepath;
+    std::string ref_out_filepath;
+    std::string diff_filepath;
+    OutputFiles(std::string outdir) :
+        ll_filepath(outdir + "/act.ll"),
+        s_filepath(outdir + "/act.s"),
+        exe_filepath(outdir + "/act.exe"),
+        out_filepath(outdir + "/act.out"),
+        ref_exe_filepath(outdir + "/ref.exe"),
+        ref_out_filepath(outdir + "/ref.out"),
+        diff_filepath(outdir + "/diff.out")
+    {}
+};
+
+std::string read_input(int test_id);
+std::vector<Input> read_all_inputs();
+
+void clear_outdir();
+OutputFiles get_output_files(int test_id);
