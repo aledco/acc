@@ -19,6 +19,10 @@ sudo apt install clang
 sudo apt install libtclap-dev
 ```
 
+## LLVM Documentation
+- [LLVM Language Reference Manual](https://llvm.org/docs/LangRef.html)
+- [llvm::IRBuilderBase Class Reference](https://llvm.org/doxygen/classllvm_1_1IRBuilderBase.html)
+
 # Testing
 
 ### Install Google Test
@@ -41,3 +45,7 @@ In the Include path text box, and add `/usr/lib/llvm-18/include` on a new line.
 
 ### C++ Standard
 Set the C++ Standard to `C++17`.
+
+# Miscellaneous
+- [IR Documentation](./IR.md)
+- [TODO](./TODO.md)
