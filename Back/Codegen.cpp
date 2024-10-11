@@ -1,6 +1,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <iostream>
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/Module.h>
@@ -29,8 +30,102 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
     }
 }
 
+static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& context)
+{
+    switch (operand->type)
+    {
+        case OperandType::IntConst:
+            return llvm::ConstantInt::get(*context.llvm_context, llvm::APInt(32, operand->iconst));
+        case OperandType::StrConst:
+            return nullptr; // TODO
+        case OperandType::Variable:
+            return context.llvm_builder->CreateLoad(llvm::Type::getInt32Ty(*context.llvm_context), context.named_values[operand->symbol->name]); // TODO use type info
+        case OperandType::Label:
+            return nullptr; // TODO
+    }
+}
+
+static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    // TODO assert res is a variable
+
+    auto arg1 = codegen(quad->arg1, context);
+    auto arg2 = codegen(quad->arg2, context);
+    auto res = context.llvm_builder->CreateAdd(arg1, arg2, quad->res->symbol->name); // TODO use diff inst for diff bin ops
+    context.named_values[quad->res->symbol->name] = res;
+    return res;
+}
+
+static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    // TODO assert res is a variable
+
+    auto arg1 = codegen(quad->arg1, context);
+    
+    // todo perform unary operation
+
+
+    auto res = context.llvm_builder->CreateAlloca(llvm::Type::getInt32Ty(*context.llvm_context), nullptr, quad->res->symbol->name); // TODO use type info
+    context.named_values[quad->res->symbol->name] = res;
+
+    context.llvm_builder->CreateStore(arg1, res, false);
+
+    return res;
+}
+
+static llvm::Value *codegen_return(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    if (quad->arg1 == nullptr)
+    {
+        return context.llvm_builder->CreateRetVoid();
+    }
+    else
+    {
+        auto arg1 = codegen(quad->arg1, context);
+        return context.llvm_builder->CreateRet(arg1);
+    }
+}
+
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
+    switch (quad->op)
+    {
+        case QuadOp::Global:
+        case QuadOp::String:
+            break; // TODO
+        case QuadOp::Add:
+        case QuadOp::Sub:
+        case QuadOp::Mul:
+        case QuadOp::Div:
+        case QuadOp::Mod:
+            return codegen_binop(quad, context);
+        case QuadOp::Neg:
+        case QuadOp::Deref:
+        case QuadOp::Addr:
+        case QuadOp::Copy:
+            return codegen_unop(quad, context);
+        case QuadOp::LIndex:
+        case QuadOp::RIndex:
+        case QuadOp::Label:
+        case QuadOp::Goto:
+        case QuadOp::IfEq:
+        case QuadOp::IfNeq:
+        case QuadOp::IfLt:
+        case QuadOp::IfLeq:
+        case QuadOp::IfGt:
+        case QuadOp::IfGeq:
+        case QuadOp::Enter:
+            break; // TODO
+        case QuadOp::Return:
+            return codegen_return(quad, context);
+        case QuadOp::Param:
+        case QuadOp::Call:
+        case QuadOp::Retrieve:
+            break; // TODO
+        default:
+            break;
+    }
+
     return nullptr; // TODO
 }
 
