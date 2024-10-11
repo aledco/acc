@@ -4,6 +4,8 @@ acc-out/
 acc
 test
 toy
+*.ll
+*.s
 
 # Prerequisites
 *.d
