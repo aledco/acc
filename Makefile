@@ -1,5 +1,5 @@
 CPPC = clang++-18
-CPPFLAGS = -g $(shell llvm-config --cxxflags --ldflags --libs | sed s/-fno-exceptions//) -Wno-unused-command-line-argument
+CPPFLAGS = -g $(shell llvm-config-18 --cxxflags --ldflags --libs | sed s/-fno-exceptions//) -Wno-unused-command-line-argument
 INCLUDE = -IFront -IIR -IBack
 
 export CPPC
@@ -25,12 +25,9 @@ Back:
 Tests:
 	$(MAKE) -C Tests
 
-toy: toy.cpp
-	$(CPPC) -g -O3 toy.cpp `llvm-config --cxxflags --ldflags --system-libs --libs core` -o toy
-
 .PHONY: clean Front IR Back Tests
 clean:
-	rm -f *.o $(DEST) toy test
+	rm -f *.o $(DEST) test
 	$(MAKE) -C Front clean
 	$(MAKE) -C IR clean
 	$(MAKE) -C Back clean

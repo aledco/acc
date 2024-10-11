@@ -1,11 +1,7 @@
 # TODO
 
-- Add const to everything
-- Add failure tests
-- Free temps in ir codegen
+## Parser
 - Need to add spans to AST nodes to show error messages better
-
-# Plan
 - Finish parser
     - Expressions
         - Char const
@@ -22,5 +18,14 @@
     - Misc
         - Type conversion nodes
 
-- Construct a control flow graph using the IR
-- Generate LLVM using control flow graph
+## IR
+- Free temps in ir codegen
+
+## Code Maintenance
+- Add const to everything possible
+- Comment functions
+
+## Tests
+- Add failure tests
+- Add system to CodegenTest to compile with clang and compare output
+- Add linking to a print function so we can test printed output
