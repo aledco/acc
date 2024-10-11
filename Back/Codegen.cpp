@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <cassert>
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/Module.h>
@@ -39,7 +40,9 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
         case OperandType::StrConst:
             return nullptr; // TODO
         case OperandType::Variable:
-            return context.llvm_builder->CreateLoad(llvm::Type::getInt32Ty(*context.llvm_context), context.named_values[operand->symbol->name]); // TODO use type info
+            return context.llvm_builder->CreateLoad(
+                get_llvm_type(operand->symbol->type, context), 
+                context.named_values[operand->symbol->name]);
         case OperandType::Label:
             return nullptr; // TODO
     }
@@ -47,8 +50,7 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
 
 static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
-    // TODO assert res is a variable
-
+    assert(quad->res->type == OperandType::Variable);
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
     auto res = context.llvm_builder->CreateAdd(arg1, arg2, quad->res->symbol->name); // TODO use diff inst for diff bin ops
@@ -58,18 +60,29 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
 
 static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
-    // TODO assert res is a variable
+    assert(quad->res->type == OperandType::Variable);
 
     auto arg1 = codegen(quad->arg1, context);
     
-    // todo perform unary operation
+    switch (quad->op)
+    {
+        case QuadOp::Neg:
+            arg1 = context.llvm_builder->CreateNeg(arg1);
+            break;
+        case QuadOp::Deref:
+        case QuadOp::Addr:
+            break; // TODO
+        case QuadOp::Copy:
+        default:
+            break;
+    }
 
-
-    auto res = context.llvm_builder->CreateAlloca(llvm::Type::getInt32Ty(*context.llvm_context), nullptr, quad->res->symbol->name); // TODO use type info
+    auto res = context.llvm_builder->CreateAlloca(
+        get_llvm_type(quad->res->symbol->type, context), 
+        nullptr, 
+        quad->res->symbol->name);
     context.named_values[quad->res->symbol->name] = res;
-
     context.llvm_builder->CreateStore(arg1, res, false);
-
     return res;
 }
 
