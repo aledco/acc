@@ -53,8 +53,38 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
     assert(quad->res->type == OperandType::Variable);
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
-    auto res = context.llvm_builder->CreateAdd(arg1, arg2, quad->res->symbol->name); // TODO use diff inst for diff bin ops
-    context.named_values[quad->res->symbol->name] = res;
+    llvm::Value *res;
+    switch (quad->op)
+    {
+        case QuadOp::Add:
+            res = context.llvm_builder->CreateAdd(arg1, arg2, quad->res->symbol->name);
+            break;
+        case QuadOp::Sub:
+            res = context.llvm_builder->CreateSub(arg1, arg2, quad->res->symbol->name);
+            break;
+        case QuadOp::Mul:
+            res = context.llvm_builder->CreateMul(arg1, arg2, quad->res->symbol->name);
+            break;
+        case QuadOp::Div:
+            // TODO if types are unsigned, need to use UDiv
+            res = context.llvm_builder->CreateSDiv(arg1, arg2, quad->res->symbol->name);
+            break;
+        case QuadOp::Mod:
+            // TODO if types are unsigned, need to use URem
+            res = context.llvm_builder->CreateSRem(arg1, arg2, quad->res->symbol->name);
+            break;
+        default:
+            break;
+    }
+
+    res = context.llvm_builder->CreateAlloca(
+        get_llvm_type(quad->res->symbol->type, context), 
+        nullptr, 
+        quad->res->symbol->name);
+    context.llvm_builder->CreateStore(arg1, res, false);
+    context.named_values[quad->res->symbol->name] = res; // TODO named values wont work for nested symbol tables, need to store these in the symbol table
+                                                         // What I could do is have BackEnd inheirit from SymbolTable to augment it with additional info,
+                                                         // FrontEnd uses augmented SymbolTable
     return res;
 }
 
@@ -81,8 +111,8 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
         get_llvm_type(quad->res->symbol->type, context), 
         nullptr, 
         quad->res->symbol->name);
-    context.named_values[quad->res->symbol->name] = res;
     context.llvm_builder->CreateStore(arg1, res, false);
+    context.named_values[quad->res->symbol->name] = res;
     return res;
 }
 
