@@ -277,8 +277,8 @@ static void codegen_test_functions(CodegenContext& context)
 
 static llvm::Function *codegen_printf_declaration(CodegenContext& context)
 {
-    //auto *Pty = llvm::PointerType::get(llvm::IntegerType::get(context.llvm_module->getContext(), 8), 0);
-    auto *printf_type = llvm::FunctionType::get(llvm::IntegerType::get(context.llvm_module->getContext(), 32), true);
+    auto char_ptr_type = llvm::PointerType::get(context.llvm_builder->getInt8Ty(), 0);
+    auto printf_type = llvm::FunctionType::get(llvm::IntegerType::get(*context.llvm_context.get(), 32), char_ptr_type, true);
 
     // auto printf_type = llvm::FunctionType::get(context.llvm_builder->getInt32Ty(), { context.llvm_builder->getPtrTy() }, false);
     // auto printf_type = llvm::TypeBuilder<int(char *, ...), false>::get(llvm::getGlobalContext());
@@ -291,12 +291,28 @@ static llvm::Function *codegen_printf_declaration(CodegenContext& context)
 
 
     std::cerr << "HERE\n";
-    
+
     return func_printf;
 }
 
 static llvm::Function *codegen_println(CodegenContext& context)
 {
     // TODO I think I will need to define printf, then call it with a format string for println
-    return nullptr;
+    // TODO generate code for function call and test this
+
+    auto format_specifier = context.llvm_builder->CreateGlobalString("%d\n");
+
+    auto llvm_function_type = llvm::FunctionType::get(context.llvm_builder->getVoidTy(), context.llvm_builder->getInt32Ty(), false);
+    auto llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, "println", context.llvm_module.get());
+
+    auto entry = llvm::BasicBlock::Create(*context.llvm_context, "println_entry", llvm_function);
+    context.llvm_builder->SetInsertPoint(entry);
+
+    auto printf_func = context.llvm_module->getFunction("printf");
+    llvm::Value *args[] = { format_specifier, llvm_function->getArg(0) };
+    auto printf_call = context.llvm_builder->CreateCall(printf_func, args);
+    context.llvm_builder->CreateRetVoid();
+
+    llvm::verifyFunction(*llvm_function);
+    return llvm_function;
 }
