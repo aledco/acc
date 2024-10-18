@@ -180,13 +180,22 @@ struct FunctionDef : SyntaxTree
     FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(symbol_table),
         function(function), 
-        params(params), 
+        params(params),
         body(body)
+    {}
+
+    FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<SymbolTable> symbol_table):
+        SyntaxTree(symbol_table),
+        function(function), 
+        params(params),
+        body(nullptr)
     {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void dump(int depth = 1) override;
+
+    inline bool is_proto() { return body == nullptr; }
 };
 
 struct Program : SyntaxTree

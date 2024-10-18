@@ -75,7 +75,8 @@ inline std::vector<std::string> operators = {
 inline std::vector<std::string> keywords = {
     "void",
     "int", // TODO add more later
-    "return"
+    "return",
+    "extern"
 };
 
 

@@ -14,12 +14,24 @@ enum class TypeType
 struct Type
 {
     TypeType type;
-    std::shared_ptr<Type> ret_type;
-    std::vector<std::shared_ptr<Type>> param_types;
+    
+    /* for array types */
     std::shared_ptr<Type> elem_type;
 
+    /* for function types */
+    std::shared_ptr<Type> ret_type;
+    std::vector<std::shared_ptr<Type>> param_types;
+    bool is_extern;
+    bool is_defined;
+
     Type(TypeType type) : type(type) {}
-    Type(TypeType type, std::shared_ptr<Type> ret_type, std::vector<std::shared_ptr<Type>> param_types) : type(type), ret_type(ret_type), param_types(param_types)  {}
+    Type(TypeType type, std::shared_ptr<Type> ret_type, std::vector<std::shared_ptr<Type>> param_types, bool is_extern, bool is_defined) : 
+        type(type), 
+        ret_type(ret_type),
+        param_types(param_types),
+        is_extern(is_extern),
+        is_defined(is_defined)
+    {}
     Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type) {}
 
     bool operator== (const Type& other)

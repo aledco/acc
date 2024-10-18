@@ -7,7 +7,7 @@ std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
     std::vector<std::shared_ptr<FunctionDef>> functions;
-    while (is_currently({"void", "int"}))
+    while (is_currently({"void", "int", "extern"}))
     {
         functions.push_back(std::move(parse_function(context)));
     }
@@ -19,8 +19,14 @@ std::shared_ptr<Program> Parser::parse()
 
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
-
     context.push_symbol_table();
+
+    bool is_extern = false;
+    if (is_currently({ "extern" })) 
+    {
+        match("extern");
+        is_extern = true;
+    }
 
     auto return_type = parse_type(context);
     auto function_name_token = match(TokenType_Id);
@@ -48,13 +54,40 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         param_types.push_back(param->type);
     }
 
-    auto function_type = std::make_shared<Type>(TypeType::Function, return_type, param_types);
-    auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+    if (is_currently({";"})) 
+    {
+        match(";");
+        auto function_type = std::make_shared<Type>(TypeType::Function, return_type, param_types, is_extern, false);
+        auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+        context.pop_symbol_table();
+        return std::make_shared<FunctionDef>(function_symbol, params, context.current_symbol_table()); // prototype
+    }
+    else
+    {
+        auto function_symbol = context.global_symbol_table->try_lookup(function_name_token);
+        if (function_symbol != nullptr)
+        {
+            if (function_symbol->type->is_defined)
+            {
+                // TODO need a standared error function
+                std::cerr << "multiple definitions of function " << function_name_token.value << "\n";
+                throw std::exception();
+            }
+            else
+            {
+                function_symbol->type->is_defined = true;
+            }
+        }
+        else
+        {
+            auto function_type = std::make_shared<Type>(TypeType::Function, return_type, param_types, is_extern, true);
+            function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
+        }
 
-    auto body = parse_compound_statement(context);
-    context.pop_symbol_table();
-
-    return std::make_shared<FunctionDef>(function_symbol, params, body, context.current_symbol_table());
+        auto body = parse_compound_statement(context);
+        context.pop_symbol_table();
+        return std::make_shared<FunctionDef>(function_symbol, params, body, context.current_symbol_table());
+    }
 }
 
 std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)

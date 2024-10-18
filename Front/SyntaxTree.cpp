@@ -126,7 +126,17 @@ void CharConstant::typecheck(TypecheckContext& context)
 
 void FunctionDef::typecheck(TypecheckContext& context)
 {
-    body->typecheck(context);
+    if (!is_proto())
+    {
+        body->typecheck(context);
+    }
+    else
+    {
+        if (!function->type->is_extern && !function->type->is_defined)
+        {
+            error("function prototype was never defined");
+        }
+    }
 }
 
 void Program::typecheck(TypecheckContext& context)
@@ -258,7 +268,15 @@ void Return::dump(int depth)
 
 void FunctionDef::dump(int depth)
 {
-    std::cout << "FunctionDef(\n";
+    if (!is_proto())
+    {
+        std::cout << "FunctionDef(\n";
+    }
+    else
+    {
+        std::cout << "FunctionProto(\n";
+    }
+
     indent(depth);
     std::cout << "name = " << function->name << ",\n";
     
@@ -275,10 +293,23 @@ void FunctionDef::dump(int depth)
 
     std::cout << "),\n";
     indent(depth);
-    std::cout << "body = ";
+    std::cout << "is_extern = " << function->type->is_extern << "),\n";
+    indent(depth);
+    std::cout << "is_defined = " << function->type->is_defined << ")";
 
-    body->dump(depth + 1);
-    std::cout << ")";
+    if (!is_proto())
+    {
+        std::cout << ",\n";
+        indent(depth);
+        std::cout << "body = ";
+
+        body->dump(depth + 1);
+        std::cout << ")";
+    }
+    else
+    {
+        std::cout << ")";
+    }
 }
 
 void Program::dump(int depth)

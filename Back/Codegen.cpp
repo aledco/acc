@@ -186,27 +186,39 @@ static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, int bn, CodegenCo
     return nullptr; // TODO need to figure out how to link the values
 }
 
-static llvm::Value *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& context)
+static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, CodegenContext& context)
 {
+    std::vector<llvm::Type *> llvm_param_types;
+    for (auto& param : def->params)
+    {
+        llvm_param_types.push_back(get_llvm_type(param->type, context));
+    }
+
+    auto llvm_return_type = get_llvm_type(def->function->type->ret_type, context);
+    auto llvm_function_type = llvm::FunctionType::get(llvm_return_type, llvm_param_types, false);
+    auto llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, def->function->name, context.llvm_module.get());
+
+    // set the names for the args
+    std::size_t i = 0;
+    for (auto &arg : llvm_function->args())
+    {
+        arg.setName(def->params[i]->name);
+    }
+
+    return llvm_function;
+}
+
+static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& context)
+{
+    if (def->is_proto())
+    {
+        return codegen_prototype(def, context);
+    }
+
     auto llvm_function = context.llvm_module->getFunction(def->function->name);
     if (llvm_function == nullptr)
     {
-        std::vector<llvm::Type *> llvm_param_types;
-        for (auto& param : def->params)
-        {
-            llvm_param_types.push_back(get_llvm_type(param->type, context));
-        }
-
-        auto llvm_return_type = get_llvm_type(def->function->type->ret_type, context);
-        auto llvm_function_type = llvm::FunctionType::get(llvm_return_type, llvm_param_types, false);
-        llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, def->function->name, context.llvm_module.get());
-
-        // set the names for the args
-        std::size_t i = 0;
-        for (auto &arg : llvm_function->args())
-        {
-            arg.setName(def->params[i]->name);
-        } 
+        llvm_function = codegen_prototype(def, context); 
     }
 
     // record all the args in the named_values map
@@ -228,12 +240,19 @@ static llvm::Value *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& co
     return llvm_function;
 }
 
-void codegen(std::shared_ptr<Program> program, std::ostream *file)
+static void codegen_test_functions(CodegenContext& context);
+
+void codegen(std::shared_ptr<Program> program, std::ostream *file, bool link_test)
 {
     CodegenContext context;
     for (auto function : program->functions)
     {
         auto llvm_function = codegen(function, context);
+    }
+
+    if (link_test)
+    {
+        codegen_test_functions(context);
     }
 
     if (file == nullptr)
@@ -245,4 +264,39 @@ void codegen(std::shared_ptr<Program> program, std::ostream *file)
         llvm::raw_os_ostream stream(*file);
         context.llvm_module->print(stream, nullptr);
     }
+}
+
+static llvm::Function *codegen_println(CodegenContext& context);
+static llvm::Function *codegen_printf_declaration(CodegenContext& context);
+
+static void codegen_test_functions(CodegenContext& context)
+{
+    codegen_printf_declaration(context);
+    codegen_println(context);
+}
+
+static llvm::Function *codegen_printf_declaration(CodegenContext& context)
+{
+    //auto *Pty = llvm::PointerType::get(llvm::IntegerType::get(context.llvm_module->getContext(), 8), 0);
+    auto *printf_type = llvm::FunctionType::get(llvm::IntegerType::get(context.llvm_module->getContext(), 32), true);
+
+    // auto printf_type = llvm::FunctionType::get(context.llvm_builder->getInt32Ty(), { context.llvm_builder->getPtrTy() }, false);
+    // auto printf_type = llvm::TypeBuilder<int(char *, ...), false>::get(llvm::getGlobalContext());
+
+    auto func_printf = llvm::Function::Create(printf_type, llvm::GlobalValue::ExternalLinkage, "printf", context.llvm_module.get());
+    func_printf->setCallingConv(llvm::CallingConv::C);
+
+    //llvm::AttrListPtr func_printf_PAL;
+    //func_printf->setAttributes(func_printf_PAL);
+
+
+    std::cerr << "HERE\n";
+    
+    return func_printf;
+}
+
+static llvm::Function *codegen_println(CodegenContext& context)
+{
+    // TODO I think I will need to define printf, then call it with a format string for println
+    return nullptr;
 }

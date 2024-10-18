@@ -140,6 +140,11 @@ void CharConstant::ir_codegen()
 
 void FunctionDef::ir_codegen()
 {
+    if (is_proto())
+    {
+        return;
+    }
+
     auto enter = Quad::MakeEnterOp(Operand::MakeVariableOperand(function));
     ir_list = QuadList(enter, enter);
 

@@ -32,6 +32,7 @@ public:
     std::shared_ptr<Symbol> add_symbol(std::string name, std::shared_ptr<Type> type);
     std::shared_ptr<Symbol> lookup(Token& name);
     std::shared_ptr<Symbol> lookup(std::string name);
+    std::shared_ptr<Symbol> try_lookup(Token& name);
 
     std::shared_ptr<Symbol> new_temp(std::shared_ptr<Type> type);
     void free_temp(std::shared_ptr<Symbol> temp);

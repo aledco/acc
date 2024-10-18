@@ -23,6 +23,18 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_pt
 
 std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
 {
+    auto symbol = try_lookup(name);
+    if (symbol == nullptr)
+    {
+        std::cerr << "Name Error: around " << name.span.end.line << ":" << name.span.end.col << ": unknown identifier " << name.value << "\n";
+        throw std::exception();
+    }
+    
+    return symbol;
+}
+
+std::shared_ptr<Symbol> SymbolTable::try_lookup(Token& name)
+{
     if (table.find(name.value) != table.end())
     {
         return table[name.value];
@@ -33,8 +45,7 @@ std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
         return parent->lookup(name);
     }
 
-    std::cerr << "Name Error: around " << name.span.end.line << ":" << name.span.end.col << ": unknown identifier " << name.value << "\n";
-    throw std::exception();
+    return nullptr;
 }
 
  std::shared_ptr<Symbol> SymbolTable::lookup(std::string name)
