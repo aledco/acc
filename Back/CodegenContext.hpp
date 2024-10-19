@@ -16,6 +16,9 @@
     #pragma diag_suppress 40
 #endif
 
+/**
+ * The codegen context.
+ */
 struct CodegenContext
 {
     std::unique_ptr<llvm::LLVMContext> llvm_context;

@@ -3,6 +3,9 @@
 #include "Operator.hpp"
 #include "Parser.hpp"
 
+/**
+ * Parses the program and retunrs the abstract syntax tree.
+ */
 std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
@@ -17,6 +20,9 @@ std::shared_ptr<Program> Parser::parse()
     return program;
 }
 
+/**
+ * Parses a function.
+ */
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
     context.push_symbol_table();
@@ -90,6 +96,9 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     }
 }
 
+/**
+ * Parses a parameter.
+ */
 std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 {
     auto param_type = parse_type(context);
@@ -99,6 +108,9 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
     return sym;
 }
 
+/**
+ * Parses a statement.
+ */
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
     std::shared_ptr<Statement> statement;
@@ -127,6 +139,9 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     return statement;
 }
 
+/**
+ * Parses a compound statement.
+ */
 std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContext& context)
 {
     context.push_symbol_table();
@@ -145,6 +160,9 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     return std::make_shared<CompoundStatement>(statements, symbol_table);
 }
 
+/**
+ * Parses a variable declaration.
+ */
 std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserContext& context)
 {
     auto type = parse_type(context);
@@ -153,6 +171,9 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
     return std::make_shared<VariableDeclaration>(type, symbol, context.current_symbol_table());
 }
 
+/**
+ * Parses a return statement.
+ */
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     match("return");
@@ -167,11 +188,17 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
     }
 }
 
+/**
+ * Parses an expression.
+ */
 std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
 {
     return parse_expression(context, operator_precedence.size() - 1);
 }
 
+/**
+ * Parses anm expression for the given precedence level p.
+ */
 std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p)
 {
     if (p == -1)
@@ -190,6 +217,9 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
     return lhs;
 }
 
+/**
+ * Parses an unary expression.
+ */
 std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 {
     if (is_currently({ "-", "*", "&" }))
@@ -208,6 +238,9 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
     error({ "-", "*", "&", TokenType_Int, TokenType_Id, "(" });
 }
 
+/**
+ * Parses a term.
+ */
 std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 {
     if (is_currently({ TokenType_Int }))
@@ -258,6 +291,9 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
     error({ TokenType_Int, TokenType_Id, "(" });
 }
 
+/**
+ * Parses a type.
+ */
 std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
 {
     if (is_currently({ "void" }))
@@ -274,13 +310,20 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
     error({ "void", "int" });
 }
 
+/**
+ * Parses an identifier.
+ */
 std::shared_ptr<Symbol> Parser::parse_identifier(ParserContext& context)
 {
     auto token = match(TokenType_Id);
     return context.current_symbol_table()->lookup(token);
 }
 
-Token& Parser::match(std::string token_type)
+/**
+ * Matches the token type against the current token, and returns the matching token.
+ * Throws an error if the token type does not match.
+ */
+Token& Parser::match(const std::string token_type)
 {
     if (current().type == token_type)
     {
@@ -292,13 +335,21 @@ Token& Parser::match(std::string token_type)
     error({ token_type });
 }
 
-Token& Parser::match(std::initializer_list<std::string> token_types)
+/**
+ * Matches the token types against the current token, and returns the matching token.
+ * Throws an error if the token types do not match.
+ */
+Token& Parser::match(const std::initializer_list<std::string> token_types)
 {
     std::vector<std::string> vec = token_types;
     return match(vec);
 }
 
-Token& Parser::match(std::vector<std::string> token_types)
+/**
+ * Matches the token types against the current token, and returns the matching token.
+ * Throws an error if the token types do not match.
+ */
+Token& Parser::match(const std::vector<std::string> token_types)
 {
     for (auto& token_type : token_types)
     {
@@ -311,13 +362,19 @@ Token& Parser::match(std::vector<std::string> token_types)
     error(token_types);
 }
 
-bool Parser::is_currently(std::initializer_list<std::string> options)
+/**
+ * Determines if the current token is one of the provided token types.
+ */
+bool Parser::is_currently(const std::initializer_list<std::string> options)
 {
     std::vector<std::string> vec = options;
     return is_currently(vec);
 }
 
-bool Parser::is_currently(std::vector<std::string> options)
+/**
+ * Determines if the current token is one of the provided token types.
+ */
+bool Parser::is_currently(const std::vector<std::string> options)
 {
     for (auto& option : options)
     {

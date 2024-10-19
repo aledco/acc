@@ -20,6 +20,9 @@
     #pragma diag_suppress 757
 #endif
 
+/**
+ * Gets the LLVM type.
+ */
 static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& context)
 {
     switch (type->type)
@@ -33,6 +36,9 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
     }
 }
 
+/**
+ * Allocates a variable on the stack.
+ */
 static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
 {
     assert(operand->type == OperandType::Variable);
@@ -50,6 +56,9 @@ static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
     }
 }
 
+/**
+ * Stores a value in a variable.
+ */
 static void store(std::shared_ptr<Operand> operand, llvm::Value *val, CodegenContext& context)
 {
     assert(operand->type == OperandType::Variable);
@@ -64,6 +73,9 @@ static void store(std::shared_ptr<Operand> operand, llvm::Value *val, CodegenCon
     }
 }
 
+/**
+ * Generates LLVM code for an operand.
+ */
 static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& context)
 {
     switch (operand->type)
@@ -93,6 +105,9 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
     }
 }
 
+/**
+ * Generates LLVM code for a param instruction.
+ */
 static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     auto value = codegen(quad->arg1, context);
@@ -100,6 +115,10 @@ static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& co
     return value;
 }
 
+
+/**
+ * Generates LLVM code for a call instruction.
+ */
 static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     assert(quad->arg1->type == OperandType::Variable);
@@ -124,6 +143,9 @@ static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& con
     return func_call;
 }
 
+/**
+ * Generates LLVM code for a binary instruction.
+ */
 static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     assert(quad->res->type == OperandType::Variable);
@@ -160,6 +182,9 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
     return res;
 }
 
+/**
+ * Generates LLVM code for an unary instruction.
+ */
 static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     assert(quad->res->type == OperandType::Variable);
@@ -187,6 +212,9 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
     return res;
 }
 
+/**
+ * Generates LLVM code for a return instruction.
+ */
 static llvm::Value *codegen_return(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     if (quad->arg1 == nullptr)
@@ -200,6 +228,9 @@ static llvm::Value *codegen_return(std::shared_ptr<Quad> quad, CodegenContext& c
     }
 }
 
+/**
+ * Generates LLVM code for an instruction.
+ */
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     switch (quad->op)
@@ -243,6 +274,9 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
     return nullptr; // TODO
 }
 
+/**
+ * Generates LLVM code for a basic block.
+ */
 static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, int bn, CodegenContext& context)
 {
     auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block_" + context.llvm_function->getName() + std::to_string(bn), context.llvm_function);
@@ -256,6 +290,9 @@ static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, int bn, CodegenCo
     return nullptr; // TODO need to figure out how to link the values
 }
 
+/**
+ * Generates LLVM code for a function prototype.
+ */
 static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, CodegenContext& context)
 {
     std::vector<llvm::Type *> llvm_param_types;
@@ -279,6 +316,9 @@ static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, Codeg
     return llvm_function;
 }
 
+/**
+ * Generates LLVM code for a function.
+ */
 static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& context)
 {
     if (def->is_proto())
@@ -312,8 +352,9 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
     return llvm_function;
 }
 
-static void codegen_test_functions(CodegenContext& context);
-
+/**
+ * Generates LLVM code for the program.
+ */
 void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;

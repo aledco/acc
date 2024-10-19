@@ -11,6 +11,9 @@
 
 struct FunctionDef;
 
+/**
+ * Base class for all AST nodes.
+ */
 struct SyntaxTree 
 {
 protected:
@@ -30,11 +33,17 @@ public:
     virtual void dump(int depth = 1) = 0;
 };
 
+/**
+ * Base class for all statement AST nodes.
+ */
 struct Statement : SyntaxTree
 {
     Statement(std::shared_ptr<SymbolTable> symbol_table) : SyntaxTree(symbol_table) {}
 };
 
+/**
+ * Base class for all expression AST nodes.
+ */
 struct Expression : Statement
 {
     std::shared_ptr<Type> type;
@@ -46,6 +55,9 @@ struct Expression : Statement
     virtual void ir_codegen_lval();
 };
 
+/**
+ * The compound statement AST node.
+ */
 struct CompoundStatement : Statement
 {
     std::vector<std::shared_ptr<Statement>> statements;
@@ -60,6 +72,9 @@ struct CompoundStatement : Statement
     void dump(int depth = 1) override;
 };
 
+/**
+ * The variable declaration AST node.
+ */
 struct VariableDeclaration : Statement
 {
     std::shared_ptr<Type> type;
@@ -76,6 +91,9 @@ struct VariableDeclaration : Statement
     void dump(int depth = 1) override;
 };
 
+/**
+ * The return statement AST node.
+ */
 struct Return : Statement
 {
     std::shared_ptr<Expression> expr;
@@ -88,6 +106,9 @@ struct Return : Statement
     void dump(int depth = 1) override;
 };
 
+/**
+ * The variable AST node.
+ */
 struct Variable : Expression
 {
     std::shared_ptr<Symbol> symbol;
@@ -100,6 +121,9 @@ struct Variable : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The function call AST node.
+ */
 struct FunctionCall : Expression
 {
     std::shared_ptr<Symbol> function;
@@ -116,6 +140,9 @@ struct FunctionCall : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The binary operation AST node.
+ */
 struct BinaryOperation : Expression
 {
     BinOp op;
@@ -134,6 +161,9 @@ struct BinaryOperation : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The unary operation AST node.
+ */
 struct UnaryOperation : Expression
 {
     UnOp op;
@@ -147,6 +177,9 @@ struct UnaryOperation : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The integer constant AST node.
+ */
 struct IntegerConstant : Expression
 {
     long value;
@@ -158,6 +191,9 @@ struct IntegerConstant : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The char constant AST node.
+ */
 struct CharConstant : Expression
 {
     char value;
@@ -169,6 +205,9 @@ struct CharConstant : Expression
     void dump(int depth = 1) override;
 };
 
+/**
+ * The function AST node.
+ */
 struct FunctionDef : SyntaxTree
 {
     std::shared_ptr<Symbol> function;
@@ -198,6 +237,9 @@ struct FunctionDef : SyntaxTree
     inline bool is_proto() { return body == nullptr; }
 };
 
+/**
+ * The program AST node.
+ */
 struct Program : SyntaxTree
 {
     std::vector<std::shared_ptr<FunctionDef>> functions;

@@ -9,6 +9,10 @@
 #include "SymbolTable.hpp"
 #include "Type.hpp"
 
+/**
+ * Parses the list of tokens provided by the lexical analysis into an abstract syntax tree.
+ * This is a hand-written recursive decent parser.
+ */
 class Parser
 {
 private:
@@ -18,11 +22,11 @@ private:
     inline Token& current() { return lexer[index]; }
     inline Token& next() { index++; return current(); }
 
-    Token& match(std::string token_type);
-    Token& match(std::initializer_list<std::string> token_types);
-    Token& match(std::vector<std::string> token_types);
-    bool is_currently(std::initializer_list<std::string> options);
-    bool is_currently(std::vector<std::string> options);
+    Token& match(const std::string token_type);
+    Token& match(const std::initializer_list<std::string> token_types);
+    Token& match(const std::vector<std::string> token_types);
+    bool is_currently(const std::initializer_list<std::string> options);
+    bool is_currently(const std::vector<std::string> options);
 
     struct ParserContext
     {
@@ -61,7 +65,7 @@ private:
     _GLIBCXX_NORETURN void error(std::vector<std::string> token_types);
 
 public:
-    Parser(Lexer& lexer): lexer{lexer} {}
+    Parser(const Lexer& lexer): lexer{lexer} {}
 
     std::shared_ptr<Program> parse();
 };

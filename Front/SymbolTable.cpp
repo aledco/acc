@@ -2,6 +2,9 @@
 #include <cassert>
 #include "SymbolTable.hpp"
 
+/**
+ * Adds a symbol to the symbol table.
+ */
 std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Type> type)
 {
     if (table.find(name.value) != table.end())
@@ -13,6 +16,9 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Typ
     return add_symbol(name.value, type);
 }
 
+/**
+ * Adds a symbol to the symbol table.
+ */
 std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type)
 {
     assert(table.find(name) == table.end());
@@ -21,6 +27,9 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_pt
     return symbol;
 }
 
+/**
+ * Looks up a symbol in the symbol table. Throws an exception if the symbol is not found.
+ */
 std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
 {
     auto symbol = try_lookup(name);
@@ -33,6 +42,23 @@ std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
     return symbol;
 }
 
+/**
+ * Looks up a symbol in the symbol table. Throws an exception if the symbol is not found.
+ */
+std::shared_ptr<Symbol> SymbolTable::lookup(std::string name)
+{
+    if (table.find(name) != table.end())
+    {
+        return table[name];
+    }
+
+    assert(parent);
+    return parent->lookup(name);
+}
+
+/**
+ * Looks up a symbol in the symbol table. Returns nullptr if the symbol is not found.
+ */
 std::shared_ptr<Symbol> SymbolTable::try_lookup(Token& name)
 {
     if (table.find(name.value) != table.end())
@@ -48,36 +74,15 @@ std::shared_ptr<Symbol> SymbolTable::try_lookup(Token& name)
     return nullptr;
 }
 
- std::shared_ptr<Symbol> SymbolTable::lookup(std::string name)
- {
-    if (table.find(name) != table.end())
-    {
-        return table[name];
-    }
-
-    assert(parent);
-    return parent->lookup(name);
- }
-
+/**
+ * Creates a temporary variable and adds it to the symbol table.
+ */
 std::shared_ptr<Symbol> SymbolTable::new_temp(std::shared_ptr<Type> type)
 {
-    for (auto& temp : free_temps)
-    {
-        if (temp->type == type)
-        {
-            free_temps.remove(temp);
-            return temp;
-        }
-    }
-
     auto name = "t." +  std::to_string(temp_count);
     temp_count++;
-    auto sym = add_symbol(name, type);
-    sym->is_temp = true;
-    return sym;
-}
-
-void SymbolTable::free_temp(std::shared_ptr<Symbol> temp)
-{
-    free_temps.push_back(temp);
+    auto temp = add_symbol(name, type);
+    temp->is_temp = true;
+    temps.push_back(temp);
+    return temp;
 }

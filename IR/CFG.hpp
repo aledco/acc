@@ -5,6 +5,9 @@
 
 struct BBList;
 
+/**
+ * Represents a basic block.
+ */
 struct BasicBlock
 {
     QuadList qlist;

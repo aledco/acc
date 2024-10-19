@@ -1,6 +1,9 @@
 #include <iostream>
 #include "Type.hpp"
 
+/**
+ * Gets the size of the type in bytes.
+ */
 int Type::size()
 {
     switch (type)
@@ -14,6 +17,9 @@ int Type::size()
     }
 }
 
+/**
+ * Dumps the type.
+ */
 void Type::dump()
 {
     switch (type)

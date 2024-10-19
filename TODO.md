@@ -1,5 +1,9 @@
 # TODO
 
+## Lexer
+- Normalize input before lexing
+- Lex comments
+
 ## Parser
 - Need to add spans to AST nodes to show error messages better
 - Finish parser
@@ -17,15 +21,19 @@
         - For loops
     - Misc
         - Type conversion nodes
+- Add type casting
 
 ## IR
-- Free temps in ir codegen
 - Add optimization
 
 ## Code Maintenance
 - Add const to everything possible
-- Comment functions
 
 ## Tests
 - Add failure tests
 - Add more tests
+
+## Misc
+- Clean up TODOs
+- Make a seperate file for errors
+- Use specific exceptions for each type of error, have a try catch in main to print errors

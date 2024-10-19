@@ -4,6 +4,9 @@
 #include <memory>
 #include "SymbolTable.hpp"
 
+/** 
+ * The quad operation type. 
+*/
 enum class QuadOp
 {
     Global,
@@ -33,6 +36,9 @@ enum class QuadOp
     Call
 };
 
+/**
+ * The operand type.
+ */
 enum class OperandType
 {
     IntConst,
@@ -41,6 +47,9 @@ enum class OperandType
     Label
 };
 
+/**
+ * Represents an operand in a quad instruction.
+ */
 struct Operand
 {
     OperandType type;
@@ -61,6 +70,9 @@ struct Operand
     static std::shared_ptr<Operand> MakeLabelOperand(std::string val);
 };
 
+/**
+ * Represents a quad.
+ */
 struct Quad
 {
     QuadOp op;
@@ -89,6 +101,9 @@ struct Quad
     static std::shared_ptr<Quad> MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs, std::shared_ptr<Operand> res);
 };
 
+/**
+ * Stores a list of quads.
+ */
 class QuadList
 {
 private:

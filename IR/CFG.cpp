@@ -7,6 +7,9 @@ static std::vector<std::shared_ptr<BasicBlock>> find_all_blocks(std::shared_ptr<
 static std::shared_ptr<BasicBlock> find_block_for_label(std::vector<std::shared_ptr<BasicBlock>>& blocks, std::string label);
 static void link_blocks(std::vector<std::shared_ptr<BasicBlock>>& blocks);
 
+/**
+ * Constructs the control flow graph for the list of quads.
+ */
 std::vector<std::shared_ptr<BasicBlock>> ConstructCFG(QuadList& qlist)
 {
     auto blocks = find_all_blocks(qlist.get_head());
@@ -14,6 +17,9 @@ std::vector<std::shared_ptr<BasicBlock>> ConstructCFG(QuadList& qlist)
     return blocks;
 }
 
+/**
+ * Finds the next basic block.
+ */
 static std::shared_ptr<BasicBlock> find_next_block(std::shared_ptr<Quad> instructions)
 {
     auto first = instructions;
@@ -44,6 +50,9 @@ static std::shared_ptr<BasicBlock> find_next_block(std::shared_ptr<Quad> instruc
     return nullptr;
 }
 
+/**
+ * Finds all basic blocks.
+ */
 static std::vector<std::shared_ptr<BasicBlock>> find_all_blocks(std::shared_ptr<Quad> instructions)
 {
     std::vector<std::shared_ptr<BasicBlock>> blocks;
@@ -57,6 +66,9 @@ static std::vector<std::shared_ptr<BasicBlock>> find_all_blocks(std::shared_ptr<
     return blocks;
 }
 
+/**
+ * Finds the basic block that starts with the provided label.
+ */
 static std::shared_ptr<BasicBlock> find_block_for_label(std::vector<std::shared_ptr<BasicBlock>>& blocks, std::string label)
 {
     for (auto& block : blocks)
@@ -72,6 +84,9 @@ static std::shared_ptr<BasicBlock> find_block_for_label(std::vector<std::shared_
     return nullptr;
 }
 
+/**
+ * Links all blocks.
+ */
 static void link_blocks(std::vector<std::shared_ptr<BasicBlock>>& blocks)
 {
     for (auto i = 0; i < blocks.size(); i++)

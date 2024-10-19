@@ -3,6 +3,9 @@
 #include <algorithm>
 #include "Lexer.hpp"
 
+/**
+ * Performs the lexical analysis.
+ */
 void Lexer::lex()
 {
     // TODO handle the rest of the tokens later, like floats
@@ -65,6 +68,9 @@ void Lexer::lex()
     }
 }
 
+/**
+ * Attepts to lex a keyword.
+ */
 std::optional<Token> Lexer::attempt_lex_keyword(LexerContext& context)
 {
     for (auto keyword : keywords) 
@@ -83,6 +89,9 @@ std::optional<Token> Lexer::attempt_lex_keyword(LexerContext& context)
     return {};
 }
 
+/**
+ * Lexes an integer.
+ */
 Token Lexer::lex_integer(LexerContext& context)
 {
     std::string value = "";
@@ -95,6 +104,9 @@ Token Lexer::lex_integer(LexerContext& context)
     return Token(TokenType_Int, value, mkSpan(context, value));
 }
 
+/**
+ * Lexes an identifier.
+ */
 Token Lexer::lex_id(LexerContext& context)
 {
     assert(!isdigit() && "Lexer is trying to parse an id that starts with an integer");
@@ -109,6 +121,9 @@ Token Lexer::lex_id(LexerContext& context)
     return Token(TokenType_Id, value, mkSpan(context, value));
 }
 
+/**
+ * Lexes a seperator.
+ */
 Token Lexer::lex_sep(LexerContext& context)
 {
     std::string value = "";
@@ -126,6 +141,9 @@ Token Lexer::lex_sep(LexerContext& context)
     return Token(value, value, mkSpan(context, value));
 }
 
+/**
+ * Lexes an operator.
+ */
 Token Lexer::lex_op(LexerContext& context)
 {
     std::string value = "";
@@ -143,13 +161,10 @@ Token Lexer::lex_op(LexerContext& context)
     return Token(value, value, mkSpan(context, value));
 }
 
-_GLIBCXX_NORETURN void Lexer::error(LexerContext& context)
-{
-    std::cerr << "Syntax Error: " << context.pos.line << ":" << context.pos.col << std::endl;
-    throw std::exception();
-}
-
-bool vector_contains_char(std::vector<std::string>& vec, char c)
+/**
+ * Determines if any string in the vector of strings contains a char.
+ */
+bool Lexer::vector_contains_char(const std::vector<std::string>& vec, char c)
 {
     for (auto sep : vec)
     {
@@ -160,4 +175,10 @@ bool vector_contains_char(std::vector<std::string>& vec, char c)
     }
 
     return false;
+}
+
+_GLIBCXX_NORETURN void Lexer::error(LexerContext& context)
+{
+    std::cerr << "Syntax Error: " << context.pos.line << ":" << context.pos.col << std::endl;
+    throw std::exception();
 }

@@ -3,6 +3,9 @@
 #include <vector>
 #include <memory>
 
+/**
+ * The type of the type.
+ */
 enum class TypeType
 {
     Void,
@@ -11,6 +14,9 @@ enum class TypeType
     Array // TODO add more
 };
 
+/**
+ * Represents the type of a value.
+ */
 struct Type
 {
     TypeType type;

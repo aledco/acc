@@ -4,25 +4,14 @@
 #include <vector>
 #include <optional>
 #include <memory>
+#include "Span.hpp"
 
 inline std::string TokenType_Id = "ID";
 inline std::string TokenType_Int = "INT";
 
-struct Point
-{
-    int line;
-    int col;
-    Point(int line, int col): line(line), col(col) {}
-    friend Point operator+(const Point& a, const Point& b) { return Point(a.line + b.line, a.col + b.col); }
-};
-
-struct Span
-{
-    Point start;
-    Point end;
-    Span(Point start, Point end): start(start), end(end) {}
-};
-
+/**
+ * A token produced by lexical analysis.
+ */
 struct Token
 {
     std::string type;
@@ -31,13 +20,8 @@ struct Token
     Token(const std::string type, const std::string value, const Span span) : type(type), value(value), span(Span(span.start, span.end)) {}
 };
 
-struct LexerContext
-{
-    Point pos;
-    LexerContext(): pos(Point(1, 1)) {}
-};
-
-inline std::vector<std::string> seperators = {
+// The list of sperator tokens.
+const inline std::vector<std::string> seperators = {
     ";",
     ",",
     "(",
@@ -48,7 +32,8 @@ inline std::vector<std::string> seperators = {
     "]"
 };
 
-inline std::vector<std::string> operators = {
+// The list of operator tokens.
+const inline std::vector<std::string> operators = {
     "+",
     "-",
     "*",
@@ -72,22 +57,32 @@ inline std::vector<std::string> operators = {
     "%="
 };
 
-inline std::vector<std::string> keywords = {
+// The list of keywords.
+const inline std::vector<std::string> keywords = {
     "void",
     "int", // TODO add more later
     "return",
     "extern"
 };
 
-
-bool vector_contains_char(std::vector<std::string>& vec, char c);
-
+/**
+ * The lexer. Takes the source program as input and produces a vector of tokens.
+ */
 class Lexer
 {
 private:
     std::string input;
     std::size_t index = 0;
     std::vector<Token> tokens;
+
+    /**
+     * The lexer context.
+     */
+    struct LexerContext
+    {
+        Point pos;
+        LexerContext(): pos(Point(1, 1)) {}
+    };
 
     void lex();
 
@@ -117,10 +112,11 @@ private:
 
     inline void add(Token& token) { tokens.push_back(token); }
     inline Span mkSpan(LexerContext& context, std::string& value) { return Span(context.pos, context.pos + Point(0, value.length())); }
+
+    static bool vector_contains_char(const std::vector<std::string>& vec, char c);
 public:
     Lexer(const std::string& input) : input(input)
     {
-        // TODO standardize input
         lex();
     };
 

@@ -13,7 +13,9 @@ static _GLIBCXX_NORETURN void error(std::string msg) // TODO take a span to show
     throw std::exception();
 }
 
-// TODO add type checking
+/**
+ * Typechecks the compound statement.
+ */
 void CompoundStatement::typecheck(TypecheckContext& context)
 {
     if (statements.empty() || dynamic_cast<Return*>(statements.back().get()) == nullptr)
@@ -28,10 +30,16 @@ void CompoundStatement::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the variable declaration.
+ */
 void VariableDeclaration::typecheck(TypecheckContext& context)
 {
 }
 
+/**
+ * Typechecks the return statement.
+ */
 void Return::typecheck(TypecheckContext& context)
 {
     if (expr)
@@ -45,20 +53,21 @@ void Return::typecheck(TypecheckContext& context)
     }
     else if (context.func_def->function->type->ret_type->type != TypeType::Void)
     {
-        // expr->type->dump();
-        // std::cerr << "\n"; 
-        // context.func_def->function->type->ret_type->dump();
-        // std::cerr << "\n"; 
-
         error("return type does not match function");
     }
 }
 
+/**
+ * Typechecks the variable.
+ */
 void Variable::typecheck(TypecheckContext& context)
 {
     type = symbol->type;
 }
 
+/**
+ * Typechecks the function call.
+ */
 void FunctionCall::typecheck(TypecheckContext& context)
 {
     // TODO check types of args
@@ -80,6 +89,9 @@ void FunctionCall::typecheck(TypecheckContext& context)
     type = function->type->ret_type;
 }
 
+/**
+ * Typechecks the binary operation.
+ */
 void BinaryOperation::typecheck(TypecheckContext& context)
 {
     lhs->typecheck(context);
@@ -95,6 +107,9 @@ void BinaryOperation::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the unary operation.
+ */
 void UnaryOperation::typecheck(TypecheckContext& context)
 {
     expr->typecheck(context);
@@ -114,16 +129,25 @@ void UnaryOperation::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the integer constant.
+ */
 void IntegerConstant::typecheck(TypecheckContext& context)
 {
     type = std::make_shared<Type>(TypeType::Int);
 }
 
+/**
+ * Typechecks the char constant.
+ */
 void CharConstant::typecheck(TypecheckContext& context)
 {
     // TODO later
 }
 
+/**
+ * Typechecks the function.
+ */
 void FunctionDef::typecheck(TypecheckContext& context)
 {
     if (!is_proto())
@@ -139,6 +163,9 @@ void FunctionDef::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the program.
+ */
 void Program::typecheck(TypecheckContext& context)
 {
     for (auto& function : functions)
@@ -148,6 +175,9 @@ void Program::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the program.
+ */
 void Program::typecheck()
 {
     TypecheckContext context;
@@ -158,26 +188,41 @@ void Program::typecheck()
 /*                                   Dump                                       */
 /********************************************************************************/
 
+/**
+ * Outputs an indentation.
+ */
 static void indent(int depth)
 {
     std::cout << std::string(depth, '\t');
 }
 
+/**
+ * Dumps the AST node.
+ */
 void IntegerConstant::dump(int depth)
 {
     std::cout << "IntegerConstant(" << value << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void CharConstant::dump(int depth)
 {
     std::cout << "CharConstant('" << value << "')";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void Variable::dump(int depth)
 {
     std::cout << "Variable(" << symbol->name << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void FunctionCall::dump(int depth)
 {
     std::cout << "FunctionCall(\n";
@@ -207,6 +252,9 @@ void FunctionCall::dump(int depth)
     std::cout << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void BinaryOperation::dump(int depth)
 {
     std::cout << "BinaryOperation(\n";
@@ -220,6 +268,9 @@ void BinaryOperation::dump(int depth)
     std::cout << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void UnaryOperation::dump(int depth)
 {
     std::cout << "UnaryOperation(\n";
@@ -233,6 +284,9 @@ void UnaryOperation::dump(int depth)
     std::cout << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void CompoundStatement::dump(int depth)
 {
     std::cout << "CompoundStatement(\n";
@@ -249,11 +303,17 @@ void CompoundStatement::dump(int depth)
     std::cout << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void VariableDeclaration::dump(int depth)
 {
     std::cout << "VariableDeclaration(" << symbol->name << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void Return::dump(int depth)
 {
     std::cout << "Return(";
@@ -266,6 +326,9 @@ void Return::dump(int depth)
     std::cout << ")";
 }
 
+/**
+ * Dumps the AST node.
+ */
 void FunctionDef::dump(int depth)
 {
     if (!is_proto())
@@ -312,6 +375,9 @@ void FunctionDef::dump(int depth)
     }
 }
 
+/**
+ * Dumps the AST node.
+ */
 void Program::dump(int depth)
 {   
     std::cout << "Program(\n";
@@ -328,6 +394,9 @@ void Program::dump(int depth)
     std::cout << ")\n";
 }
 
+/**
+ * Dumps the IR for the program.
+ */
 void Program::ir_dump() 
 {
     for (auto f : functions)

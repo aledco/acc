@@ -1,6 +1,9 @@
 #include <iostream>
 #include "Operator.hpp"
 
+/**
+ * Gets the BinOp for the string.
+ */
 BinOp getBinOp(std::string op)
 {
     if (op == "+")
@@ -32,6 +35,9 @@ BinOp getBinOp(std::string op)
     throw std::exception();
 }
 
+/**
+ * Gets the string representation of the BinOp.
+ */
 std::string toString(BinOp op)
 {
     switch (op)
@@ -51,6 +57,9 @@ std::string toString(BinOp op)
     }
 }
 
+/**
+ * Gets the UnOp for the string.
+ */
 UnOp getUnOp(std::string op)
 {
     if (op == "-")
@@ -72,6 +81,9 @@ UnOp getUnOp(std::string op)
     throw std::exception();
 }
 
+/**
+ * Gets the string representation of the UnOp.
+ */
 std::string toString(UnOp op)
 {
     switch (op)

@@ -3,12 +3,18 @@
 #include <string>
 #include <vector>
 
+/**
+ * Encodes operator precedence.
+ */
 inline std::vector<std::vector<std::string>> operator_precedence = {
     { "*", "/", "%" },
     { "+", "-" }, // TODO add more later
     { "=" }
 };
 
+/**
+ * Represents a binary operation type.
+ */
 enum class BinOp
 {
     Plus,
@@ -19,6 +25,9 @@ enum class BinOp
     Assign
 };
 
+/**
+ * Represents a unary operation type.
+ */
 enum class UnOp
 {
     Negation,

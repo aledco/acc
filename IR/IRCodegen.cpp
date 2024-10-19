@@ -2,6 +2,9 @@
 #include "SyntaxTree.hpp"
 #include "Quad.hpp"
 
+/**
+ * Generates IR for the AST node.
+ */
 void CompoundStatement::ir_codegen()
 {
     for (auto& statement : statements)
@@ -11,10 +14,16 @@ void CompoundStatement::ir_codegen()
     }
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void VariableDeclaration::ir_codegen()
 {
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void Return::ir_codegen()
 {
     if (expr)
@@ -30,11 +39,17 @@ void Return::ir_codegen()
     }
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void Variable::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void FunctionCall::ir_codegen()
 {
     for (auto &arg : args)
@@ -50,6 +65,9 @@ void FunctionCall::ir_codegen()
     ir_list = QuadList::append(ir_list, call_inst);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void BinaryOperation::ir_codegen()
 {
     if (op == BinOp::Assign)
@@ -95,6 +113,9 @@ void BinaryOperation::ir_codegen()
     ir_list = QuadList::append(ir_list, inst);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void UnaryOperation::ir_codegen()
 {
     expr->ir_codegen();
@@ -118,6 +139,9 @@ void UnaryOperation::ir_codegen()
     }
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void IntegerConstant::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
@@ -125,11 +149,17 @@ void IntegerConstant::ir_codegen()
     ir_list = QuadList(inst, inst);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void CharConstant::ir_codegen()
 {
     // TODO later
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void FunctionDef::ir_codegen()
 {
     if (is_proto())
@@ -146,6 +176,9 @@ void FunctionDef::ir_codegen()
     cfg = ConstructCFG(ir_list);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void Program::ir_codegen()
 {
     for (auto& function : functions)
@@ -154,17 +187,26 @@ void Program::ir_codegen()
     }
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void Expression::ir_codegen_lval()
 {
     std::cerr << "Error: cannot take lvalue of expression\n"; // TODO line numbers
     throw std::exception();
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void Variable::ir_codegen_lval()
 {
     location = Operand::MakeVariableOperand(symbol);
 }
 
+/**
+ * Generates IR for the AST node.
+ */
 void UnaryOperation::ir_codegen_lval()
 {
     // TODO

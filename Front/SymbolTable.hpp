@@ -3,22 +3,31 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
-#include <list>
+#include <vector>
 #include "Lexer.hpp"
 #include "Type.hpp"
 #include "CodegenSymbolData.hpp"
 
+/**
+ * Represents a symbol in the symbol table.
+ */
 struct Symbol
 {
     std::string name;
     std::shared_ptr<Type> type;
+
     bool is_parameter = false;
     bool is_temp = false;
-    CodegenSymbolData symbol_data;
+
+    CodegenSymbolData symbol_data; // stores codegen specific information
+                                   // backend supplies this struct
 
     Symbol(std::string name, std::shared_ptr<Type> type): name(name), type(type) {}
 };
 
+/**
+ * Represents a symbol table.
+ */
 class SymbolTable
 {
 private:
@@ -26,7 +35,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Symbol>> table;
 
     long temp_count = 0;
-    std::list<std::shared_ptr<Symbol>> free_temps;
+    std::vector<std::shared_ptr<Symbol>> temps;
 
 public:
     int scope;
@@ -41,5 +50,4 @@ public:
     std::shared_ptr<Symbol> try_lookup(Token& name);
 
     std::shared_ptr<Symbol> new_temp(std::shared_ptr<Type> type);
-    void free_temp(std::shared_ptr<Symbol> temp);
 };
