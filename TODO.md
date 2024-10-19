@@ -20,6 +20,7 @@
 
 ## IR
 - Free temps in ir codegen
+- Add optimization
 
 ## Code Maintenance
 - Add const to everything possible
@@ -27,5 +28,4 @@
 
 ## Tests
 - Add failure tests
-- Add system to CodegenTest to compile with clang and compare output
-- Add linking to a print function so we can test printed output
+- Add more tests
