@@ -1,7 +1,10 @@
 #include <algorithm>
 #include <iostream>
+#include "Span.hpp"
 #include "Operator.hpp"
+#include "Error.hpp"
 #include "Parser.hpp"
+
 
 /**
  * Parses the program and retunrs the abstract syntax tree.
@@ -10,12 +13,15 @@ std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
     std::vector<std::shared_ptr<FunctionDef>> functions;
+    Span span;
     while (is_currently({"void", "int", "extern"}))
-    {
-        functions.push_back(std::move(parse_function(context)));
+    {   
+        auto f = parse_function(context);
+        functions.push_back(f);
+        span += f->span;
     }
 
-    auto program = std::make_shared<Program>(functions, context.global_symbol_table);
+    auto program = std::make_shared<Program>(span, functions, context.global_symbol_table);
     program->typecheck();
     return program;
 }
@@ -26,6 +32,8 @@ std::shared_ptr<Program> Parser::parse()
 std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 {
     context.push_symbol_table();
+
+    Span span = current().span;
 
     bool is_extern = false;
     if (is_currently({ "extern" })) 
@@ -62,11 +70,12 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 
     if (is_currently({";"})) 
     {
-        match(";");
+        auto token = match(";");
+        span += token.span;
         auto function_type = std::make_shared<Type>(TypeType::Function, return_type, param_types, is_extern, false);
         auto function_symbol = context.global_symbol_table->add_symbol(function_name_token, function_type);
         context.pop_symbol_table();
-        return std::make_shared<FunctionDef>(function_symbol, params, context.current_symbol_table()); // prototype
+        return std::make_shared<FunctionDef>(span, function_symbol, params, context.current_symbol_table()); // prototype
     }
     else
     {
@@ -75,9 +84,7 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         {
             if (function_symbol->type->is_defined)
             {
-                // TODO need a standared error function
-                std::cerr << "multiple definitions of function " << function_name_token.value << "\n";
-                throw std::exception();
+                throw Error(span, "Error", "multiple definitions of function " + function_name_token.value);
             }
             else
             {
@@ -91,8 +98,9 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
         }
 
         auto body = parse_compound_statement(context);
+        span += body->span;
         context.pop_symbol_table();
-        return std::make_shared<FunctionDef>(function_symbol, params, body, context.current_symbol_table());
+        return std::make_shared<FunctionDef>(span, function_symbol, params, body, context.current_symbol_table());
     }
 }
 
@@ -132,10 +140,11 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     }
     else
     {
-        error({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }); // TODO should make these long lists of tokens constants
+        throw ParseError(current(), { "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" });
     }
 
-    match(";");
+    auto token = match(";");
+    statement->span += token.span;
     return statement;
 }
 
@@ -146,6 +155,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
 {
     context.push_symbol_table();
 
+    Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
     while (is_currently({ "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
@@ -153,11 +163,12 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
         statements.push_back(parse_statement(context));
     }
 
-    match("}");
+    auto token = match("}");
+    span += token.span;
 
     auto symbol_table = context.current_symbol_table();
     context.pop_symbol_table();
-    return std::make_shared<CompoundStatement>(statements, symbol_table);
+    return std::make_shared<CompoundStatement>(span, statements, symbol_table);
 }
 
 /**
@@ -165,10 +176,12 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
  */
 std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserContext& context)
 {
+    Span span = current().span;
     auto type = parse_type(context);
     auto token = match(TokenType_Id);
+    span += token.span;
     auto symbol = context.current_symbol_table()->add_symbol(token, type);
-    return std::make_shared<VariableDeclaration>(type, symbol, context.current_symbol_table());
+    return std::make_shared<VariableDeclaration>(span, type, symbol, context.current_symbol_table());
 }
 
 /**
@@ -176,15 +189,17 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
  */
 std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
+    Span span = current().span;
     match("return");
     if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
     {
         auto expr = parse_expression(context);
-        return std::make_shared<Return>(expr, context.current_symbol_table());
+        span += expr->span;
+        return std::make_shared<Return>(span, expr, context.current_symbol_table());
     }
     else
     {
-        return std::make_shared<Return>(context.current_symbol_table());
+        return std::make_shared<Return>(span, context.current_symbol_table());
     }
 }
 
@@ -206,12 +221,14 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
         return parse_unary(context);
     }
 
+    Span span = current().span;
     auto lhs = parse_expression(context, p-1);
     while (is_currently(operator_precedence[p]))
     {
         auto op = match(operator_precedence[p]);
         auto rhs = parse_expression(context, p-1);
-        lhs = std::make_shared<BinaryOperation>(getBinOp(op.value), lhs, rhs, context.current_symbol_table());
+        span = span + rhs->span;
+        lhs = std::make_shared<BinaryOperation>(span, getBinOp(op.value), lhs, rhs, context.current_symbol_table());
     }
 
     return lhs;
@@ -224,9 +241,11 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 {
     if (is_currently({ "-", "*", "&" }))
     {
+        Span span = current().span;
         auto op = match({ "-", "*", "&" });
         auto expr = parse_term(context);
-        return std::make_shared<UnaryOperation>(getUnOp(op.value), expr, context.current_symbol_table());
+        span += expr->span;
+        return std::make_shared<UnaryOperation>(span, getUnOp(op.value), expr, context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
     {
@@ -235,7 +254,7 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 
     // TODO handle increment operators later
 
-    error({ "-", "*", "&", TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { "-", "*", "&", TokenType_Int, TokenType_Id, "(" });
 }
 
 /**
@@ -246,10 +265,11 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
     if (is_currently({ TokenType_Int }))
     {
         auto token = match(TokenType_Int);
-        return std::make_shared<IntegerConstant>(std::stol(token.value), context.current_symbol_table());
+        return std::make_shared<IntegerConstant>(token.span, std::stol(token.value), context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Id }))
     {
+        Span span = current().span;
         auto symbol = parse_identifier(context);
         if (is_currently({ "(" }))
         {
@@ -266,8 +286,9 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
                 }
             }
 
-            match(")");
-            return std::make_shared<FunctionCall>(symbol, args, context.current_symbol_table());
+            auto token = match(")");
+            span += token.span;
+            return std::make_shared<FunctionCall>(span, symbol, args, context.current_symbol_table());
         }
         else if (is_currently({ "[" }))
         {
@@ -275,7 +296,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         }
         else
         {
-            return std::make_shared<Variable>(symbol, context.current_symbol_table());
+            return std::make_shared<Variable>(span, symbol, context.current_symbol_table());
         }
     }
     else if (is_currently({ "(" }))
@@ -288,7 +309,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 
     // TODO add parens, function calls, arrays, etc
 
-    error({ TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { TokenType_Int, TokenType_Id, "(" });
 }
 
 /**
@@ -307,7 +328,7 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
         return std::make_shared<Type>(TypeType::Int);
     }
     
-    error({ "void", "int" });
+    throw ParseError(current(), { "void", "int" });
 }
 
 /**
@@ -332,7 +353,7 @@ Token& Parser::match(const std::string token_type)
         return prev;
     }
     
-    error({ token_type });
+    throw ParseError(current(), { token_type });
 }
 
 /**
@@ -359,7 +380,7 @@ Token& Parser::match(const std::vector<std::string> token_types)
         }
     }
     
-    error(token_types);
+    throw ParseError(current(), token_types);
 }
 
 /**
@@ -385,26 +406,4 @@ bool Parser::is_currently(const std::vector<std::string> options)
     }
 
     return false;
-}
-
-_GLIBCXX_NORETURN void Parser::error(std::initializer_list<std::string> token_types)
-{
-    std::vector<std::string> vec = token_types;
-    error(vec);
-}
-
-_GLIBCXX_NORETURN void Parser::error(std::vector<std::string> token_types)
-{
-    std::cerr << "Parse Error: around " << current().span.end.line << ":" << current().span.end.col << ": expected ";
-    for (auto i = 0; i < token_types.size(); i++)
-    {
-        std::cerr << token_types[i]; 
-        if (i < token_types.size() - 1)
-        {
-            std::cerr << ", ";
-        }
-    }
-
-    std::cerr << " got " << current().value << "\n";
-    throw std::exception();
 }

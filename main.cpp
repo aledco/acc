@@ -7,6 +7,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "Codegen.hpp"
+#include "Error.hpp"
 
 struct Args
 {
@@ -83,48 +84,55 @@ int main(int argc, char *argv[])
     Parser parser(lexer);
     auto program = parser.parse();
     
-    if (args.dump)
-    {
-        std::cerr << "AST DUMP:\n";
-        program->dump();
-        std::cerr << "\n";
-    }
-
-    program->ir_codegen();
-
-    if (args.dump)
-    {
-        std::cerr << "IR DUMP:\n";
-        program->ir_dump();
-        std::cerr << "\n";
-    }
-
-    if (args.emit_llvm || args.dump)
+    try
     {
         if (args.dump)
         {
-            std::cerr << "LLVM DUMP:\n";
+            std::cerr << "AST DUMP:\n";
+            program->dump();
+            std::cerr << "\n";
         }
 
-        codegen(program, &std::cout);
-    }
-    else
-    {   
-        auto llvm_output = "a.ll";
+        program->ir_codegen();
+
+        if (args.dump)
         {
-            std::ofstream llvm_output_stream(llvm_output);
-            codegen(program, &llvm_output_stream);
+            std::cerr << "IR DUMP:\n";
+            program->ir_dump();
+            std::cerr << "\n";
         }
 
-        std::vector<std::string> llvm_files;
-        llvm_files.push_back(llvm_output);
-        link_llvm(args, llvm_files);
-
-        for (auto& file : llvm_files) 
+        if (args.emit_llvm || args.dump)
         {
-            std::remove(file.c_str());
+            if (args.dump)
+            {
+                std::cerr << "LLVM DUMP:\n";
+            }
+
+            codegen(program, &std::cout);
+        }
+        else
+        {   
+            auto llvm_output = "a.ll";
+            {
+                std::ofstream llvm_output_stream(llvm_output);
+                codegen(program, &llvm_output_stream);
+            }
+
+            std::vector<std::string> llvm_files;
+            llvm_files.push_back(llvm_output);
+            link_llvm(args, llvm_files);
+
+            for (auto& file : llvm_files) 
+            {
+                std::remove(file.c_str());
+            }
         }
     }
-
+    catch(Error& e)
+    {
+        std::cerr << e.what();
+    }
+    
     return 0;
 }

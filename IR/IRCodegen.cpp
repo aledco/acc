@@ -1,5 +1,6 @@
 #include <iostream>
 #include "SyntaxTree.hpp"
+#include "Error.hpp"
 #include "Quad.hpp"
 
 /**
@@ -105,8 +106,7 @@ void BinaryOperation::ir_codegen()
             quad_op = QuadOp::Mod;
             break;
         default:
-            std::cerr << "Not implemented\n";
-            throw std::exception();
+            assert(false && "unimplemented");
     }
 
     auto inst = Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place);
@@ -134,8 +134,7 @@ void UnaryOperation::ir_codegen()
         case UnOp::Post_PlusPlus:
         case UnOp::Pre_MinusMinus:
         case UnOp::Post_MinusMinus:
-            std::cerr << "Not implemented\n";
-            throw std::exception();
+            assert(false && "unimplemented");
     }
 }
 
@@ -192,8 +191,7 @@ void Program::ir_codegen()
  */
 void Expression::ir_codegen_lval()
 {
-    std::cerr << "Error: cannot take lvalue of expression\n"; // TODO line numbers
-    throw std::exception();
+    throw Error(span, "Error", "cannot take lvalue of expression");
 }
 
 /**

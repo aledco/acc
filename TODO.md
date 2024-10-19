@@ -35,5 +35,4 @@
 
 ## Misc
 - Clean up TODOs
-- Make a seperate file for errors
 - Use specific exceptions for each type of error, have a try catch in main to print errors

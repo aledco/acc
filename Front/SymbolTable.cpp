@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include "Error.hpp"
 #include "SymbolTable.hpp"
 
 /**
@@ -9,8 +10,7 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Typ
 {
     if (table.find(name.value) != table.end())
     {
-        std::cerr << "Name Error: around " << name.span.end.line << ":" << name.span.end.col << ": " << name.value << " already defined\n";
-        throw std::exception();
+        throw AlreadyDefinedNameError(name);
     }
 
     return add_symbol(name.value, type);
@@ -35,8 +35,7 @@ std::shared_ptr<Symbol> SymbolTable::lookup(Token& name)
     auto symbol = try_lookup(name);
     if (symbol == nullptr)
     {
-        std::cerr << "Name Error: around " << name.span.end.line << ":" << name.span.end.col << ": unknown identifier " << name.value << "\n";
-        throw std::exception();
+        throw UndefinedNameError(name);
     }
     
     return symbol;

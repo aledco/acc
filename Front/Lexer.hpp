@@ -91,9 +91,7 @@ private:
     Token lex_id(LexerContext& context);
     Token lex_sep(LexerContext& context);
     Token lex_op(LexerContext& context);
-
-    _GLIBCXX_NORETURN void error(LexerContext& context); 
-
+    
     inline bool eof() const { return index >= input.length(); }
     inline char current() const { return input[index]; }
     inline std::string slice(int length) { return input.substr(index, length); }

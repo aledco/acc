@@ -1,17 +1,12 @@
 #include <iostream>
 #include <string>
 #include "Operator.hpp"
+#include "Error.hpp"
 #include "SyntaxTree.hpp"
 
 /********************************************************************************/
 /*                             Type Check                                       */
 /********************************************************************************/
-
-static _GLIBCXX_NORETURN void error(std::string msg) // TODO take a span to show line numbers
-{
-    std::cerr << "Type Error: " << msg << "\n";
-    throw std::exception();
-}
 
 /**
  * Typechecks the compound statement.
@@ -21,7 +16,7 @@ void CompoundStatement::typecheck(TypecheckContext& context)
     if (statements.empty() || dynamic_cast<Return*>(statements.back().get()) == nullptr)
     {
         // if the last statement of the compound add a return.
-        statements.push_back(std::make_shared<Return>(symbol_table));
+        statements.push_back(std::make_shared<Return>(span, symbol_table));
     }
 
     for (auto& statement : statements)
@@ -48,12 +43,12 @@ void Return::typecheck(TypecheckContext& context)
         if (*expr->type != *context.func_def->function->type->ret_type)
         {
             // TODO implicitly cast type if possible
-            error("return type does not match function");
+            throw TypeError(span, "return type does not match function");
         }
     }
     else if (context.func_def->function->type->ret_type->type != TypeType::Void)
     {
-        error("return type does not match function");
+        throw TypeError(span, "return type does not match function");
     }
 }
 
@@ -73,7 +68,7 @@ void FunctionCall::typecheck(TypecheckContext& context)
     // TODO check types of args
     if (args.size() != function->type->param_types.size())
     {
-        error("number of arguments do not match the function");
+        throw TypeError(span, "number of arguments do not match the function");
     }
 
     for (auto i = 0; i < args.size(); i++)
@@ -82,7 +77,7 @@ void FunctionCall::typecheck(TypecheckContext& context)
         if (*args[i]->type != *function->type->param_types[i])
         {
             // TODO implicitly cast type if possible
-            error("argument type does not match function");
+            throw TypeError(span, "argument type does not match function");
         }
     }
 
@@ -99,7 +94,7 @@ void BinaryOperation::typecheck(TypecheckContext& context)
     if (*lhs->type != *rhs->type)
     {
         // TODO implicitly cast type if possible
-            error("type mismatch between operands of binary operation");
+            throw TypeError(span, "type mismatch between operands of binary operation");
     }
     else
     {
@@ -124,8 +119,7 @@ void UnaryOperation::typecheck(TypecheckContext& context)
         case UnOp::Post_PlusPlus:
         case UnOp::Pre_MinusMinus:
         case UnOp::Post_MinusMinus:
-            std::cerr << "Unimplemented\n";
-            throw std::exception(); // TODO handle later
+            assert(false && "unimplemented");
     }
 }
 
@@ -158,7 +152,7 @@ void FunctionDef::typecheck(TypecheckContext& context)
     {
         if (!function->type->is_extern && !function->type->is_defined)
         {
-            error("function prototype was never defined");
+            throw TypeError(span, "function prototype was never defined");
         }
     }
 }

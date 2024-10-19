@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <algorithm>
+#include "Error.hpp"
 #include "Lexer.hpp"
 
 /**
@@ -63,7 +64,7 @@ void Lexer::lex()
         }
         else 
         {
-            error(context);
+            throw SyntaxError(context.pos);
         }
     }
 }
@@ -175,10 +176,4 @@ bool Lexer::vector_contains_char(const std::vector<std::string>& vec, char c)
     }
 
     return false;
-}
-
-_GLIBCXX_NORETURN void Lexer::error(LexerContext& context)
-{
-    std::cerr << "Syntax Error: " << context.pos.line << ":" << context.pos.col << std::endl;
-    throw std::exception();
 }

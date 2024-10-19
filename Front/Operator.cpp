@@ -1,4 +1,5 @@
 #include <iostream>
+#include "cassert"
 #include "Operator.hpp"
 
 /**
@@ -31,8 +32,7 @@ BinOp getBinOp(std::string op)
         return BinOp::Assign;
     }
 
-    std::cerr << "Error: unrecognized binary operator " << op << "\n";
-    throw std::exception();
+    assert(false && (std::string("unrecognized unary operator ") + op).c_str());
 }
 
 /**
@@ -77,8 +77,7 @@ UnOp getUnOp(std::string op)
 
     // TODO do the rest later
 
-    std::cerr << "Error: unrecognized unary operator " << op << "\n";
-    throw std::exception();
+    assert(false && (std::string("unrecognized unary operator ") + op).c_str());
 }
 
 /**

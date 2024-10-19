@@ -61,9 +61,6 @@ private:
     std::shared_ptr<Type> parse_type(ParserContext& context);
     std::shared_ptr<Symbol> parse_identifier(ParserContext& context);
 
-    _GLIBCXX_NORETURN void error(std::initializer_list<std::string> token_types);
-    _GLIBCXX_NORETURN void error(std::vector<std::string> token_types);
-
 public:
     Parser(const Lexer& lexer): lexer{lexer} {}
 

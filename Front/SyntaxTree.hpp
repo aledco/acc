@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 #include <memory>
+#include "Span.hpp"
 #include "SymbolTable.hpp"
 #include "Type.hpp"
 #include "Operator.hpp"
@@ -23,10 +24,11 @@ protected:
     };
 
 public:
+    Span span;
     std::shared_ptr<SymbolTable> symbol_table;
     QuadList ir_list;
 
-    SyntaxTree(std::shared_ptr<SymbolTable> symbol_table) : symbol_table(symbol_table) {}
+    SyntaxTree(Span span, std::shared_ptr<SymbolTable> symbol_table) : span(span), symbol_table(symbol_table) {}
 
     virtual void typecheck(TypecheckContext& context) = 0;
     virtual void ir_codegen() = 0;
@@ -38,7 +40,7 @@ public:
  */
 struct Statement : SyntaxTree
 {
-    Statement(std::shared_ptr<SymbolTable> symbol_table) : SyntaxTree(symbol_table) {}
+    Statement(Span span, std::shared_ptr<SymbolTable> symbol_table) : SyntaxTree(span, symbol_table) {}
 };
 
 /**
@@ -50,7 +52,7 @@ struct Expression : Statement
     std::shared_ptr<Operand> place;
     std::shared_ptr<Operand> location;
 
-    Expression(std::shared_ptr<SymbolTable> symbol_table) : Statement(symbol_table) {}
+    Expression(Span span, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table) {}
 
     virtual void ir_codegen_lval();
 };
@@ -62,8 +64,8 @@ struct CompoundStatement : Statement
 {
     std::vector<std::shared_ptr<Statement>> statements;
 
-    CompoundStatement(std::vector<std::shared_ptr<Statement>> statements, std::shared_ptr<SymbolTable> symbol_table):
-        Statement(symbol_table),
+    CompoundStatement(Span span, std::vector<std::shared_ptr<Statement>> statements, std::shared_ptr<SymbolTable> symbol_table):
+        Statement(span, symbol_table),
         statements(statements)
     {}
 
@@ -80,8 +82,8 @@ struct VariableDeclaration : Statement
     std::shared_ptr<Type> type;
     std::shared_ptr<Symbol> symbol;
 
-    VariableDeclaration(std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
-        Statement(symbol_table), 
+    VariableDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+        Statement(span, symbol_table), 
         type(type), 
         symbol(symbol) 
     {}
@@ -98,8 +100,8 @@ struct Return : Statement
 {
     std::shared_ptr<Expression> expr;
 
-    Return(std::shared_ptr<SymbolTable> symbol_table): Statement(symbol_table), expr(nullptr) {}
-    Return(std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Statement(symbol_table), expr(expr) {}
+    Return(Span span, std::shared_ptr<SymbolTable> symbol_table): Statement(span, symbol_table), expr(nullptr) {}
+    Return(Span span, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table), expr(expr) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -113,7 +115,7 @@ struct Variable : Expression
 {
     std::shared_ptr<Symbol> symbol;
 
-    Variable(std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), symbol(symbol) {}
+    Variable(Span span, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), symbol(symbol) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -129,8 +131,8 @@ struct FunctionCall : Expression
     std::shared_ptr<Symbol> function;
     std::vector<std::shared_ptr<Expression>> args;
 
-    FunctionCall(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Expression>> args, std::shared_ptr<SymbolTable> symbol_table) :
-        Expression(symbol_table),
+    FunctionCall(Span span, std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Expression>> args, std::shared_ptr<SymbolTable> symbol_table) :
+        Expression(span, symbol_table),
         function(function),
         args(args)
     {}
@@ -149,8 +151,8 @@ struct BinaryOperation : Expression
     std::shared_ptr<Expression> lhs;
     std::shared_ptr<Expression> rhs;
 
-    BinaryOperation(BinOp op, std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs, std::shared_ptr<SymbolTable> symbol_table) :
-        Expression(symbol_table),
+    BinaryOperation(Span span, BinOp op, std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs, std::shared_ptr<SymbolTable> symbol_table) :
+        Expression(span, symbol_table),
         op(op),
         lhs(lhs),
         rhs(rhs)
@@ -169,7 +171,7 @@ struct UnaryOperation : Expression
     UnOp op;
     std::shared_ptr<Expression> expr;
 
-    UnaryOperation(UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), op(op), expr(expr) {}
+    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), op(op), expr(expr) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -184,7 +186,7 @@ struct IntegerConstant : Expression
 {
     long value;
 
-    IntegerConstant(long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), value(value) {}
+    IntegerConstant(Span span, long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -198,7 +200,7 @@ struct CharConstant : Expression
 {
     char value;
 
-    CharConstant(long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(symbol_table), value(value) {}
+    CharConstant(Span span, long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -216,15 +218,15 @@ struct FunctionDef : SyntaxTree
 
     std::vector<std::shared_ptr<BasicBlock>> cfg;
 
-    FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
-        SyntaxTree(symbol_table),
+    FunctionDef(Span span, std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<CompoundStatement> body, std::shared_ptr<SymbolTable> symbol_table):
+        SyntaxTree(span, symbol_table),
         function(function), 
         params(params),
         body(body)
     {}
 
-    FunctionDef(std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<SymbolTable> symbol_table):
-        SyntaxTree(symbol_table),
+    FunctionDef(Span span, std::shared_ptr<Symbol> function, std::vector<std::shared_ptr<Symbol>> params, std::shared_ptr<SymbolTable> symbol_table):
+        SyntaxTree(span, symbol_table),
         function(function), 
         params(params),
         body(nullptr)
@@ -244,8 +246,8 @@ struct Program : SyntaxTree
 {
     std::vector<std::shared_ptr<FunctionDef>> functions;
 
-    Program(const std::vector<std::shared_ptr<FunctionDef>>& functions,  std::shared_ptr<SymbolTable> symbol_table):
-        SyntaxTree(symbol_table),
+    Program(Span span, const std::vector<std::shared_ptr<FunctionDef>>& functions,  std::shared_ptr<SymbolTable> symbol_table):
+        SyntaxTree(span, symbol_table),
         functions(functions)
     {}
 
