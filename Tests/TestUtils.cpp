@@ -4,7 +4,7 @@
 static std::string indir = "Tests/in";
 static std::string outdir = "Tests/out";
 
-std::string read_input(int test_id)
+Input read_input(int test_id)
 {
     auto filepath = indir + "/test" + std::to_string(test_id) + ".c";
     std::ifstream file(filepath);
@@ -12,7 +12,7 @@ std::string read_input(int test_id)
 
     std::stringstream buffer;
     buffer << file.rdbuf();
-    return buffer.str();
+    return Input(test_id, filepath, buffer.str());
 }
 
 static bool file_exists(std::string filepath)
@@ -27,7 +27,7 @@ std::vector<Input> read_all_inputs()
     auto basepath = indir + "/test";
     for (auto i  = 1; file_exists(basepath + std::to_string(i) + ".c"); i++)
     {
-        inputs.push_back(Input(i, basepath + std::to_string(i) + ".c", read_input(i)));
+        inputs.push_back(read_input(i));
     }
 
     return inputs;

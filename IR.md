@@ -50,7 +50,5 @@ Following is a description of the instructions available in the IR.
 - param x 
     - Create a parameter from `x` before calling a function
     - `x` is a constant or variable
-- call f, n
-    - Call function `f` with `n` arguments
-- retrieve x
-    - Store the return value of a function call into `x`
+- x = call f, n
+    - Call function `f` with `n` arguments and place the return value into `x`

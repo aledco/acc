@@ -1,4 +1,5 @@
 #include <vector>
+#include <array>
 #include <memory>
 #include <string>
 #include <iostream>
@@ -32,6 +33,37 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
     }
 }
 
+static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
+{
+    assert(operand->type == OperandType::Variable);
+
+    if (operand->symbol->is_temp || operand->symbol->is_parameter || operand->symbol->symbol_data.is_allocated())
+    {
+        return;
+    }
+    else
+    {
+        operand->symbol->symbol_data.value = context.llvm_builder->CreateAlloca(
+            get_llvm_type(operand->symbol->type, context), 
+            nullptr, 
+            operand->symbol->name);
+    }
+}
+
+static void store(std::shared_ptr<Operand> operand, llvm::Value *val, CodegenContext& context)
+{
+    assert(operand->type == OperandType::Variable);
+
+    if (operand->symbol->is_temp || operand->symbol->is_parameter)
+    {
+        operand->symbol->symbol_data.value = val;
+    }
+    else
+    {   
+        context.llvm_builder->CreateStore(val, operand->symbol->symbol_data.value, false);
+    }
+}
+
 static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& context)
 {
     switch (operand->type)
@@ -41,19 +73,65 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
         case OperandType::StrConst:
             return nullptr; // TODO
         case OperandType::Variable:
-            return context.llvm_builder->CreateLoad(
-                get_llvm_type(operand->symbol->type, context), 
-                context.named_values[operand->symbol->name]);
+            if (operand->symbol->is_temp || operand->symbol->is_parameter)
+            {
+                return operand->symbol->symbol_data.value;
+            }
+            else
+            {
+                if (!operand->symbol->symbol_data.is_allocated())
+                {
+                    allocate(operand, context); // TODO this will have the effect of allocating a variable on its first use, do we want that?
+                }
+                
+                return context.llvm_builder->CreateLoad(
+                    get_llvm_type(operand->symbol->type, context), 
+                    operand->symbol->symbol_data.value);
+            }
         case OperandType::Label:
             return nullptr; // TODO
     }
 }
 
+static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    auto value = codegen(quad->arg1, context);
+    context.param_stack.push_back(value);
+    return value;
+}
+
+static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    assert(quad->arg1->type == OperandType::Variable);
+    assert(quad->arg2->type == OperandType::IntConst);
+
+    allocate(quad->res, context);
+
+    auto func_name = quad->arg1->symbol->name;
+    auto func = context.llvm_module->getFunction(func_name);
+    assert(func != nullptr);
+
+    auto nargs = quad->arg2->iconst;
+    llvm::SmallVector<llvm::Value *> args(nargs);
+    for (int i = nargs - 1; i >= 0; i--)
+    {
+        args[i] = context.param_stack.back();
+        context.param_stack.pop_back();
+    }
+
+    auto func_call = context.llvm_builder->CreateCall(func, args);
+    store(quad->res, func_call, context);
+    return func_call;
+}
+
 static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     assert(quad->res->type == OperandType::Variable);
+
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
+    allocate(quad->res, context);
+
     llvm::Value *res;
     switch (quad->op)
     {
@@ -78,14 +156,7 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
             break;
     }
 
-    res = context.llvm_builder->CreateAlloca(
-        get_llvm_type(quad->res->symbol->type, context), 
-        nullptr, 
-        quad->res->symbol->name);
-    context.llvm_builder->CreateStore(arg1, res, false);
-    context.named_values[quad->res->symbol->name] = res; // TODO named values wont work for nested symbol tables, need to store these in the symbol table
-                                                         // What I could do is have BackEnd inheirit from SymbolTable to augment it with additional info,
-                                                         // FrontEnd uses augmented SymbolTable
+    store(quad->res, res, context);
     return res;
 }
 
@@ -94,26 +165,25 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
     assert(quad->res->type == OperandType::Variable);
 
     auto arg1 = codegen(quad->arg1, context);
-    
+    allocate(quad->res, context);
+
+    llvm::Value *res;
     switch (quad->op)
     {
         case QuadOp::Neg:
-            arg1 = context.llvm_builder->CreateNeg(arg1);
+            res = context.llvm_builder->CreateNeg(arg1);
             break;
         case QuadOp::Deref:
         case QuadOp::Addr:
             break; // TODO
         case QuadOp::Copy:
+            res = arg1;
+            break;
         default:
             break;
     }
 
-    auto res = context.llvm_builder->CreateAlloca(
-        get_llvm_type(quad->res->symbol->type, context), 
-        nullptr, 
-        quad->res->symbol->name);
-    context.llvm_builder->CreateStore(arg1, res, false);
-    context.named_values[quad->res->symbol->name] = res;
+    store(quad->res, res, context);
     return res;
 }
 
@@ -163,9 +233,9 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
         case QuadOp::Return:
             return codegen_return(quad, context);
         case QuadOp::Param:
+            return codegen_param(quad, context);
         case QuadOp::Call:
-        case QuadOp::Retrieve:
-            break; // TODO
+            return codegen_call(quad, context);
         default:
             break;
     }
@@ -175,7 +245,7 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 
 static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, int bn, CodegenContext& context)
 {
-    auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block" + std::to_string(bn), context.llvm_function);
+    auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block_" + context.llvm_function->getName() + std::to_string(bn), context.llvm_function);
     context.llvm_builder->SetInsertPoint(llvm_block);
     
     for (auto quad = block->qlist.get_head(); quad != nullptr; quad = quad->next)
@@ -203,6 +273,7 @@ static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, Codeg
     for (auto &arg : llvm_function->args())
     {
         arg.setName(def->params[i]->name);
+        i++;
     }
 
     return llvm_function;
@@ -221,11 +292,12 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
         llvm_function = codegen_prototype(def, context); 
     }
 
-    // record all the args in the named_values map
-    context.named_values.clear();
+    // set the values for the args
+    std::size_t i = 0;
     for (auto &arg : llvm_function->args())
     {
-        context.named_values[std::string(arg.getName())] = &arg;
+        def->params[i]->symbol_data.value = &arg;
+        i++;
     }
 
     context.llvm_function = llvm_function;
@@ -242,7 +314,7 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 
 static void codegen_test_functions(CodegenContext& context);
 
-void codegen(std::shared_ptr<Program> program, std::ostream *file, bool link_test)
+void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;
     for (auto function : program->functions)
@@ -250,69 +322,6 @@ void codegen(std::shared_ptr<Program> program, std::ostream *file, bool link_tes
         auto llvm_function = codegen(function, context);
     }
 
-    if (link_test)
-    {
-        codegen_test_functions(context);
-    }
-
-    if (file == nullptr)
-    {
-        context.llvm_module->dump();
-    }
-    else
-    {
-        llvm::raw_os_ostream stream(*file);
-        context.llvm_module->print(stream, nullptr);
-    }
-}
-
-static llvm::Function *codegen_println(CodegenContext& context);
-static llvm::Function *codegen_printf_declaration(CodegenContext& context);
-
-static void codegen_test_functions(CodegenContext& context)
-{
-    codegen_printf_declaration(context);
-    codegen_println(context);
-}
-
-static llvm::Function *codegen_printf_declaration(CodegenContext& context)
-{
-    auto char_ptr_type = llvm::PointerType::get(context.llvm_builder->getInt8Ty(), 0);
-    auto printf_type = llvm::FunctionType::get(llvm::IntegerType::get(*context.llvm_context.get(), 32), char_ptr_type, true);
-
-    // auto printf_type = llvm::FunctionType::get(context.llvm_builder->getInt32Ty(), { context.llvm_builder->getPtrTy() }, false);
-    // auto printf_type = llvm::TypeBuilder<int(char *, ...), false>::get(llvm::getGlobalContext());
-
-    auto func_printf = llvm::Function::Create(printf_type, llvm::GlobalValue::ExternalLinkage, "printf", context.llvm_module.get());
-    func_printf->setCallingConv(llvm::CallingConv::C);
-
-    //llvm::AttrListPtr func_printf_PAL;
-    //func_printf->setAttributes(func_printf_PAL);
-
-
-    std::cerr << "HERE\n";
-
-    return func_printf;
-}
-
-static llvm::Function *codegen_println(CodegenContext& context)
-{
-    // TODO I think I will need to define printf, then call it with a format string for println
-    // TODO generate code for function call and test this
-
-    auto format_specifier = context.llvm_builder->CreateGlobalString("%d\n");
-
-    auto llvm_function_type = llvm::FunctionType::get(context.llvm_builder->getVoidTy(), context.llvm_builder->getInt32Ty(), false);
-    auto llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, "println", context.llvm_module.get());
-
-    auto entry = llvm::BasicBlock::Create(*context.llvm_context, "println_entry", llvm_function);
-    context.llvm_builder->SetInsertPoint(entry);
-
-    auto printf_func = context.llvm_module->getFunction("printf");
-    llvm::Value *args[] = { format_specifier, llvm_function->getArg(0) };
-    auto printf_call = context.llvm_builder->CreateCall(printf_func, args);
-    context.llvm_builder->CreateRetVoid();
-
-    llvm::verifyFunction(*llvm_function);
-    return llvm_function;
+    llvm::raw_os_ostream stream(*file);
+    context.llvm_module->print(stream, nullptr);
 }

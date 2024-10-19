@@ -1,14 +1,16 @@
 extern void println(int n);
 
-int f()
+int add(int x, int y)
 {
-    return 1;
+    x = 3;
+    y = 4;
+    return x + y;
 }
 
 int main()
 {
     int x;
-    x = f();
+    x = add(1, 2);
     println(x);
     return x;
 }

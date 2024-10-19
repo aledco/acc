@@ -6,11 +6,15 @@
 #include <list>
 #include "Lexer.hpp"
 #include "Type.hpp"
+#include "CodegenSymbolData.hpp"
 
 struct Symbol
 {
     std::string name;
     std::shared_ptr<Type> type;
+    bool is_parameter = false;
+    bool is_temp = false;
+    CodegenSymbolData symbol_data;
 
     Symbol(std::string name, std::shared_ptr<Type> type): name(name), type(type) {}
 };
@@ -25,8 +29,10 @@ private:
     std::list<std::shared_ptr<Symbol>> free_temps;
 
 public:
-    SymbolTable(): parent(nullptr) {}
-    SymbolTable(std::shared_ptr<SymbolTable> parent): parent(parent) {}
+    int scope;
+
+    SymbolTable(): parent(nullptr), scope(0) {}
+    SymbolTable(std::shared_ptr<SymbolTable> parent): parent(parent), scope(parent->scope + 1) {}
 
     std::shared_ptr<Symbol> add_symbol(Token& name, std::shared_ptr<Type> type);
     std::shared_ptr<Symbol> add_symbol(std::string name, std::shared_ptr<Type> type);

@@ -9,6 +9,7 @@
     #pragma diag_suppress 20
 #endif
 
+const inline std::string test_code_path = "acc-link/test-code.ll"; 
 
 struct Input
 {
@@ -38,7 +39,7 @@ struct OutputFiles
     {}
 };
 
-std::string read_input(int test_id);
+Input read_input(int test_id);
 std::vector<Input> read_all_inputs();
 
 void clear_outdir();

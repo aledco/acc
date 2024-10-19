@@ -94,7 +94,9 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 {
     auto param_type = parse_type(context);
     auto param_token = match(TokenType_Id);
-    return context.current_symbol_table()->add_symbol(param_token, param_type);
+    auto sym = context.current_symbol_table()->add_symbol(param_token, param_type);
+    sym->is_parameter = true;
+    return sym;
 }
 
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)

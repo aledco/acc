@@ -21,8 +21,9 @@ struct CodegenContext
     std::unique_ptr<llvm::LLVMContext> llvm_context;
     std::unique_ptr<llvm::IRBuilder<>> llvm_builder;
     std::unique_ptr<llvm::Module> llvm_module;
-    std::map<std::string, llvm::Value *> named_values;
+
     llvm::Function *llvm_function;
     llvm::BasicBlock *current_block;
+    std::vector<llvm::Value *> param_stack;
     CodegenContext();
 };

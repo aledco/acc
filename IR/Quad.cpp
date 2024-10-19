@@ -101,14 +101,9 @@ std::shared_ptr<Quad> Quad::MakeParamOp(std::shared_ptr<Operand> arg1)
     return std::make_shared<Quad>(QuadOp::Param, arg1, nullptr, nullptr);
 }
 
-std::shared_ptr<Quad> Quad::MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs)
+std::shared_ptr<Quad> Quad::MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs, std::shared_ptr<Operand> res)
 {
-    return std::make_shared<Quad>(QuadOp::Call, func, nargs, nullptr);
-}
-
-std::shared_ptr<Quad> Quad::MakeRetrieveOp(std::shared_ptr<Operand> res)
-{
-    return std::make_shared<Quad>(QuadOp::Retrieve, nullptr, nullptr, res);
+    return std::make_shared<Quad>(QuadOp::Call, func, nargs, res);
 }
 
 /********************************************************************************/
@@ -360,15 +355,12 @@ void Quad::dump()
             std::cerr << "\n";
             break;
         case QuadOp::Call:
-            std::cerr << "call ";
+            res->dump();
+
+            std::cerr << " = call ";
             arg1->dump();
             std::cerr << ", ";
             arg2->dump();
-            std::cerr << "\n";
-            break;
-        case QuadOp::Retrieve:
-            std::cerr << "retrieve ";
-            res->dump();
             std::cerr << "\n";
             break;
     }

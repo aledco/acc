@@ -38,8 +38,8 @@ struct Statement : SyntaxTree
 struct Expression : Statement
 {
     std::shared_ptr<Type> type;
-    std::shared_ptr<Symbol> place;
-    std::shared_ptr<Symbol> location;
+    std::shared_ptr<Operand> place;
+    std::shared_ptr<Operand> location;
 
     Expression(std::shared_ptr<SymbolTable> symbol_table) : Statement(symbol_table) {}
 
@@ -211,4 +211,5 @@ struct Program : SyntaxTree
     void typecheck();
     void ir_codegen() override;
     void dump(int depth = 1) override;
+    void ir_dump();
 };

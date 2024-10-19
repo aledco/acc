@@ -17,7 +17,14 @@ TEST(IR, Codegen)
         EXPECT_NO_THROW({
             program->ir_codegen();
         }) << "Error for test " << input.test_id;
-
-        EXPECT_FALSE(program->ir_list.empty());
+        
+        for (auto f : program->functions)
+        {
+            if (!f->is_proto())
+            {
+                EXPECT_FALSE(f->ir_list.empty());
+                EXPECT_FALSE(f->cfg.empty());
+            }            
+        }
     }
 }

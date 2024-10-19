@@ -20,7 +20,7 @@ void Return::ir_codegen()
     if (expr)
     {
         expr->ir_codegen();
-        auto inst = Quad::MakeReturnOp(Operand::MakeVariableOperand(expr->place));
+        auto inst = Quad::MakeReturnOp(expr->place);
         ir_list = QuadList::append(expr->ir_list, inst);
     }
     else
@@ -32,7 +32,7 @@ void Return::ir_codegen()
 
 void Variable::ir_codegen()
 {
-    place = symbol;
+    place = Operand::MakeVariableOperand(symbol);
 }
 
 void FunctionCall::ir_codegen()
@@ -41,17 +41,13 @@ void FunctionCall::ir_codegen()
     {
         arg->ir_codegen();
         ir_list = QuadList::concat(ir_list, arg->ir_list);
-        auto inst = Quad::MakeParamOp(Operand::MakeVariableOperand(arg->place));
+        auto inst = Quad::MakeParamOp(arg->place);
         ir_list = QuadList::append(ir_list, inst);
     }
 
-
-    auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size())); 
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size()), place); 
     ir_list = QuadList::append(ir_list, call_inst);
-
-    place = symbol_table->new_temp(type);
-    auto retrieve_inst = Quad::MakeRetrieveOp(Operand::MakeVariableOperand(place));
-    ir_list = QuadList::append(ir_list, retrieve_inst);
 }
 
 void BinaryOperation::ir_codegen()
@@ -62,9 +58,7 @@ void BinaryOperation::ir_codegen()
         lhs->ir_codegen_lval();
         rhs->ir_codegen();
         ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-        auto lhs_operand = Operand::MakeVariableOperand(lhs->location);
-        auto rhs_operand = Operand::MakeVariableOperand(rhs->place);
-        auto copy = Quad::MakeUnOp(QuadOp::Copy, rhs_operand, lhs_operand);
+        auto copy = Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location);
         ir_list = QuadList::append(ir_list, copy);
         place = rhs->place;
         return;
@@ -73,7 +67,7 @@ void BinaryOperation::ir_codegen()
     lhs->ir_codegen();
     rhs->ir_codegen();
     ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-    place = symbol_table->new_temp(type);
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     QuadOp quad_op;
     switch (op)
     {
@@ -97,21 +91,19 @@ void BinaryOperation::ir_codegen()
             throw std::exception();
     }
 
-    auto lhs_operand = Operand::MakeVariableOperand(lhs->place);
-    auto rhs_operand = Operand::MakeVariableOperand(rhs->place);
-    auto inst = Quad::MakeBinOp(quad_op, lhs_operand, rhs_operand, Operand::MakeVariableOperand(place));
+    auto inst = Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place);
     ir_list = QuadList::append(ir_list, inst);
 }
 
 void UnaryOperation::ir_codegen()
 {
     expr->ir_codegen();
-    place = symbol_table->new_temp(type);
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     switch (op)  
     {
         case UnOp::Negation:
         {
-            auto inst = Quad::MakeUnOp(QuadOp::Neg, Operand::MakeVariableOperand(expr->place), Operand::MakeVariableOperand(place));
+            auto inst = Quad::MakeUnOp(QuadOp::Neg, expr->place, place);
             ir_list = QuadList::append(expr->ir_list, inst);
             break;
         }
@@ -128,8 +120,8 @@ void UnaryOperation::ir_codegen()
 
 void IntegerConstant::ir_codegen()
 {
-    place = symbol_table->new_temp(type);
-    auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value), Operand::MakeVariableOperand(place));
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value), place);
     ir_list = QuadList(inst, inst);
 }
 
@@ -159,7 +151,6 @@ void Program::ir_codegen()
     for (auto& function : functions)
     {
         function->ir_codegen();
-        ir_list = QuadList::concat(ir_list, function->ir_list);
     }
 }
 
@@ -171,7 +162,7 @@ void Expression::ir_codegen_lval()
 
 void Variable::ir_codegen_lval()
 {
-    location = symbol;
+    location = Operand::MakeVariableOperand(symbol);
 }
 
 void UnaryOperation::ir_codegen_lval()

@@ -327,3 +327,13 @@ void Program::dump(int depth)
 
     std::cout << ")\n";
 }
+
+void Program::ir_dump() 
+{
+    for (auto f : functions)
+    {
+        std::cout << f->function->name << "\n";
+        f->ir_list.dump();
+        std::cout << "\n";
+    }
+}

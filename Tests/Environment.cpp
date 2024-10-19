@@ -5,6 +5,15 @@ std::vector<Input> all_inputs;
 
 void Environment::SetUp() 
 {
-    all_inputs = read_all_inputs();
+    if (args.test.empty())
+    {
+        all_inputs = read_all_inputs();
+    }
+    else
+    {
+        int t = std::stoi(args.test);
+        all_inputs.push_back(read_input(t));
+    }
+    
     clear_outdir();
 }

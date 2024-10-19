@@ -5,4 +5,4 @@
 #include "Quad.hpp"
 #include "CFG.hpp"
 
-void codegen(std::shared_ptr<Program> program, std::ostream *file = nullptr, bool link_test = false);
+void codegen(std::shared_ptr<Program> program, std::ostream *file);

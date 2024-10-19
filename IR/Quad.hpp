@@ -30,8 +30,7 @@ enum class QuadOp
     Enter,
     Return,
     Param,
-    Call,
-    Retrieve
+    Call
 };
 
 enum class OperandType
@@ -87,8 +86,7 @@ struct Quad
     static std::shared_ptr<Quad> MakeReturnOp(std::shared_ptr<Operand> arg1);
     static std::shared_ptr<Quad> MakeReturnOp();
     static std::shared_ptr<Quad> MakeParamOp(std::shared_ptr<Operand> arg1);
-    static std::shared_ptr<Quad> MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs);
-    static std::shared_ptr<Quad> MakeRetrieveOp(std::shared_ptr<Operand> res);
+    static std::shared_ptr<Quad> MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs, std::shared_ptr<Operand> res);
 };
 
 class QuadList
