@@ -43,6 +43,14 @@ void Return::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void IfStatement::ir_codegen()
+{
+    // TODO
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void Variable::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol);
@@ -130,10 +138,8 @@ void UnaryOperation::ir_codegen()
         }
         case UnOp::Deref:
         case UnOp::AddrOf:
-        case UnOp::Pre_PlusPlus:
-        case UnOp::Post_PlusPlus:
-        case UnOp::Pre_MinusMinus:
-        case UnOp::Post_MinusMinus:
+        case UnOp::PlusPlus:
+        case UnOp::MinusMinus:
             assert(false && "unimplemented");
     }
 }

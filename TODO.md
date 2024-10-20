@@ -16,7 +16,7 @@
     - Statements
         - Array declaration
         - Global variables
-        - Function prototypes
+        - If statements
         - While loops
         - For loops
     - Misc

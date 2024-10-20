@@ -61,6 +61,8 @@ const inline std::vector<std::string> operators = {
 const inline std::vector<std::string> keywords = {
     "void",
     "int", // TODO add more later
+    "if",
+    "else",
     "return",
     "extern"
 };
@@ -91,7 +93,7 @@ private:
     Token lex_id(LexerContext& context);
     Token lex_sep(LexerContext& context);
     Token lex_op(LexerContext& context);
-    
+
     inline bool eof() const { return index >= input.length(); }
     inline char current() const { return input[index]; }
     inline std::string slice(int length) { return input.substr(index, length); }

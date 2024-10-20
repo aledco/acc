@@ -48,7 +48,7 @@ static std::string read_file(std::string filepath)
     std::ifstream file(filepath);
     if (!file.good())
     {
-        error("file not found");
+        error("file not found"); // TODO use Error.hpp for this too
     }
 
     std::stringstream buffer;
@@ -77,15 +77,16 @@ static void link_llvm(Args& args, std::vector<std::string> llvm_files)
 int main(int argc, char *argv[])
 {
     Args args(argc, argv);
-    
-    // for now, process just the first file passed
-    std::string input = read_file(args.files[0]);
-    Lexer lexer(input);
-    Parser parser(lexer);
-    auto program = parser.parse();
-    
+
     try
     {
+        // for now, process just the first file passed
+        std::string input = read_file(args.files[0]);
+
+        Lexer lexer(input);
+        Parser parser(lexer);
+        auto program = parser.parse();
+
         if (args.dump)
         {
             std::cerr << "AST DUMP:\n";

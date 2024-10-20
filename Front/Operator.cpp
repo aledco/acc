@@ -1,35 +1,16 @@
 #include <iostream>
+#include <algorithm>
 #include "cassert"
 #include "Operator.hpp"
 
 /**
  * Gets the BinOp for the string.
  */
-BinOp getBinOp(std::string op)
+const BinOp getBinOp(const std::string op)
 {
-    if (op == "+")
+    if (binop_map.find(op) != binop_map.end())
     {
-        return BinOp::Plus;
-    }
-    else if (op == "-")
-    {
-        return BinOp::Minus;
-    }
-    else if (op == "*")
-    {
-        return BinOp::Times;
-    }
-    else if (op == "/")
-    {
-        return BinOp::Divide;
-    }
-    else if (op == "%")
-    {
-        return BinOp::Modulo;
-    }
-    else if (op == "=")
-    {
-        return BinOp::Assign;
+        return binop_map.at(op);
     }
 
     assert(false && (std::string("unrecognized unary operator ") + op).c_str());
@@ -38,44 +19,29 @@ BinOp getBinOp(std::string op)
 /**
  * Gets the string representation of the BinOp.
  */
-std::string toString(BinOp op)
+const std::string toString(const BinOp op)
 {
-    switch (op)
+
+    for (auto& pair : binop_map)
     {
-        case BinOp::Plus:
-            return "+";
-        case BinOp::Minus:
-            return "-";
-        case BinOp::Times:
-            return "*";
-        case BinOp::Divide:
-            return "/";
-        case BinOp::Modulo:
-            return "%";
-        case BinOp::Assign:
-            return "=";
+        if (pair.second == op)
+        {
+            return pair.first;
+        }
     }
+
+    return "??";
 }
 
 /**
  * Gets the UnOp for the string.
  */
-UnOp getUnOp(std::string op)
+const UnOp getUnOp(const std::string op)
 {
-    if (op == "-")
+    if (unop_map.find(op) != unop_map.end())
     {
-        return UnOp::Negation;
+        return unop_map.at(op);
     }
-    else if (op == "*")
-    {
-        return UnOp::Deref;
-    }
-    else if (op == "&")
-    {
-        return UnOp::AddrOf;
-    }
-
-    // TODO do the rest later
 
     assert(false && (std::string("unrecognized unary operator ") + op).c_str());
 }
@@ -83,23 +49,15 @@ UnOp getUnOp(std::string op)
 /**
  * Gets the string representation of the UnOp.
  */
-std::string toString(UnOp op)
+const std::string toString(const UnOp op)
 {
-    switch (op)
+    for (auto& pair : unop_map)
     {
-        case UnOp::Negation:
-            return "-";
-        case UnOp::Deref:
-            return "*";
-        case UnOp::AddrOf:
-            return "&";
-        case UnOp::Pre_PlusPlus:
-            return "++<";
-        case UnOp::Post_PlusPlus:
-            return ">++";
-        case UnOp::Pre_MinusMinus:
-            return "--<";
-        case UnOp::Post_MinusMinus:
-            return ">--";
+        if (pair.second == op)
+        {
+            return pair.first;
+        }
     }
+
+    return "??";
 }

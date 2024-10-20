@@ -109,6 +109,34 @@ struct Return : Statement
 };
 
 /**
+ * The if statement AST node.
+ */
+struct IfStatement : Statement
+{
+    std::shared_ptr<Expression> guard;
+    std::shared_ptr<Statement> then_stmt;
+    std::shared_ptr<Statement> else_stmt;
+
+    IfStatement(Span span, std::shared_ptr<Expression> guard, std::shared_ptr<Statement> then_stmt, std::shared_ptr<Statement> else_stmt, std::shared_ptr<SymbolTable> symbol_table) :
+        Statement(span, symbol_table),
+        guard(guard), 
+        then_stmt(then_stmt), 
+        else_stmt(else_stmt)
+    {}
+
+    IfStatement(Span span, std::shared_ptr<Expression> guard, std::shared_ptr<Statement> then_stmt, std::shared_ptr<SymbolTable> symbol_table) :
+        Statement(span, symbol_table),
+        guard(guard), 
+        then_stmt(then_stmt), 
+        else_stmt(nullptr)
+    {}
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
+};
+
+/**
  * The variable AST node.
  */
 struct Variable : Expression

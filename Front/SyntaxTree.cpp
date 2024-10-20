@@ -13,12 +13,6 @@
  */
 void CompoundStatement::typecheck(TypecheckContext& context)
 {
-    if (statements.empty() || dynamic_cast<Return*>(statements.back().get()) == nullptr)
-    {
-        // if the last statement of the compound add a return.
-        statements.push_back(std::make_shared<Return>(span, symbol_table));
-    }
-
     for (auto& statement : statements)
     {
         statement->typecheck(context);
@@ -37,7 +31,7 @@ void VariableDeclaration::typecheck(TypecheckContext& context)
  */
 void Return::typecheck(TypecheckContext& context)
 {
-    if (expr)
+    if (expr != nullptr)
     {
         expr->typecheck(context);
         if (*expr->type != *context.func_def->function->type->ret_type)
@@ -51,6 +45,20 @@ void Return::typecheck(TypecheckContext& context)
         throw TypeError(span, "return type does not match function");
     }
 }
+
+/**
+ * Typechecks the if statement.
+ */
+void IfStatement::typecheck(TypecheckContext& context)
+{
+    guard->typecheck(context);
+    then_stmt->typecheck(context);
+    if (else_stmt != nullptr) 
+    {
+        else_stmt->typecheck(context);
+    }
+}
+
 
 /**
  * Typechecks the variable.
@@ -115,10 +123,8 @@ void UnaryOperation::typecheck(TypecheckContext& context)
             break;
         case UnOp::Deref:
         case UnOp::AddrOf:
-        case UnOp::Pre_PlusPlus:
-        case UnOp::Post_PlusPlus:
-        case UnOp::Pre_MinusMinus:
-        case UnOp::Post_MinusMinus:
+        case UnOp::PlusPlus:
+        case UnOp::MinusMinus:
             assert(false && "unimplemented");
     }
 }
@@ -315,6 +321,36 @@ void Return::dump(int depth)
     {
         std::cout << "expr = ";
         expr->dump(depth + 1);
+    }
+
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void IfStatement::dump(int depth)
+{
+    std::cout << "IfStatement(\n";
+    indent(depth);
+    std::cout << "guard = ";
+    guard->dump(depth + 1);
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "then = ";
+    then_stmt->dump(depth + 1);
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "else = ";
+    if (else_stmt != nullptr)
+    {
+        else_stmt->dump(depth + 1);
+    }
+    else
+    {
+        std::cout << "null";
     }
 
     std::cout << ")";
