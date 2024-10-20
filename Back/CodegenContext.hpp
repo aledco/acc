@@ -6,6 +6,7 @@
 #include <llvm/IR/Value.h>
 #include <memory>
 #include <map>
+#include "Quad.hpp"
 
 #ifdef __INTELLISENSE__
     #pragma diag_suppress 135
@@ -26,7 +27,8 @@ struct CodegenContext
     std::unique_ptr<llvm::Module> llvm_module;
 
     llvm::Function *llvm_function;
-    llvm::BasicBlock *current_block;
+    llvm::BasicBlock *llvm_block;
+    std::map<std::shared_ptr<Operand>, llvm::BasicBlock *> block_map;
     std::vector<llvm::Value *> param_stack;
     CodegenContext();
 };

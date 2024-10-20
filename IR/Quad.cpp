@@ -33,9 +33,12 @@ std::shared_ptr<Operand> Operand::MakeVariableOperand(std::shared_ptr<Symbol> va
 /**
  * Makes a label operand.
  */
-std::shared_ptr<Operand> Operand::MakeLabelOperand(std::string val)
+std::shared_ptr<Operand> Operand::MakeLabelOperand()
 {
-    return std::make_shared<Operand>(OperandType::Label, val);
+    static int label_counter = 0;
+    std::string label = "__L" + std::to_string(label_counter) + "__";
+    label_counter++;
+    return std::make_shared<Operand>(OperandType::Label, label);
 }
 
 

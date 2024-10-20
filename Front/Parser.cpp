@@ -142,7 +142,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
         statement = parse_compound_statement(context);
         return statement;
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
+    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
         statement = parse_expression(context);
         auto token = match(";");
@@ -151,7 +151,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     }
     else
     {
-        throw ParseError(current(), { "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" });
+        throw ParseError(current(), { "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
     }
 }
 
@@ -165,7 +165,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "if", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
+    while (is_currently({ "void", "int", "if", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -224,7 +224,7 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     Span span = current().span;
     match("return");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
         auto expr = parse_expression(context);
         auto token = match(";");
@@ -275,10 +275,10 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
  */
 std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 {
-    if (is_currently({ "-", "*", "&" }))
+    if (is_currently({ "-", "!", "*", "&" }))
     {
         Span span = current().span;
-        auto op = match({ "-", "*", "&" });
+        auto op = match({ "-", "!", "*", "&" });
         auto expr = parse_term(context);
         span += expr->span;
         return std::make_shared<UnaryOperation>(span, getUnOp(op.value), expr, context.current_symbol_table());
@@ -290,7 +290,7 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 
     // TODO handle increment operators later
 
-    throw ParseError(current(), { "-", "*", "&", TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { "-",  "!", "*", "&", TokenType_Int, TokenType_Id, "(" });
 }
 
 /**
@@ -312,7 +312,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             match("(");
 
             std::vector<std::shared_ptr<Expression>> args;
-            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "*", "&" }))
+            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
             {
                 args.push_back(parse_expression(context));
                 while (is_currently({ "," }))

@@ -9,70 +9,96 @@
  */
 void Lexer::lex()
 {
-    // TODO handle the rest of the tokens later, like floats
-
-    LexerContext context;
     while (!eof())
     {
         if (isalpha()) 
         {
             // attempt to lex a keyword
-            auto token = attempt_lex_keyword(context);
+            auto token = attempt_lex_keyword();
             if (token)
             {
                 add(token.value());
-                context.pos.col += token.value().value.length();
                 continue;
             }
         }
 
-        // TODO handle comments
-
         if (isnewline())
         {
             advance();
-            context.pos = Point(context.pos.line + 1, 1);
         }
         else if (iswhitespace()) 
         {
             advance();
-            context.pos.col += 1;
+        }
+        else if (iscomment())
+        {
+            lex_comment();
         }
         else if (isdigit())
         {
-            auto token = lex_integer(context);
-            context.pos.col += token.value.length();
+            auto token = lex_integer();
             add(token);
         }
         else if (isid() && !isdigit())
         {
-            auto token = lex_id(context);
-            context.pos.col += token.value.length();
+            auto token = lex_id();
             add(token);
         }
         else if (issep())
         {
-            auto token = lex_sep(context);
-            context.pos.col += token.value.length();
+            auto token = lex_sep();
             add(token);
         }
         else if (isop())
         {
-            auto token = lex_op(context);
-            context.pos.col += token.value.length();
+            auto token = lex_op();
             add(token);
         }
         else 
         {
-            throw SyntaxError(context.pos);
+            throw SyntaxError(pos());
         }
+    }
+}
+
+/**
+ * Advances the input pointer by one, and updates line and column numbers.
+ */
+void Lexer::advance()
+{
+    if (eof())
+    {
+        return;
+    }
+
+    if (isnewline())
+    {
+        line++;
+        col = 1;
+    }
+    else
+    {
+        col++;
+    }
+
+    index++;
+}
+
+/**
+ * Advances the input pointer by one, and updates line and column numbers.
+ */
+void Lexer::advance(const int n)
+{
+    for (auto i = 0; i < n; i++)
+    {
+        advance();
     }
 }
 
 /**
  * Attepts to lex a keyword.
  */
-std::optional<Token> Lexer::attempt_lex_keyword(LexerContext& context)
+std::optional<Token> Lexer::attempt_lex_keyword()
 {
     for (auto keyword : keywords) 
     {
@@ -82,7 +108,7 @@ std::optional<Token> Lexer::attempt_lex_keyword(LexerContext& context)
             if (slice(n) == keyword)
             {
                 advance(n);
-                return Token(keyword, keyword, mkSpan(context, keyword));
+                return Token(keyword, keyword, span(keyword));
             }
         }
     }
@@ -93,7 +119,7 @@ std::optional<Token> Lexer::attempt_lex_keyword(LexerContext& context)
 /**
  * Lexes an integer.
  */
-Token Lexer::lex_integer(LexerContext& context)
+Token Lexer::lex_integer()
 {
     std::string value = "";
     while (!eof() && isdigit())
@@ -102,13 +128,13 @@ Token Lexer::lex_integer(LexerContext& context)
         advance();
     }
 
-    return Token(TokenType_Int, value, mkSpan(context, value));
+    return Token(TokenType_Int, value, span( value));
 }
 
 /**
  * Lexes an identifier.
  */
-Token Lexer::lex_id(LexerContext& context)
+Token Lexer::lex_id()
 {
     assert(!isdigit() && "Lexer is trying to parse an id that starts with an integer");
 
@@ -119,13 +145,13 @@ Token Lexer::lex_id(LexerContext& context)
         advance();
     }
 
-    return Token(TokenType_Id, value, mkSpan(context, value));
+    return Token(TokenType_Id, value, span( value));
 }
 
 /**
  * Lexes a seperator.
  */
-Token Lexer::lex_sep(LexerContext& context)
+Token Lexer::lex_sep()
 {
     std::string value = "";
     while (!eof() && issep())
@@ -139,13 +165,13 @@ Token Lexer::lex_sep(LexerContext& context)
         advance();
     }
 
-    return Token(value, value, mkSpan(context, value));
+    return Token(value, value, span( value));
 }
 
 /**
  * Lexes an operator.
  */
-Token Lexer::lex_op(LexerContext& context)
+Token Lexer::lex_op()
 {
     std::string value = "";
     while (!eof() && isop())
@@ -159,13 +185,43 @@ Token Lexer::lex_op(LexerContext& context)
         advance();
     }
 
-    return Token(value, value, mkSpan(context, value));
+    return Token(value, value, span( value));
+}
+
+/**
+ * Lexes a comment.
+ */
+void Lexer::lex_comment()
+{
+    if (slice(2) == single_line_comment)
+    {
+        advance(2);
+        while (!eof() && !isnewline())
+        {
+            advance();
+        }
+    }
+    else
+    {
+        advance(2);
+        while (!eof() && slice(2) != multi_line_comment_end)
+        {
+            advance();
+        }
+
+        if (eof())
+        {
+            throw SyntaxError(pos());
+        }
+
+        advance(2);
+    }
 }
 
 /**
  * Determines if any string in the vector of strings contains a char.
  */
-bool Lexer::vector_contains_char(const std::vector<std::string>& vec, char c)
+bool Lexer::vector_contains_char(const std::vector<std::string>& vec, const char c)
 {
     for (auto sep : vec)
     {

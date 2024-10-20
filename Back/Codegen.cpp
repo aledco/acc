@@ -37,6 +37,20 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
 }
 
 /**
+ * Create an LLVM block for the IR block.
+ */
+static llvm::BasicBlock *create_llvm_block(std::shared_ptr<BasicBlock> block, int bn, CodegenContext& context)
+{
+    auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block_" + context.llvm_function->getName() + std::to_string(bn), context.llvm_function);
+    if (block->qlist.get_head()->op == QuadOp::Label)
+    {
+        context.block_map[block->qlist.get_head()->arg1] = llvm_block;
+    }
+
+    return llvm_block;
+}
+
+/**
  * Allocates a variable on the stack.
  */
 static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
@@ -229,6 +243,54 @@ static llvm::Value *codegen_return(std::shared_ptr<Quad> quad, CodegenContext& c
 }
 
 /**
+ * Generates LLVM code for a goto instruction.
+ */
+static llvm::Value *codegen_goto(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    assert(context.block_map.find(quad->arg1) != context.block_map.end());
+    auto block = context.block_map[quad->arg1];
+    return context.llvm_builder->CreateBr(block);
+}
+
+/**
+ * Generates LLVM code for an if instruction.
+ */
+static llvm::Value *codegen_if(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    auto arg1 = codegen(quad->arg1, context);
+    auto arg2 = codegen(quad->arg2, context);
+
+    llvm::Value *cond;
+    switch (quad->op)
+    {
+        case QuadOp::IfEq:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg1, arg2);
+            break;
+        case QuadOp::IfNeq:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_NE, arg1, arg2);
+            break;
+        case QuadOp::IfLt:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_SLT, arg1, arg2);
+            break;
+        case QuadOp::IfLeq:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_SLE, arg1, arg2);
+            break;
+        case QuadOp::IfGt:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_SGT, arg1, arg2);
+            break;
+        case QuadOp::IfGeq:
+            cond = context.llvm_builder->CreateCmp(llvm::CmpInst::Predicate::ICMP_SGE, arg1, arg2);
+            break;
+        default:
+            assert(false && "shouldn't get here");
+    }
+
+    auto true_block = context.block_map[quad->res];
+    auto false_block = context.llvm_builder->GetInsertBlock()->getNextNode();
+    return context.llvm_builder->CreateCondBr(cond, true_block, false_block);
+}
+
+/**
  * Generates LLVM code for an instruction.
  */
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
@@ -251,22 +313,25 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             return codegen_unop(quad, context);
         case QuadOp::LIndex:
         case QuadOp::RIndex:
-        case QuadOp::Label:
+            break; // TODO
         case QuadOp::Goto:
+            return codegen_goto(quad, context);
         case QuadOp::IfEq:
         case QuadOp::IfNeq:
         case QuadOp::IfLt:
         case QuadOp::IfLeq:
         case QuadOp::IfGt:
         case QuadOp::IfGeq:
-        case QuadOp::Enter:
-            break; // TODO
+            return codegen_if(quad, context);
         case QuadOp::Return:
             return codegen_return(quad, context);
         case QuadOp::Param:
             return codegen_param(quad, context);
         case QuadOp::Call:
             return codegen_call(quad, context);
+        case QuadOp::Enter:
+        case QuadOp::Label:
+            break;
         default:
             break;
     }
@@ -277,17 +342,15 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 /**
  * Generates LLVM code for a basic block.
  */
-static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, int bn, CodegenContext& context)
+static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, CodegenContext& context)
 {
-    auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block_" + context.llvm_function->getName() + std::to_string(bn), context.llvm_function);
-    context.llvm_builder->SetInsertPoint(llvm_block);
-    
+    context.llvm_builder->SetInsertPoint(context.llvm_block);
     for (auto quad = block->qlist.get_head(); quad != nullptr; quad = quad->next)
     {
-        auto value = codegen(quad, context);
+        codegen(quad, context);
     }
 
-    return nullptr; // TODO need to figure out how to link the values
+    return context.llvm_block;
 }
 
 /**
@@ -342,10 +405,21 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 
     context.llvm_function = llvm_function;
 
+    // create an LLVM block for each block in the CFG
+    std::vector<llvm::BasicBlock *> llvm_blocks;
     for (auto i =- 0; i < def->cfg.size(); i++)
     {
-        auto block_value = codegen(def->cfg[i], i, context);
-        // TODO need to figure out how to link the values
+        auto block = create_llvm_block(def->cfg[i], i, context);
+        llvm_blocks.push_back(block);
+    }
+
+    assert(def->cfg.size() == llvm_blocks.size());
+
+    // generate LLVM code for each block in the CFG
+    for (auto i =- 0; i < def->cfg.size(); i++)
+    {
+        context.llvm_block = llvm_blocks[i];
+        codegen(def->cfg[i], context);
     }
 
     llvm::verifyFunction(*llvm_function);

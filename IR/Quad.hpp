@@ -67,7 +67,7 @@ struct Operand
     static std::shared_ptr<Operand> MakeIntConstOperand(long val);
     static std::shared_ptr<Operand> MakeStrConstOperand(std::string val);
     static std::shared_ptr<Operand> MakeVariableOperand(std::shared_ptr<Symbol> val);
-    static std::shared_ptr<Operand> MakeLabelOperand(std::string val);
+    static std::shared_ptr<Operand> MakeLabelOperand();
 };
 
 /**

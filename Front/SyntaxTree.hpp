@@ -55,6 +55,7 @@ struct Expression : Statement
     Expression(Span span, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table) {}
 
     virtual void ir_codegen_lval();
+    virtual void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label);
 };
 
 /**
@@ -188,6 +189,7 @@ struct BinaryOperation : Expression
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
+    void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label) override;
     void dump(int depth = 1) override;
 };
 
@@ -204,6 +206,7 @@ struct UnaryOperation : Expression
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
     void ir_codegen_lval() override;
+    void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label) override;
     void dump(int depth = 1) override;
 };
 

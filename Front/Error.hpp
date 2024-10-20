@@ -35,7 +35,7 @@ class SyntaxError : public Error
 protected:
     std::string get_message() const override;
 public:
-    SyntaxError(Point& pos) : Error(Span(pos, pos), "Syntax Error") {} 
+    SyntaxError(Point pos) : Error(Span(pos, pos), "Syntax Error") {} 
 };
 
 class ParseError : public Error 

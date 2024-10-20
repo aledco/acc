@@ -2,10 +2,8 @@
 
 ## Lexer
 - Normalize input before lexing
-- Lex comments
 
 ## Parser
-- Need to add spans to AST nodes to show error messages better
 - Finish parser
     - Expressions
         - Char const

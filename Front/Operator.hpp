@@ -54,6 +54,7 @@ const std::map<const std::string, const BinOp> binop_map = {
 enum class UnOp
 {
     Negation,
+    Not,
     Deref,
     AddrOf,
     PlusPlus,
@@ -62,7 +63,7 @@ enum class UnOp
 
 const std::map<const std::string, const UnOp> unop_map = {
     {"++", UnOp::PlusPlus}, {"--", UnOp::MinusMinus},
-    {"-", UnOp::Negation}, {"*", UnOp::Deref}, {"&", UnOp::AddrOf},
+    {"-", UnOp::Negation}, {"!", UnOp::Not}, {"*", UnOp::Deref}, {"&", UnOp::AddrOf},
 };
 
 

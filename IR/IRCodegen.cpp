@@ -45,7 +45,25 @@ void Return::ir_codegen()
  */
 void IfStatement::ir_codegen()
 {
-    // TODO
+    auto then_label = Operand::MakeLabelOperand();
+    auto else_label = Operand::MakeLabelOperand();
+    auto end_label = Operand::MakeLabelOperand();
+    guard->ir_codegen_bool(then_label, else_label);
+    ir_list = QuadList::append(guard->ir_list, Quad::MakeLabelOp(then_label));
+    
+    then_stmt->ir_codegen();
+    ir_list = QuadList::concat(ir_list, then_stmt->ir_list);
+
+    ir_list = QuadList::append(ir_list, Quad::MakeGotoOp(end_label));
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(else_label));
+
+    if (else_stmt != nullptr)
+    {
+        else_stmt->ir_codegen();
+        ir_list = QuadList::concat(ir_list, else_stmt->ir_list);
+    }
+    
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(end_label));
 }
 
 /**
@@ -136,6 +154,8 @@ void UnaryOperation::ir_codegen()
             ir_list = QuadList::append(expr->ir_list, inst);
             break;
         }
+        case UnOp::Not:
+            assert(false && "should be processed in codegen_bool");
         case UnOp::Deref:
         case UnOp::AddrOf:
         case UnOp::PlusPlus:
@@ -214,4 +234,112 @@ void Variable::ir_codegen_lval()
 void UnaryOperation::ir_codegen_lval()
 {
     // TODO
+}
+
+/**
+ * Creates the jump instructions for the if statement.
+ */
+static QuadList codegen_if(QuadOp op, std::shared_ptr<Operand> rhs, std::shared_ptr<Operand> lhs, 
+    std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label)
+{
+    auto if_inst = Quad::MakeIfOp(op, rhs, lhs, true_label);
+    auto goto_inst = Quad::MakeGotoOp(false_label);
+    if_inst->next = goto_inst;
+    return QuadList(if_inst, goto_inst);
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+void Expression::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label)
+{
+    ir_codegen();
+    auto if_code = codegen_if(QuadOp::IfNeq, place, Operand::MakeIntConstOperand(0), true_label, false_label);
+    ir_list = QuadList::concat(ir_list, if_code);
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+void BinaryOperation::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label)
+{
+    auto codegen_comparison = [=](QuadOp op) 
+    { 
+        lhs->ir_codegen();
+        rhs->ir_codegen();
+        auto if_code = codegen_if(op, lhs->place, rhs->place, true_label, false_label);
+        ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
+        ir_list = QuadList::concat(ir_list, if_code);
+    };
+
+    auto codegen_and = [=]() 
+    {
+        auto label = Operand::MakeLabelOperand();
+        lhs->ir_codegen_bool(label, false_label);
+        rhs->ir_codegen_bool(true_label, false_label);
+        ir_list = QuadList::append(lhs->ir_list, Quad::MakeLabelOp(label));
+        ir_list = QuadList::concat(ir_list, rhs->ir_list);
+    };
+
+    auto codegen_or = [=]() 
+    {
+        auto label = Operand::MakeLabelOperand();
+        lhs->ir_codegen_bool(true_label, label);
+        rhs->ir_codegen_bool(true_label, false_label);
+        ir_list = QuadList::append(lhs->ir_list, Quad::MakeLabelOp(label));
+        ir_list = QuadList::concat(ir_list, rhs->ir_list);
+    };
+
+    switch (op)
+    {
+        case BinOp::Equal:
+            codegen_comparison(QuadOp::IfEq);
+            break;
+        case BinOp::NotEqual:
+            codegen_comparison(QuadOp::IfNeq);
+            break;
+        case BinOp::LessThan:
+            codegen_comparison(QuadOp::IfLt);
+            break;
+        case BinOp::LessThanEqual:
+            codegen_comparison(QuadOp::IfLeq);
+            break;
+        case BinOp::GreaterThan:
+            codegen_comparison(QuadOp::IfGt);
+            break;
+        case BinOp::GreaterThanEqual:
+            codegen_comparison(QuadOp::IfGeq);
+            break;
+        case BinOp::And:
+            codegen_and();
+            break;
+        case BinOp::Or:
+            codegen_or();
+            break;
+        default:
+            Expression::ir_codegen_bool(true_label, false_label);
+            break;
+    }
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+void UnaryOperation::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label)
+{
+    auto codegen_not = [=]() 
+    {
+        expr->ir_codegen_bool(true_label, false_label);
+        ir_list = expr->ir_list;
+    };
+
+    switch (op)
+    {
+        case UnOp::Not:
+            codegen_not();
+            break;
+        default:
+            Expression::ir_codegen_bool(true_label, false_label);
+            break;     
+    }
 }

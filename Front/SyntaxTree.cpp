@@ -121,6 +121,9 @@ void UnaryOperation::typecheck(TypecheckContext& context)
         case UnOp::Negation:
             type = expr->type;
             break;
+        case UnOp::Not:
+            type = std::make_shared<Type>(TypeType::Int);
+            break;
         case UnOp::Deref:
         case UnOp::AddrOf:
         case UnOp::PlusPlus:
