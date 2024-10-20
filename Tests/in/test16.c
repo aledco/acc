@@ -16,8 +16,7 @@ int main()
     {
         println(0);
     }
-
-/*
+    
     if (x != y)
     {
         println(1);
@@ -35,6 +34,7 @@ int main()
     {
         println(0);
     }
+
 
     if (x <= y)
     {
@@ -63,14 +63,5 @@ int main()
         println(0);
     }
 
-    if (!(x == y))
-    {
-        println(1);
-    }
-    else
-    {
-        println(0);
-    }
-*/
     return 0;
 }

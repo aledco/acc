@@ -6,6 +6,7 @@
 #include <llvm/IR/Value.h>
 #include <memory>
 #include <map>
+#include "SyntaxTree.hpp"
 #include "Quad.hpp"
 
 #ifdef __INTELLISENSE__
@@ -26,6 +27,7 @@ struct CodegenContext
     std::unique_ptr<llvm::IRBuilder<>> llvm_builder;
     std::unique_ptr<llvm::Module> llvm_module;
 
+    std::shared_ptr<FunctionDef> function_def;
     llvm::Function *llvm_function;
     llvm::BasicBlock *llvm_block;
     std::map<std::shared_ptr<Operand>, llvm::BasicBlock *> block_map;

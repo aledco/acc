@@ -14,7 +14,6 @@
     - Statements
         - Array declaration
         - Global variables
-        - If statements
         - While loops
         - For loops
     - Misc
@@ -29,7 +28,7 @@
 
 ## Tests
 - Add failure tests
-- Add more tests
+- Add tests from CSC 553 compiler
 
 ## Misc
 - Clean up TODOs

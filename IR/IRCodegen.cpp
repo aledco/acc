@@ -329,7 +329,7 @@ void UnaryOperation::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::s
 {
     auto codegen_not = [=]() 
     {
-        expr->ir_codegen_bool(true_label, false_label);
+        expr->ir_codegen_bool(false_label, true_label);
         ir_list = expr->ir_list;
     };
 

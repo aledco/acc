@@ -31,8 +31,26 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
             return llvm::Type::getVoidTy(*context.llvm_context);
         case TypeType::Int:
             return llvm::Type::getInt32Ty(*context.llvm_context);
+        case TypeType::Char:
+            return llvm::Type::getInt8Ty(*context.llvm_context);
         default:
             return nullptr; // TODO handle later
+    }
+}
+
+static llvm::Value *get_default_value(std::shared_ptr<Type> type, CodegenContext& context)
+{
+    switch (type->type) 
+    {
+        case TypeType::Void:
+            return nullptr;
+        case TypeType::Int:
+            return context.llvm_builder->getInt32(0);
+        case TypeType::Char:
+            return context.llvm_builder->getInt8(0);
+        case TypeType::Function:
+        case TypeType::Array:
+            return nullptr;
     }
 }
 
@@ -42,12 +60,29 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
 static llvm::BasicBlock *create_llvm_block(std::shared_ptr<BasicBlock> block, int bn, CodegenContext& context)
 {
     auto llvm_block = llvm::BasicBlock::Create(*context.llvm_context, "block_" + context.llvm_function->getName() + std::to_string(bn), context.llvm_function);
-    if (block->qlist.get_head()->op == QuadOp::Label)
-    {
-        context.block_map[block->qlist.get_head()->arg1] = llvm_block;
-    }
-
+    context.block_map[block->qlist.get_head()->arg1] = llvm_block;
     return llvm_block;
+}
+
+/**
+ * Determines if the quad instruction is an LLVM terminator instruction.
+ */
+static bool is_terminator(std::shared_ptr<Quad> quad)
+{
+    switch (quad->op)
+    {
+        case QuadOp::Goto:
+        case QuadOp::IfEq:
+        case QuadOp::IfNeq:
+        case QuadOp::IfLt:
+        case QuadOp::IfLeq:
+        case QuadOp::IfGt:
+        case QuadOp::IfGeq:
+        case QuadOp::Return:
+            return true;
+        default:
+            return false;
+    }
 }
 
 /**
@@ -286,7 +321,7 @@ static llvm::Value *codegen_if(std::shared_ptr<Quad> quad, CodegenContext& conte
     }
 
     auto true_block = context.block_map[quad->res];
-    auto false_block = context.llvm_builder->GetInsertBlock()->getNextNode();
+    auto false_block = context.llvm_block->getNextNode();
     return context.llvm_builder->CreateCondBr(cond, true_block, false_block);
 }
 
@@ -336,7 +371,7 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             break;
     }
 
-    return nullptr; // TODO
+    return nullptr;
 }
 
 /**
@@ -345,9 +380,33 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 static llvm::Value *codegen(std::shared_ptr<BasicBlock> block, CodegenContext& context)
 {
     context.llvm_builder->SetInsertPoint(context.llvm_block);
-    for (auto quad = block->qlist.get_head(); quad != nullptr; quad = quad->next)
+    for (auto quad = block->qlist.begin(); quad != block->qlist.end(); quad = quad->next)
     {
         codegen(quad, context);
+    }
+
+    if (!is_terminator(block->qlist.get_tail()))
+    {
+        auto next_inst = block->qlist.get_tail()->next;
+        if (next_inst == nullptr)
+        {
+            // if this is the last block in the function, insert a return
+            auto default_value = get_default_value(context.function_def->function->type->ret_type, context);
+            if (default_value == nullptr)
+            {
+                context.llvm_builder->CreateRetVoid();
+            }
+            else
+            {
+                context.llvm_builder->CreateRet(default_value);
+            }
+        }
+        else
+        {
+            // insert a jump to the next instruction
+            auto next_block = context.llvm_block->getNextNode();
+            context.llvm_builder->CreateBr(next_block);
+        }
     }
 
     return context.llvm_block;
@@ -384,6 +443,8 @@ static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, Codeg
  */
 static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext& context)
 {
+    context.function_def = def;
+
     if (def->is_proto())
     {
         return codegen_prototype(def, context);
@@ -407,7 +468,7 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 
     // create an LLVM block for each block in the CFG
     std::vector<llvm::BasicBlock *> llvm_blocks;
-    for (auto i =- 0; i < def->cfg.size(); i++)
+    for (auto i = 0; i < def->cfg.size(); i++)
     {
         auto block = create_llvm_block(def->cfg[i], i, context);
         llvm_blocks.push_back(block);
@@ -416,7 +477,7 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
     assert(def->cfg.size() == llvm_blocks.size());
 
     // generate LLVM code for each block in the CFG
-    for (auto i =- 0; i < def->cfg.size(); i++)
+    for (auto i = 0; i < def->cfg.size(); i++)
     {
         context.llvm_block = llvm_blocks[i];
         codegen(def->cfg[i], context);

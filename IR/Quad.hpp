@@ -118,6 +118,8 @@ public:
     inline bool empty() { return head == nullptr; }
     inline std::shared_ptr<Quad> get_head() { return head; }
     inline std::shared_ptr<Quad> get_tail() { return tail; }
+    inline std::shared_ptr<Quad> begin() { return head; }
+    inline std::shared_ptr<Quad> end() { return tail != nullptr ? tail->next : nullptr; }
     void dump();
 
     static QuadList append(QuadList& list, std::shared_ptr<Quad> quad);

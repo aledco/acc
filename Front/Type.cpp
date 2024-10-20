@@ -12,6 +12,8 @@ int Type::size()
             return 0;
         case TypeType::Int:
             return 4;
+        case TypeType::Char:
+                return 1;
         default:
             return 0; // TODO handle other types later
     }
@@ -29,6 +31,9 @@ void Type::dump()
             break;
         case TypeType::Int:
             std::cerr << "int";
+            break;
+        case TypeType::Char:
+            std::cerr << "char";
             break;
         case TypeType::Function:
             std::cerr << "(";

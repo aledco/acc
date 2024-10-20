@@ -10,6 +10,7 @@ enum class TypeType
 {
     Void,
     Int,
+    Char,
     Function,
     Array // TODO add more
 };
@@ -46,6 +47,7 @@ struct Type
         {
             case TypeType::Void:
             case TypeType::Int:
+            case TypeType::Char:
                 return type == other.type;
             case TypeType::Function:
                 if (type != other.type || ret_type != ret_type || param_types.size() != other.param_types.size())
