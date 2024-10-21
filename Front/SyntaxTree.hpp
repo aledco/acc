@@ -138,6 +138,25 @@ struct IfStatement : Statement
 };
 
 /**
+ * The while loop AST node.
+ */
+struct WhileLoop : Statement
+{
+    std::shared_ptr<Expression> guard;
+    std::shared_ptr<Statement> body;
+
+    WhileLoop(Span span, std::shared_ptr<Expression> guard, std::shared_ptr<Statement> body, std::shared_ptr<SymbolTable> symbol_table) :
+        Statement(span, symbol_table),
+        guard(guard), 
+        body(body), 
+    {}
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
+};
+
+/**
  * The variable AST node.
  */
 struct Variable : Expression

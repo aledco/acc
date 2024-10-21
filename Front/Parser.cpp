@@ -121,37 +121,36 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
  */
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
-    std::shared_ptr<Statement> statement;
     if (is_currently({ "void", "int" }))
     {
-        statement = parse_variable_declaration(context);
-        return statement;
+        return parse_variable_declaration(context);
     }
     else if (is_currently({ "if" }))
     {
-        statement = parse_if_statement(context);
-        return statement;
+        return parse_if_statement(context);
+    }
+    else if (is_currently({ "while" }))
+    {
+        return parse_while_loop(context);
     }
     else if (is_currently({ "return" }))
     {
-        statement = parse_return_statement(context);
-        return statement;
+        return parse_return_statement(context);
     }
     else if (is_currently({ "{" }))
     {
-        statement = parse_compound_statement(context);
-        return statement;
+        return parse_compound_statement(context);
     }
     else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
-        statement = parse_expression(context);
+        auto statement = parse_expression(context);
         auto token = match(";");
         statement->span += token.span;
         return statement;
     }
     else
     {
-        throw ParseError(current(), { "void", "int", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
+        throw ParseError(current(), { "void", "int", "if", "while", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
     }
 }
 
@@ -165,7 +164,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "if", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    while (is_currently({ "void", "int", "if",  "while", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -197,7 +196,7 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
  */
 std::shared_ptr<IfStatement> Parser::parse_if_statement(ParserContext& context)
 {
-    Span span = current().span;
+    Span span = current().span; // TODO check for dangling else
     match("if");
     match("(");
     auto guard = parse_expression(context);
@@ -215,6 +214,21 @@ std::shared_ptr<IfStatement> Parser::parse_if_statement(ParserContext& context)
         span += then_stmt->span;
         return std::make_shared<IfStatement>(span, guard, then_stmt, context.current_symbol_table());
     }
+}
+
+/**
+ * Parses a while loop.
+ */
+std::shared_ptr<WhileLoop> Parser::parse_while_loop(ParserContext& context)
+{
+    Span span = current().span;
+    match("while");
+    match("(");
+    auto guard = parse_expression(context);
+    match (")");
+    auto body = parse_statement(context);
+    span += body->span;
+    return std::make_shared<WhileLoop>(span, guard, body, context.current_symbol_table());
 }
 
 /**

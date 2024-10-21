@@ -59,6 +59,14 @@ void IfStatement::typecheck(TypecheckContext& context)
     }
 }
 
+/**
+ * Typechecks the while loop.
+ */
+void WhileLoop::typecheck(TypecheckContext& context)
+{
+    guard->typecheck(context);
+    body->typecheck(context);
+}
 
 /**
  * Typechecks the variable.
@@ -355,6 +363,24 @@ void IfStatement::dump(int depth)
     {
         std::cout << "null";
     }
+
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void WhileLoop::dump(int depth)
+{
+    std::cout << "WhileLoop(\n";
+    indent(depth);
+    std::cout << "guard = ";
+    guard->dump(depth + 1);
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "body = ";
+    body->dump(depth + 1);
 
     std::cout << ")";
 }

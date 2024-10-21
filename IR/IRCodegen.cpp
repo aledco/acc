@@ -69,6 +69,14 @@ void IfStatement::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void WhileLoop::ir_codegen()
+{
+    
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void Variable::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol);

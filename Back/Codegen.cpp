@@ -40,6 +40,7 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
 
 static llvm::Value *get_default_value(std::shared_ptr<Type> type, CodegenContext& context)
 {
+    context.llvm_builder->Array
     switch (type->type) 
     {
         case TypeType::Void:

@@ -53,6 +53,7 @@ private:
     std::shared_ptr<CompoundStatement> parse_compound_statement(ParserContext& context);
     std::shared_ptr<VariableDeclaration> parse_variable_declaration(ParserContext& context);
     std::shared_ptr<IfStatement> parse_if_statement(ParserContext& context);
+    std::shared_ptr<WhileLoop> parse_while_loop(ParserContext& context);
     std::shared_ptr<Return> parse_return_statement(ParserContext& context);
     std::shared_ptr<Expression> parse_expression(ParserContext& context);
     std::shared_ptr<Expression> parse_expression(ParserContext& context, int p);
