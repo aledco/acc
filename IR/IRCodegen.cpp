@@ -71,7 +71,19 @@ void IfStatement::ir_codegen()
  */
 void WhileLoop::ir_codegen()
 {
-    
+    auto top_label = Operand::MakeLabelOperand();
+    auto eval_label = Operand::MakeLabelOperand();
+    auto end_label = Operand::MakeLabelOperand();
+
+    guard->ir_codegen_bool(top_label, end_label);
+    body->ir_codegen();
+
+    ir_list = QuadList::append(ir_list, Quad::MakeGotoOp(eval_label));
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(top_label));
+    ir_list = QuadList::concat(ir_list, body->ir_list);
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(eval_label));
+    ir_list = QuadList::concat(ir_list, guard->ir_list);
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(end_label));
 }
 
 /**

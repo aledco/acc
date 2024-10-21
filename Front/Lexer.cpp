@@ -153,16 +153,26 @@ Token Lexer::lex_id()
  */
 Token Lexer::lex_sep()
 {
+    auto ismatch = [=](std::string value)
+    {
+        return std::find(seperators.begin(), seperators.end(), value) != seperators.end();
+    };
+
     std::string value = "";
     while (!eof() && issep())
     {
-        if (std::find(seperators.begin(), seperators.end(), value + current()) == seperators.end())
+        if (ismatch(value) && !ismatch(value + current()))
         {
             break;
         }
 
         value += current();
         advance();
+    }
+
+    if (std::find(seperators.begin(), seperators.end(), value) == seperators.end())
+    {
+        throw SyntaxError(pos());
     }
 
     return Token(value, value, span( value));
@@ -173,16 +183,26 @@ Token Lexer::lex_sep()
  */
 Token Lexer::lex_op()
 {
+    auto ismatch = [=](std::string value)
+    {
+        return std::find(operators.begin(), operators.end(), value) != operators.end();
+    };
+
     std::string value = "";
     while (!eof() && isop())
     {
-        if (std::find(operators.begin(), operators.end(), value + current()) == operators.end())
+        if (ismatch(value) && !ismatch(value + current()))
         {
             break;
         }
 
         value += current();
         advance();
+    }
+
+    if (std::find(operators.begin(), operators.end(), value) == operators.end())
+    {
+        throw SyntaxError(pos());
     }
 
     return Token(value, value, span( value));
@@ -223,9 +243,9 @@ void Lexer::lex_comment()
  */
 bool Lexer::vector_contains_char(const std::vector<std::string>& vec, const char c)
 {
-    for (auto sep : vec)
+    for (auto s : vec)
     {
-        if (sep.find(c) != std::string::npos) 
+        if (s.find(c) != std::string::npos) 
         {
             return true;
         }

@@ -40,7 +40,6 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
 
 static llvm::Value *get_default_value(std::shared_ptr<Type> type, CodegenContext& context)
 {
-    context.llvm_builder->Array
     switch (type->type) 
     {
         case TypeType::Void:
@@ -89,13 +88,13 @@ static bool is_terminator(std::shared_ptr<Quad> quad)
 /**
  * Allocates a variable on the stack.
  */
-static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
+static std::string allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
 {
     assert(operand->type == OperandType::Variable);
 
     if (operand->symbol->is_temp || operand->symbol->is_parameter || operand->symbol->symbol_data.is_allocated())
     {
-        return;
+        return "";
     }
     else
     {
@@ -103,6 +102,7 @@ static void allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
             get_llvm_type(operand->symbol->type, context), 
             nullptr, 
             operand->symbol->name);
+        return operand->symbol->name;
     }
 }
 
@@ -165,7 +165,6 @@ static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& co
     return value;
 }
 
-
 /**
  * Generates LLVM code for a call instruction.
  */
@@ -208,21 +207,21 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
     switch (quad->op)
     {
         case QuadOp::Add:
-            res = context.llvm_builder->CreateAdd(arg1, arg2, quad->res->symbol->name);
+            res = context.llvm_builder->CreateAdd(arg1, arg2);
             break;
         case QuadOp::Sub:
-            res = context.llvm_builder->CreateSub(arg1, arg2, quad->res->symbol->name);
+            res = context.llvm_builder->CreateSub(arg1, arg2);
             break;
         case QuadOp::Mul:
-            res = context.llvm_builder->CreateMul(arg1, arg2, quad->res->symbol->name);
+            res = context.llvm_builder->CreateMul(arg1, arg2);
             break;
         case QuadOp::Div:
             // TODO if types are unsigned, need to use UDiv
-            res = context.llvm_builder->CreateSDiv(arg1, arg2, quad->res->symbol->name);
+            res = context.llvm_builder->CreateSDiv(arg1, arg2);
             break;
         case QuadOp::Mod:
             // TODO if types are unsigned, need to use URem
-            res = context.llvm_builder->CreateSRem(arg1, arg2, quad->res->symbol->name);
+            res = context.llvm_builder->CreateSRem(arg1, arg2);
             break;
         default:
             break;

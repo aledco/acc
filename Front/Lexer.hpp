@@ -48,6 +48,8 @@ const std::vector<std::string> operators = {
     "<=",
     ">",
     ">=",
+    "||",
+    "&&",
     "++",
     "--",
     "+=",
@@ -63,7 +65,7 @@ const std::vector<std::string> keywords = {
     "int",
     "if",
     "else",
-    "while,",
+    "while",
     "return",
     "extern"
 };

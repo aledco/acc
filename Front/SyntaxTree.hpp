@@ -148,7 +148,7 @@ struct WhileLoop : Statement
     WhileLoop(Span span, std::shared_ptr<Expression> guard, std::shared_ptr<Statement> body, std::shared_ptr<SymbolTable> symbol_table) :
         Statement(span, symbol_table),
         guard(guard), 
-        body(body), 
+        body(body)
     {}
 
     void typecheck(TypecheckContext& context) override;

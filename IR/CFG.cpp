@@ -35,6 +35,7 @@ static std::shared_ptr<BasicBlock> find_next_block(std::shared_ptr<Quad> instruc
             case QuadOp::IfLeq:
             case QuadOp::IfGt:
             case QuadOp::IfGeq:
+            case QuadOp::Return:
                 return std::make_shared<BasicBlock>(first, curr);
             default:
                 break;
@@ -109,6 +110,8 @@ static void link_blocks(std::vector<std::shared_ptr<BasicBlock>>& blocks)
                 block_for_label = find_block_for_label(blocks, last->res->strconst);
                 block->link(block_for_label);
                 break;
+            case QuadOp::Return:
+                continue;
             default:
                 break;
         }
