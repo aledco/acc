@@ -8,6 +8,8 @@ toy
 *.ll
 *.s
 
+!acc-link/test-code.ll
+
 # Prerequisites
 *.d
 
