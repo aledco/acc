@@ -1,11 +1,11 @@
 #!/bin/bash
 
+# install LLVM
+sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" -- -n jammy 18
+
 # install packages
 sudo apt install build-essential
 sudo apt install clang-18 libtclap-dev
-
-# install LLVM
-sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" -- -n jammy 18
 
 # install Google Test
 wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz
