@@ -1,13 +1,13 @@
 #!/bin/bash
 
+# install packages
+sudo apt install build-essential
+sudo apt install clang-18 libtclap-dev
+
 # install LLVM
 sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" -- -n jammy 18
 
-# install clang and TCLAP
-sudo apt install clang-18 libtclap-dev
-
 # install Google Test
-sudo apt install cmake
 wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz
 tar xf release-1.8.0.tar.gz
 cd googletest-release-1.8.0
