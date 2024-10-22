@@ -3,14 +3,14 @@
 # install LLVM
 sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" -- -n jammy 18
 
-# install clang and TCLAP
-sudo apt install clang libtclap-dev
+# install packages
+sudo apt install build-essential
+sudo apt install clang-18 libtclap-dev
 
-# install Google test
+# install Google Test
 wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz
 tar xf release-1.8.0.tar.gz
 cd googletest-release-1.8.0
-sudo apt install cmake
 cmake -DBUILD_SHARED_LIBS=ON .
 make
 sudo cp -a googletest/include/gtest /usr/include
