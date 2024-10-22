@@ -21,4 +21,5 @@ jobs:
       run: make test
     - name: test
       working-directory: ./
-      run: . ~/.bashrc ; ./test
+      run: ./test
+    - run: ls Tests/out
