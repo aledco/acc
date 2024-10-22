@@ -228,7 +228,7 @@ void CharConstant::dump(int depth)
  */
 void Variable::dump(int depth)
 {
-    std::cout << "Variable(" << symbol->name << ")";
+    std::cout << "Variable(" << symbol->get_name() << ")";
 }
 
 /**
@@ -238,7 +238,7 @@ void FunctionCall::dump(int depth)
 {
     std::cout << "FunctionCall(\n";
     indent(depth);
-    std::cout << "name = " << function->name << ",\n";
+    std::cout << "name = " << function->get_name() << ",\n";
     indent(depth);
     std::cout << "args = ";
     if (args.empty())
@@ -319,7 +319,7 @@ void CompoundStatement::dump(int depth)
  */
 void VariableDeclaration::dump(int depth)
 {
-    std::cout << "VariableDeclaration(" << symbol->name << ")";
+    std::cout << "VariableDeclaration(" << symbol->get_name() << ")";
 }
 
 /**
@@ -400,13 +400,13 @@ void FunctionDef::dump(int depth)
     }
 
     indent(depth);
-    std::cout << "name = " << function->name << ",\n";
+    std::cout << "name = " << function->get_name() << ",\n";
     
     indent(depth);
     std::cout << "params = (";
     for (auto i = 0; i < params.size(); i++)
     {
-        std::cout << params[i]->name;
+        std::cout << params[i]->get_name();
         if (i < params.size() - 1)
         {
             std::cout << ", ";
@@ -460,7 +460,7 @@ void Program::ir_dump()
 {
     for (auto f : functions)
     {
-        std::cout << f->function->name << "\n";
+        std::cout << f->function->get_name() << "\n";
         f->ir_list.dump();
         std::cout << "\n";
     }

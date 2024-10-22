@@ -235,7 +235,7 @@ void Operand::dump()
             std::cerr << strconst;
             break;
         case OperandType::Variable:
-            std::cerr << symbol->name;
+            std::cerr << symbol->get_name();
             break;
     }
 }

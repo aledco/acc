@@ -24,8 +24,6 @@
 - Add optimization
 
 ## LLVM
-- Figure out how to modify parameters
-    - Clang allocates space on the stack for each parameter
 
 ## Code Maintenance
 - Add const to everything possible

@@ -86,40 +86,17 @@ static bool is_terminator(std::shared_ptr<Quad> quad)
 }
 
 /**
- * Allocates a variable on the stack.
- */
-static std::string allocate(std::shared_ptr<Operand> operand, CodegenContext& context)
-{
-    assert(operand->type == OperandType::Variable);
-
-    if (operand->symbol->is_temp || operand->symbol->is_parameter || operand->symbol->symbol_data.is_allocated())
-    {
-        return "";
-    }
-    else
-    {
-        operand->symbol->symbol_data.value = context.llvm_builder->CreateAlloca(
-            get_llvm_type(operand->symbol->type, context), 
-            nullptr, 
-            operand->symbol->name);
-        return operand->symbol->name;
-    }
-}
-
-/**
  * Stores a value in a variable.
  */
-static void store(std::shared_ptr<Operand> operand, llvm::Value *val, CodegenContext& context)
+static void store(std::shared_ptr<Symbol> symbol, llvm::Value *val, CodegenContext& context)
 {
-    assert(operand->type == OperandType::Variable);
-
-    if (operand->symbol->is_temp || operand->symbol->is_parameter)
+    if (symbol->is_temp)
     {
-        operand->symbol->symbol_data.value = val;
+        symbol->symbol_data.value = val;
     }
     else
     {   
-        context.llvm_builder->CreateStore(val, operand->symbol->symbol_data.value, false);
+        context.llvm_builder->CreateStore(val, symbol->symbol_data.value, false);
     }
 }
 
@@ -135,23 +112,18 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
         case OperandType::StrConst:
             return nullptr; // TODO
         case OperandType::Variable:
-            if (operand->symbol->is_temp || operand->symbol->is_parameter)
+            if (operand->symbol->is_temp)
             {
                 return operand->symbol->symbol_data.value;
             }
             else
             {
-                if (!operand->symbol->symbol_data.is_allocated())
-                {
-                    allocate(operand, context); // TODO this will have the effect of allocating a variable on its first use, do we want that?
-                }
-                
                 return context.llvm_builder->CreateLoad(
                     get_llvm_type(operand->symbol->type, context), 
                     operand->symbol->symbol_data.value);
             }
         case OperandType::Label:
-            return nullptr; // TODO
+            return nullptr;
     }
 }
 
@@ -173,9 +145,7 @@ static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& con
     assert(quad->arg1->type == OperandType::Variable);
     assert(quad->arg2->type == OperandType::IntConst);
 
-    allocate(quad->res, context);
-
-    auto func_name = quad->arg1->symbol->name;
+    auto func_name = quad->arg1->symbol->get_name();
     auto func = context.llvm_module->getFunction(func_name);
     assert(func != nullptr);
 
@@ -188,7 +158,7 @@ static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& con
     }
 
     auto func_call = context.llvm_builder->CreateCall(func, args);
-    store(quad->res, func_call, context);
+    store(quad->res->symbol, func_call, context);
     return func_call;
 }
 
@@ -201,7 +171,6 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
 
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
-    allocate(quad->res, context);
 
     llvm::Value *res;
     switch (quad->op)
@@ -227,7 +196,7 @@ static llvm::Value *codegen_binop(std::shared_ptr<Quad> quad, CodegenContext& co
             break;
     }
 
-    store(quad->res, res, context);
+    store(quad->res->symbol, res, context);
     return res;
 }
 
@@ -239,7 +208,6 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
     assert(quad->res->type == OperandType::Variable);
 
     auto arg1 = codegen(quad->arg1, context);
-    allocate(quad->res, context);
 
     llvm::Value *res;
     switch (quad->op)
@@ -257,7 +225,7 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
             break;
     }
 
-    store(quad->res, res, context);
+    store(quad->res->symbol, res, context);
     return res;
 }
 
@@ -425,16 +393,7 @@ static llvm::Function *codegen_prototype(std::shared_ptr<FunctionDef> def, Codeg
 
     auto llvm_return_type = get_llvm_type(def->function->type->ret_type, context);
     auto llvm_function_type = llvm::FunctionType::get(llvm_return_type, llvm_param_types, false);
-    auto llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, def->function->name, context.llvm_module.get());
-
-    // set the names for the args
-    std::size_t i = 0;
-    for (auto &arg : llvm_function->args())
-    {
-        arg.setName(def->params[i]->name);
-        i++;
-    }
-
+    auto llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, def->function->get_name(), context.llvm_module.get());
     return llvm_function;
 }
 
@@ -450,18 +409,10 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
         return codegen_prototype(def, context);
     }
 
-    auto llvm_function = context.llvm_module->getFunction(def->function->name);
+    auto llvm_function = context.llvm_module->getFunction(def->function->get_name());
     if (llvm_function == nullptr)
     {
         llvm_function = codegen_prototype(def, context); 
-    }
-
-    // set the values for the args
-    std::size_t i = 0;
-    for (auto &arg : llvm_function->args())
-    {
-        def->params[i]->symbol_data.value = &arg;
-        i++;
     }
 
     context.llvm_function = llvm_function;
@@ -474,7 +425,21 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
         llvm_blocks.push_back(block);
     }
 
-    assert(def->cfg.size() == llvm_blocks.size());
+    assert(def->cfg.size() == llvm_blocks.size() && llvm_blocks.size() > 0);
+
+    // allocate the stack variables for the function
+    context.llvm_builder->SetInsertPoint(llvm_blocks.front());
+    for (auto s : def->symbol_table->get_all_variables())
+    {
+        auto type = get_llvm_type(s->type, context);
+        s->symbol_data.value = context.llvm_builder->CreateAlloca(type, nullptr, s->get_name());
+    }
+
+    // store each argument into the allocated stack variable
+    for (auto i = 0; i < context.function_def->params.size(); i++)
+    {
+        store(context.function_def->params[i], context.llvm_function->getArg(i), context);
+    }
 
     // generate LLVM code for each block in the CFG
     for (auto i = 0; i < def->cfg.size(); i++)

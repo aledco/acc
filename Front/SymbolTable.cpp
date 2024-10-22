@@ -3,6 +3,18 @@
 #include "Error.hpp"
 #include "SymbolTable.hpp"
 
+ std::string Symbol::get_name()
+ {
+    if (scope == GLOBAL_SCOPE)
+    {
+        return name;
+    }
+    else
+    {
+        return name + "." + std::to_string(scope);
+    }
+ }
+
 /**
  * Adds a symbol to the symbol table.
  */
@@ -22,7 +34,7 @@ std::shared_ptr<Symbol> SymbolTable::add_symbol(Token& name, std::shared_ptr<Typ
 std::shared_ptr<Symbol> SymbolTable::add_symbol(std::string name, std::shared_ptr<Type> type)
 {
     assert(table.find(name) == table.end());
-    auto symbol = std::make_shared<Symbol>(name, type);
+    auto symbol = std::make_shared<Symbol>(name, type, scope);
     table[name] = symbol;
     return symbol;
 }
@@ -71,6 +83,29 @@ std::shared_ptr<Symbol> SymbolTable::try_lookup(Token& name)
     }
 
     return nullptr;
+}
+
+/**
+ * Gets all variables in this symbol table and all of its children recursively.
+ */
+std::vector<std::shared_ptr<Symbol>> SymbolTable::get_all_variables()
+{
+    std::vector<std::shared_ptr<Symbol>> symbols;
+    for (auto kv : table)
+    {
+        if (!kv.second->is_temp)
+        {
+            symbols.push_back(kv.second);
+        }
+    }
+
+    for (auto child : children)
+    {
+        auto c_symbols = child->get_all_variables();
+        symbols.insert(symbols.end(), c_symbols.begin(), c_symbols.end());
+    }
+
+    return symbols;
 }
 
 /**

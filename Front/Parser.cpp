@@ -99,8 +99,9 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
 
         auto body = parse_compound_statement(context);
         span += body->span;
+        auto symbol_table = context.current_symbol_table();
         context.pop_symbol_table();
-        return std::make_shared<FunctionDef>(span, function_symbol, params, body, context.current_symbol_table());
+        return std::make_shared<FunctionDef>(span, function_symbol, params, body, symbol_table);
     }
 }
 
