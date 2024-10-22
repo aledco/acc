@@ -20,6 +20,4 @@ jobs:
     - name: make test
       run: make test
     - name: test
-      working-directory: ./
       run: ./test
-    - run: ls Tests/out
