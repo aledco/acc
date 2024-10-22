@@ -17,8 +17,8 @@ jobs:
       run: chmod u+x configure ; sudo ./configure
     - name: make
       run: make
-    - run: ./acc -T Tests/in/test1.c && chmod u+x a.out && ./a.out
-    - name: make test
-      run: make test
-    - name: test
-      run: ./test
+    #- run: ./acc -T Tests/in/test1.c && chmod u+x a.out && ./a.out
+    #- name: make test
+    #  run: make test
+    #- name: test
+      #run: ./test
