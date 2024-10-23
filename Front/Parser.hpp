@@ -48,7 +48,6 @@ private:
         inline void pop_symbol_table() { symbol_table_stack.pop(); }
     };
 
-    std::shared_ptr<SyntaxTree> parse_top_level(ParserContext& context);
     std::shared_ptr<FunctionDef> parse_function(ParserContext& context);
     std::shared_ptr<Symbol> parse_parameter(ParserContext& context);
     std::shared_ptr<Statement> parse_statement(ParserContext& context);

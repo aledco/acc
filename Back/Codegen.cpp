@@ -453,14 +453,37 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 }
 
 /**
+ * Generates LLVM code for a global variable.
+ */
+static llvm::Function *codegen_global(std::shared_ptr<VariableDeclaration> var_decl, CodegenContext& context)
+{
+    for (auto expr : var_decl->expressions)
+    {
+        // TODO need decide how to handle globals with expressions, maybe only allow variable declarations with no initializers?
+    }
+    new llvm::GlobalVariable(*context.llvm_module, 
+        get_llvm_type(var_decl->type, context), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage, context.llvm_builder->getInt32(20));
+}
+
+/**
  * Generates LLVM code for the program.
  */
 void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;
+    for (auto global : global->functions)
+    {
+        codegen_global(global, context);
+    }
+
+    auto a = new llvm::GlobalVariable(*context.llvm_module, 
+        context.llvm_builder->getInt32Ty(), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage, context.llvm_builder->getInt32(20));
+
     for (auto function : program->functions)
     {
-        auto llvm_function = codegen(function, context);
+        codegen(function, context);
+        auto a = context.llvm_builder->getInt32(21);
+    auto b = context.llvm_builder->getInt32(22);
     }
 
     llvm::raw_os_ostream stream(*file);

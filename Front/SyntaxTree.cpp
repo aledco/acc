@@ -188,6 +188,7 @@ void CharConstant::typecheck(TypecheckContext& context)
  */
 void FunctionDef::typecheck(TypecheckContext& context)
 {
+    context.func_def = this;
     if (!is_proto())
     {
         body->typecheck(context);
@@ -206,10 +207,14 @@ void FunctionDef::typecheck(TypecheckContext& context)
  */
 void Program::typecheck(TypecheckContext& context)
 {
-    for (auto& function : functions)
+    for (auto& g : globals)
     {
-        context.func_def = function;
-        function->typecheck(context);
+        g->typecheck(context);
+    }
+
+    for (auto& f : functions)
+    {
+        f->typecheck(context);
     }
 }
 
@@ -534,6 +539,16 @@ void FunctionDef::dump(int depth)
 void Program::dump(int depth)
 {   
     std::cout << "Program(\n";
+    for (auto i = 0; i < globals.size(); i++)
+    {
+        indent(depth);
+        globals[i]->dump(depth + 1);
+        if (i < globals.size() - 1)
+        {
+            std::cout << ",\n";
+        }
+    }
+
     for (auto i = 0; i < functions.size(); i++)
     {
         indent(depth);

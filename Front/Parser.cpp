@@ -12,32 +12,29 @@
 std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
-    std::vector<std::shared_ptr<SyntaxTree>> ast_nodes;
+    std::vector<std::shared_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<VariableDeclaration>> globals;
 
     Span span;
     while (!eof())
     { 
-        auto ast = parse_top_level(context);
-        ast_nodes.push_back(ast);
-        span += ast->span;
+        if (lookahead_is_function())
+        {
+            auto function = parse_function(context); 
+            functions.push_back(function);
+            span += function->span;
+        }
+        else
+        {
+            auto global = parse_variable_declaration(context); 
+            globals.push_back(global);
+            span += global->span;
+        }
     }
 
-    auto program = std::make_shared<Program>(span, ast_nodes, context.global_symbol_table);
+    auto program = std::make_shared<Program>(span, functions, globals, context.global_symbol_table);
     program->typecheck();
     return program;
-}
-
-/**
- * Parses a top level construct.
- */
-std::shared_ptr<SyntaxTree> Parser::parse_top_level(ParserContext& context)
-{
-    if (lookahead_is_function())
-    {
-        return parse_function(context); 
-    }
-
-    return parse_variable_declaration(context);
 }
 
 /**
@@ -48,7 +45,7 @@ bool Parser::lookahead_is_function()
 {
     if (is_currently({ "void", "int" }))
     {
-        if (index+2 < lexer.size() && lexer[index+1].type == TokenType_Id && lexer[index+1].type == "(")
+        if (index+2 < lexer.size() && lexer[index+1].type == TokenType_Id && lexer[index+2].type == "(")
         {
             return true;
         }

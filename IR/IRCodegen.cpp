@@ -322,9 +322,14 @@ void FunctionDef::ir_codegen()
  */
 void Program::ir_codegen()
 {
-    for (auto& function : functions)
+    for (auto& g : globals)
     {
-        function->ir_codegen();
+        g->ir_codegen();
+    }
+
+    for (auto& f : functions)
+    {
+        f->ir_codegen();
     }
 }
 

@@ -20,7 +20,7 @@ struct SyntaxTree
 protected:
     struct TypecheckContext 
     {
-        std::shared_ptr<FunctionDef> func_def;
+        FunctionDef *func_def;
     };
 
 public:
@@ -336,11 +336,13 @@ struct FunctionDef : SyntaxTree
  */
 struct Program : SyntaxTree
 {
-    std::vector<std::shared_ptr<SyntaxTree>> ast_nodes;
+    std::vector<std::shared_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<VariableDeclaration>> globals;
 
-    Program(Span span, std::vector<std::shared_ptr<SyntaxTree>> ast_nodes, std::shared_ptr<SymbolTable> symbol_table):
+    Program(Span span, std::vector<std::shared_ptr<FunctionDef>> functions, std::vector<std::shared_ptr<VariableDeclaration>> globals, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(span, symbol_table),
-        ast_nodes(ast_nodes)
+        functions(functions),
+        globals(globals)
     {}
 
     void typecheck(TypecheckContext& context) override;
