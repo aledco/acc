@@ -30,7 +30,7 @@
 ## Tests
 - Add failure tests
 - Add tests from CSC 553 compiler
-    - First will need to add void parameter, arrays, strings, and global vars
+    - First will need to add arrays, strings, and global vars
 
 ## Misc
 - Clean up TODOs

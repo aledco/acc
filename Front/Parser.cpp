@@ -49,18 +49,22 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     match("(");
 
     std::vector<std::shared_ptr<Symbol>> params;
-    if (is_currently({ "void", "int" }))
+    if (is_currently({ "void" }))
+    {
+        match("void");
+    }
+    else if (is_currently({ "int" }))
     {
         auto param = parse_parameter(context);
         params.push_back(param);
+        while (is_currently({ "," }))
+        {
+            match(",");
+            auto param = parse_parameter(context);
+            params.push_back(param);
+        }
     }
-    while (is_currently({ "," }))
-    {
-        match(",");
-        auto param = parse_parameter(context);
-        params.push_back(param);
-    }
-
+    
     match(")");
 
     std::vector<std::shared_ptr<Type>> param_types;
