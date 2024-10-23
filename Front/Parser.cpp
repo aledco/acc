@@ -6,7 +6,6 @@
 #include "Error.hpp"
 #include "Parser.hpp"
 
-
 /**
  * Parses the program and retunrs the abstract syntax tree.
  */
