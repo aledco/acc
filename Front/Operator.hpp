@@ -2,19 +2,29 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 #include <map>
+
+/**
+ * Represents the associativity of an operator.
+ */
+enum class Associativity
+{
+    Left,
+    Right
+};
 
 /**
  * Encodes operator precedence.
  */
-const std::vector<std::vector<std::string>> operator_precedence = {
-    { "*", "/", "%" },          /*  3  */   
-    { "+", "-" },               /*  4  */   
-    { "<", "<=", ">", ">=" },   /*  6  */   
-    { "==", "!=" },             /*  7  */   
-    { "&&" },                   /* 11  */   
-    { "||" },                   /* 12  */   
-    { "=" }                     /* 14  */   
+const std::vector<std::tuple<std::vector<std::string>, Associativity>> operator_precedence = {
+    std::tuple<std::vector<std::string>, Associativity>({ "*", "/", "%" }, Associativity::Left),                        /*  3  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "+", "-" }, Associativity::Left),                             /*  4  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "<", "<=", ">", ">=" }, Associativity::Left),                 /*  6  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "==", "!=" }, Associativity::Left),                           /*  7  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "&&" }, Associativity::Left),                                 /* 11  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "||" }, Associativity::Left),                                 /* 12  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "=", "+=", "-=", "*=", "/=", "%=" }, Associativity::Right)    /* 14  */   
 };
 
 /**
@@ -35,7 +45,12 @@ enum class BinOp
     GreaterThanEqual,
     And,
     Or,
-    Assign
+    Assign,
+    PlusAssign,
+    MinusAssign,
+    TimesAssign,
+    DivideAssign,
+    ModuloAssign
 };
 
 const std::map<const std::string, const BinOp> binop_map = {
@@ -44,8 +59,8 @@ const std::map<const std::string, const BinOp> binop_map = {
     {"<", BinOp::LessThan}, {"<=", BinOp::LessThanEqual}, {">", BinOp::GreaterThan}, {">=", BinOp::GreaterThanEqual},
     {"==", BinOp::Equal}, {"!=", BinOp::NotEqual},
     {"&&", BinOp::And},
-    {"||", BinOp::Or},
-    {"=", BinOp::Assign},
+    {"||", BinOp::Or}, 
+    {"=", BinOp::Assign}, {"+=", BinOp::PlusAssign}, {"-=", BinOp::MinusAssign}, {"*=", BinOp::TimesAssign}, {"/=", BinOp::DivideAssign}, {"%=", BinOp::ModuloAssign},
 };
 
 /**
@@ -67,8 +82,8 @@ const std::map<const std::string, const UnOp> unop_map = {
 };
 
 
-const BinOp getBinOp(const std::string op);
-const std::string toString(const BinOp op);
+const BinOp get_BinOp(const std::string op);
+const std::string to_string(const BinOp op);
 
-const UnOp getUnOp(const std::string op);
-const std::string toString(const UnOp op);
+const UnOp get_UnOp(const std::string op);
+const std::string to_string(const UnOp op);

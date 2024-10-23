@@ -6,7 +6,7 @@
 /**
  * Gets the BinOp for the string.
  */
-const BinOp getBinOp(const std::string op)
+const BinOp get_BinOp(const std::string op)
 {
     if (binop_map.find(op) != binop_map.end())
     {
@@ -19,7 +19,7 @@ const BinOp getBinOp(const std::string op)
 /**
  * Gets the string representation of the BinOp.
  */
-const std::string toString(const BinOp op)
+const std::string to_string(const BinOp op)
 {
 
     for (auto& pair : binop_map)
@@ -36,7 +36,7 @@ const std::string toString(const BinOp op)
 /**
  * Gets the UnOp for the string.
  */
-const UnOp getUnOp(const std::string op)
+const UnOp get_UnOp(const std::string op)
 {
     if (unop_map.find(op) != unop_map.end())
     {
@@ -49,7 +49,7 @@ const UnOp getUnOp(const std::string op)
 /**
  * Gets the string representation of the UnOp.
  */
-const std::string toString(const UnOp op)
+const std::string to_string(const UnOp op)
 {
     for (auto& pair : unop_map)
     {

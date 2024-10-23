@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 #include "Span.hpp"
 #include "Operator.hpp"
 #include "Error.hpp"
@@ -48,18 +49,22 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     match("(");
 
     std::vector<std::shared_ptr<Symbol>> params;
-    if (is_currently({ "void", "int" }))
+    if (is_currently({ "void" }))
+    {
+        match("void");
+    }
+    else if (is_currently({ "int" }))
     {
         auto param = parse_parameter(context);
         params.push_back(param);
+        while (is_currently({ "," }))
+        {
+            match(",");
+            auto param = parse_parameter(context);
+            params.push_back(param);
+        }
     }
-    while (is_currently({ "," }))
-    {
-        match(",");
-        auto param = parse_parameter(context);
-        params.push_back(param);
-    }
-
+    
     match(")");
 
     std::vector<std::shared_ptr<Type>> param_types;
@@ -146,7 +151,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     {
         return parse_compound_statement(context);
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         auto statement = parse_expression(context);
         auto token = match(";");
@@ -155,7 +160,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     }
     else
     {
-        throw ParseError(current(), { "void", "int", "if", "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
+        throw ParseError(current(), { "void", "int", "if", "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" });
     }
 }
 
@@ -169,7 +174,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "if",  "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    while (is_currently({ "void", "int", "if",  "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -189,11 +194,34 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
 {
     Span span = current().span;
     auto type = parse_type(context);
-    auto id_token = match(TokenType_Id);
+
+    auto parse_assignment_expr = [=](ParserContext& context)
+    {
+        Span span = current().span;
+        auto id_token = match(TokenType_Id); // TODO add parsing of * too
+        auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
+        std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
+        if (is_currently({ "=" }))
+        {
+            match("=");
+            auto rhs = parse_expression(context);
+            expr = std::make_shared<BinaryOperation>(span + rhs->span, BinOp::Assign, expr, rhs, context.current_symbol_table());
+        }
+
+        return expr;
+    };
+
+    std::vector<std::shared_ptr<Expression>> expressions;
+    expressions.push_back(parse_assignment_expr(context));
+    while (is_currently({ "," }))
+    {
+        match(",");
+        expressions.push_back(parse_assignment_expr(context));
+    }
+
     auto semi_token = match(";");
     span += semi_token.span;
-    auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
-    return std::make_shared<VariableDeclaration>(span, type, symbol, context.current_symbol_table());
+    return std::make_shared<VariableDeclaration>(span, type, expressions, context.current_symbol_table());
 }
 
 /**
@@ -248,19 +276,19 @@ std::shared_ptr<ForLoop> Parser::parse_for_loop(ParserContext& context)
     std::shared_ptr<Expression> init = nullptr;
     std::shared_ptr<Expression> guard = nullptr;
     std::shared_ptr<Expression> update = nullptr;
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         init = parse_expression(context);
     }
 
     match(";");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         guard = parse_expression(context);
     }
 
     match(";");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         update = parse_expression(context);
     }
@@ -278,7 +306,7 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     Span span = current().span;
     match("return");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         auto expr = parse_expression(context);
         auto token = match(";");
@@ -311,14 +339,33 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
         return parse_unary(context);
     }
 
+    auto operators = std::get<0>(operator_precedence[p]);
+    auto associativity = std::get<1>(operator_precedence[p]);
+
     Span span = current().span;
     auto lhs = parse_expression(context, p-1);
-    while (is_currently(operator_precedence[p]))
+    switch (associativity)
     {
-        auto op = match(operator_precedence[p]);
-        auto rhs = parse_expression(context, p-1);
-        span = span + rhs->span;
-        lhs = std::make_shared<BinaryOperation>(span, getBinOp(op.value), lhs, rhs, context.current_symbol_table());
+        case Associativity::Left:
+            while (is_currently(operators))
+            {
+                auto op = match(operators);
+                auto rhs = parse_expression(context, p-1);
+                span = span + rhs->span;
+                lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
+            }
+
+            break;
+        case Associativity::Right:
+            while (is_currently(operators))
+            {
+                auto op = match(operators);
+                auto rhs = parse_expression(context);
+                span = span + rhs->span;
+                lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
+            }
+
+            break;
     }
 
     return lhs;
@@ -327,24 +374,32 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
 /**
  * Parses an unary expression.
  */
-std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
+std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context) // TODO may need to change to get operator precedence right
 {
-    if (is_currently({ "-", "!", "*", "&" }))
+    Span span = current().span;
+    if (is_currently({ "-", "!", "*", "&", "++", "--" }))
     {
-        Span span = current().span;
-        auto op = match({ "-", "!", "*", "&" });
+        auto op = match({ "-", "!", "*", "&", "++", "--" });
         auto expr = parse_term(context);
         span += expr->span;
-        return std::make_shared<UnaryOperation>(span, getUnOp(op.value), expr, context.current_symbol_table());
+        return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), expr, context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
     {
-        return parse_term(context);
+        auto term = parse_term(context);
+        if (is_currently({ "++", "--" }))
+        {
+            auto op = match({ "++", "--" });
+            span += op.span;
+            return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), term, context.current_symbol_table(), true);
+        }
+        else
+        {
+            return term;
+        }
     }
 
-    // TODO handle increment operators later
-
-    throw ParseError(current(), { "-",  "!", "*", "&", TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { "-",  "!", "*", "&", "++", "--", TokenType_Int, TokenType_Id, "(" });
 }
 
 /**
@@ -366,7 +421,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             match("(");
 
             std::vector<std::shared_ptr<Expression>> args;
-            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
             {
                 args.push_back(parse_expression(context));
                 while (is_currently({ "," }))

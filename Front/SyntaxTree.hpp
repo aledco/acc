@@ -52,6 +52,8 @@ struct Expression : Statement
     std::shared_ptr<Operand> place;
     std::shared_ptr<Operand> location;
 
+    QuadList ir_list_lval;
+
     Expression(Span span, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table) {}
 
     virtual void ir_codegen_lval();
@@ -81,12 +83,12 @@ struct CompoundStatement : Statement
 struct VariableDeclaration : Statement
 {
     std::shared_ptr<Type> type;
-    std::shared_ptr<Symbol> symbol;
+    std::vector<std::shared_ptr<Expression>> expressions;
 
-    VariableDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+    VariableDeclaration(Span span, std::shared_ptr<Type> type, std::vector<std::shared_ptr<Expression>> expressions, std::shared_ptr<SymbolTable> symbol_table) : 
         Statement(span, symbol_table), 
         type(type), 
-        symbol(symbol) 
+        expressions(expressions) 
     {}
 
     void typecheck(TypecheckContext& context) override;
@@ -247,8 +249,20 @@ struct UnaryOperation : Expression
 {
     UnOp op;
     std::shared_ptr<Expression> expr;
+    bool is_postfix = false;
 
-    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), op(op), expr(expr) {}
+    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : 
+        Expression(span, symbol_table),
+        op(op), 
+        expr(expr)
+    {}
+
+    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table, bool is_postfix) : 
+        Expression(span, symbol_table),
+        op(op), 
+        expr(expr),
+        is_postfix(is_postfix)
+    {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;

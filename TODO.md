@@ -10,7 +10,8 @@
         - Str const
         - Array index
         - Floats
-        - Increment operations
+        - Bitwise operations (and the rest of the C operators)
+        - Pointers
     - Statements
         - Array declaration
         - Global variables
@@ -29,6 +30,7 @@
 ## Tests
 - Add failure tests
 - Add tests from CSC 553 compiler
+    - First will need to add arrays, strings, and global vars
 
 ## Misc
 - Clean up TODOs

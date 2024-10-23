@@ -24,6 +24,10 @@ void CompoundStatement::typecheck(TypecheckContext& context)
  */
 void VariableDeclaration::typecheck(TypecheckContext& context)
 {
+    for (auto expr : expressions)
+    {
+        expr->typecheck(context); // TODO need to add some additional type checking
+    }
 }
 
 /**
@@ -150,6 +154,8 @@ void UnaryOperation::typecheck(TypecheckContext& context)
     switch (op)
     {
         case UnOp::Negation:
+        case UnOp::PlusPlus:
+        case UnOp::MinusMinus:
             type = expr->type;
             break;
         case UnOp::Not:
@@ -157,9 +163,7 @@ void UnaryOperation::typecheck(TypecheckContext& context)
             break;
         case UnOp::Deref:
         case UnOp::AddrOf:
-        case UnOp::PlusPlus:
-        case UnOp::MinusMinus:
-            assert(false && "unimplemented");
+            assert(false && "unimplemented");    
     }
 }
 
@@ -293,7 +297,7 @@ void BinaryOperation::dump(int depth)
 {
     std::cout << "BinaryOperation(\n";
     indent(depth);
-    std::cout << "op = '" << toString(op) << "',\n";
+    std::cout << "op = '" << to_string(op) << "',\n";
     indent(depth);
     lhs->dump(depth + 1);
     std::cout << ",\n";
@@ -309,12 +313,13 @@ void UnaryOperation::dump(int depth)
 {
     std::cout << "UnaryOperation(\n";
     indent(depth);
-    std::cout << "op = " << toString(op) << ",\n";
+    std::cout << "op = " << to_string(op) << ",\n";
     indent(depth);
     std::cout << "expr = ";
     expr->dump(depth);
     std::cout << "\n";
     indent(depth);
+    std::cout << "is_postfix = " << is_postfix;
     std::cout << ")";
 }
 
@@ -342,7 +347,23 @@ void CompoundStatement::dump(int depth)
  */
 void VariableDeclaration::dump(int depth)
 {
-    std::cout << "VariableDeclaration(" << symbol->get_name() << ")";
+    std::cout << "VariableDeclaration(\n";
+    indent(depth);
+    std::cout << "type = ";
+    type->dump();
+
+    std::cout << "\n";
+    for (auto i = 0; i < expressions.size(); i++)
+    {
+        indent(depth);
+        expressions[i]->dump(depth + 1);
+        if (i < expressions.size() - 1)
+        {
+            std::cout << ",\n";
+        }
+    }
+
+    std::cout << ")";
 }
 
 /**
