@@ -69,6 +69,29 @@ void WhileLoop::typecheck(TypecheckContext& context)
 }
 
 /**
+ * Typechecks the while loop.
+ */
+void ForLoop::typecheck(TypecheckContext& context)
+{
+    if (init != nullptr)
+    {
+        init->typecheck(context);
+    }
+    
+    if (guard != nullptr)
+    {
+        guard->typecheck(context);
+    }
+    
+    if (update != nullptr)
+    {
+        update->typecheck(context);
+    }
+
+    body->typecheck(context);
+}
+
+/**
  * Typechecks the variable.
  */
 void Variable::typecheck(TypecheckContext& context)
@@ -376,6 +399,56 @@ void WhileLoop::dump(int depth)
     indent(depth);
     std::cout << "guard = ";
     guard->dump(depth + 1);
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "body = ";
+    body->dump(depth + 1);
+
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void ForLoop::dump(int depth)
+{
+    std::cout << "ForLoop(\n";
+
+    indent(depth);
+    std::cout << "init = ";
+    if (init != nullptr)
+    {
+        init->dump(depth + 1);
+    }
+    else
+    {
+        std::cout << "nullptr";
+    }
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "guard = ";
+    if (guard != nullptr)
+    {
+        guard->dump(depth + 1);
+    }
+    else
+    {
+        std::cout << "nullptr";
+    }
+
+    std::cout << "\n";
+    indent(depth);
+    std::cout << "update = ";
+    if (update != nullptr)
+    {
+        update->dump(depth + 1);
+    }
+    else
+    {
+        std::cout << "nullptr";
+    }
 
     std::cout << "\n";
     indent(depth);
