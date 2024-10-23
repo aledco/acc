@@ -19,6 +19,7 @@ private:
     Lexer lexer;
     std::size_t index = 0;
 
+    inline bool eof() { return index >= lexer.size(); }
     inline Token& current() { return lexer[index]; }
     inline Token& next() { index++; return current(); }
 
@@ -47,6 +48,7 @@ private:
         inline void pop_symbol_table() { symbol_table_stack.pop(); }
     };
 
+    std::shared_ptr<SyntaxTree> parse_top_level(ParserContext& context);
     std::shared_ptr<FunctionDef> parse_function(ParserContext& context);
     std::shared_ptr<Symbol> parse_parameter(ParserContext& context);
     std::shared_ptr<Statement> parse_statement(ParserContext& context);
@@ -63,6 +65,8 @@ private:
 
     std::shared_ptr<Type> parse_type(ParserContext& context);
     std::shared_ptr<Symbol> parse_identifier(ParserContext& context);
+
+    bool lookahead_is_function();
 
 public:
     Parser(const Lexer& lexer): lexer{lexer} {}

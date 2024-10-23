@@ -336,11 +336,11 @@ struct FunctionDef : SyntaxTree
  */
 struct Program : SyntaxTree
 {
-    std::vector<std::shared_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<SyntaxTree>> ast_nodes;
 
-    Program(Span span, const std::vector<std::shared_ptr<FunctionDef>>& functions,  std::shared_ptr<SymbolTable> symbol_table):
+    Program(Span span, std::vector<std::shared_ptr<SyntaxTree>> ast_nodes, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(span, symbol_table),
-        functions(functions)
+        ast_nodes(ast_nodes)
     {}
 
     void typecheck(TypecheckContext& context) override;

@@ -13,18 +13,58 @@
 std::shared_ptr<Program> Parser::parse()
 {
     ParserContext context;
-    std::vector<std::shared_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<SyntaxTree>> ast_nodes;
+
     Span span;
-    while (is_currently({"void", "int", "extern"}))
-    {   
-        auto f = parse_function(context);
-        functions.push_back(f);
-        span += f->span;
+    while (!eof())
+    { 
+        auto ast = parse_top_level(context);
+        ast_nodes.push_back(ast);
+        span += ast->span;
     }
 
-    auto program = std::make_shared<Program>(span, functions, context.global_symbol_table);
+    auto program = std::make_shared<Program>(span, ast_nodes, context.global_symbol_table);
     program->typecheck();
     return program;
+}
+
+/**
+ * Parses a top level construct.
+ */
+std::shared_ptr<SyntaxTree> Parser::parse_top_level(ParserContext& context)
+{
+    if (lookahead_is_function())
+    {
+        return parse_function(context); 
+    }
+
+    return parse_variable_declaration(context);
+}
+
+/**
+ * Determines if the next 3 lookahead tokens match a function.
+ * TODO will need to update once pointer types are allowed.
+ */
+bool Parser::lookahead_is_function()
+{
+    if (is_currently({ "void", "int" }))
+    {
+        if (index+2 < lexer.size() && lexer[index+1].type == TokenType_Id && lexer[index+1].type == "(")
+        {
+            return true;
+        }
+    }
+
+    if (is_currently({ "extern" }))
+    {
+        if (index+3 < lexer.size() && (lexer[index+1].type == "void" || lexer[index+1].type == "int") && 
+            lexer[index+2].type == TokenType_Id && lexer[index+3].type == "(")
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
