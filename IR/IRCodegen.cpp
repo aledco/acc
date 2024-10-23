@@ -89,6 +89,48 @@ void WhileLoop::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void ForLoop::ir_codegen()
+{
+    auto top_label = Operand::MakeLabelOperand();
+    auto eval_label = Operand::MakeLabelOperand();
+    auto end_label = Operand::MakeLabelOperand();
+    
+    QuadList init_list;
+    if (init != nullptr)
+    {
+        init->ir_codegen();
+        init_list = init->ir_list;
+    }
+
+    QuadList guard_list;
+    if (guard != nullptr)
+    {
+        guard->ir_codegen_bool(top_label, end_label);
+        guard_list = guard->ir_list;
+    }
+
+    QuadList update_list;
+    if (update != nullptr)
+    {
+        update->ir_codegen();
+        update_list = update->ir_list;
+    }
+    
+    body->ir_codegen();
+
+    ir_list = QuadList::concat(ir_list, init_list);
+    ir_list = QuadList::append(ir_list, Quad::MakeGotoOp(eval_label));
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(top_label));
+    ir_list = QuadList::concat(ir_list, body->ir_list);
+    ir_list = QuadList::concat(ir_list, update_list);
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(eval_label));
+    ir_list = QuadList::concat(ir_list, guard_list);
+    ir_list = QuadList::append(ir_list, Quad::MakeLabelOp(end_label));
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void Variable::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol);

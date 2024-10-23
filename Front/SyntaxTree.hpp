@@ -157,6 +157,34 @@ struct WhileLoop : Statement
 };
 
 /**
+ * The for loop AST node.
+ */
+struct ForLoop : Statement
+{
+    std::shared_ptr<Expression> init;
+    std::shared_ptr<Expression> guard;
+    std::shared_ptr<Expression> update;
+    std::shared_ptr<Statement> body;
+
+    ForLoop(Span span,
+            std::shared_ptr<Expression> init_stmt, 
+            std::shared_ptr<Expression> guard, 
+            std::shared_ptr<Expression> update_stmt, 
+            std::shared_ptr<Statement> body, 
+            std::shared_ptr<SymbolTable> symbol_table) :
+        Statement(span, symbol_table),
+        init(init_stmt),
+        guard(guard), 
+        update(update_stmt),
+        body(body)
+    {}
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
+};
+
+/**
  * The variable AST node.
  */
 struct Variable : Expression

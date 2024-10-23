@@ -66,6 +66,7 @@ const std::vector<std::string> keywords = {
     "if",
     "else",
     "while",
+    "for",
     "return",
     "extern"
 };

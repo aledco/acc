@@ -134,6 +134,10 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     {
         return parse_while_loop(context);
     }
+    else if (is_currently({ "for" }))
+    {
+        return parse_for_loop(context);
+    }
     else if (is_currently({ "return" }))
     {
         return parse_return_statement(context);
@@ -151,7 +155,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     }
     else
     {
-        throw ParseError(current(), { "void", "int", "if", "while", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
+        throw ParseError(current(), { "void", "int", "if", "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" });
     }
 }
 
@@ -165,7 +169,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "if",  "while", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    while (is_currently({ "void", "int", "if",  "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -230,6 +234,41 @@ std::shared_ptr<WhileLoop> Parser::parse_while_loop(ParserContext& context)
     auto body = parse_statement(context);
     span += body->span;
     return std::make_shared<WhileLoop>(span, guard, body, context.current_symbol_table());
+}
+
+/**
+ * Parses a for loop.
+ */
+std::shared_ptr<ForLoop> Parser::parse_for_loop(ParserContext& context)
+{
+    Span span = current().span;
+    match("for");
+    match("(");
+
+    std::shared_ptr<Expression> init = nullptr;
+    std::shared_ptr<Expression> guard = nullptr;
+    std::shared_ptr<Expression> update = nullptr;
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    {
+        init = parse_expression(context);
+    }
+
+    match(";");
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    {
+        guard = parse_expression(context);
+    }
+
+    match(";");
+    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&" }))
+    {
+        update = parse_expression(context);
+    }
+
+    match (")");
+    auto body = parse_statement(context);
+    span += body->span;
+    return std::make_shared<ForLoop>(span, init, guard, update, body, context.current_symbol_table());
 }
 
 /**
