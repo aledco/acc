@@ -247,8 +247,20 @@ struct UnaryOperation : Expression
 {
     UnOp op;
     std::shared_ptr<Expression> expr;
+    bool is_postfix = false;
 
-    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), op(op), expr(expr) {}
+    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table) : 
+        Expression(span, symbol_table),
+        op(op), 
+        expr(expr)
+    {}
+
+    UnaryOperation(Span span, UnOp op, std::shared_ptr<Expression> expr, std::shared_ptr<SymbolTable> symbol_table, bool is_postfix) : 
+        Expression(span, symbol_table),
+        op(op), 
+        expr(expr),
+        is_postfix(is_postfix)
+    {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;

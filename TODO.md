@@ -11,6 +11,7 @@
         - Array index
         - Floats
         - Increment operations
+        - Pointers
     - Statements
         - Array declaration
         - Global variables

@@ -150,6 +150,8 @@ void UnaryOperation::typecheck(TypecheckContext& context)
     switch (op)
     {
         case UnOp::Negation:
+        case UnOp::PlusPlus:
+        case UnOp::MinusMinus:
             type = expr->type;
             break;
         case UnOp::Not:
@@ -157,9 +159,7 @@ void UnaryOperation::typecheck(TypecheckContext& context)
             break;
         case UnOp::Deref:
         case UnOp::AddrOf:
-        case UnOp::PlusPlus:
-        case UnOp::MinusMinus:
-            assert(false && "unimplemented");
+            assert(false && "unimplemented");    
     }
 }
 
@@ -315,6 +315,7 @@ void UnaryOperation::dump(int depth)
     expr->dump(depth);
     std::cout << "\n";
     indent(depth);
+    std::cout << "is_postfix = " << is_postfix;
     std::cout << ")";
 }
 

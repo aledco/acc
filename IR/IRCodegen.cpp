@@ -220,9 +220,11 @@ void UnaryOperation::ir_codegen()
             assert(false && "should be processed in codegen_bool");
         case UnOp::Deref:
         case UnOp::AddrOf:
+            assert(false && "unimplemented");
         case UnOp::PlusPlus:
         case UnOp::MinusMinus:
-            assert(false && "unimplemented");
+            // first get the lvalue of the expression, then update and return the value of the expression in the appropriate order
+            break; // TODO
     }
 }
 
