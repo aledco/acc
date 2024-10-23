@@ -14,8 +14,6 @@
     - Statements
         - Array declaration
         - Global variables
-        - While loops
-        - For loops
     - Misc
         - Type conversion nodes
 - Add type casting
