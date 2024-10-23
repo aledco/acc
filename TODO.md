@@ -32,4 +32,3 @@
 
 ## Misc
 - Clean up TODOs
-- Add CI, start using branches
