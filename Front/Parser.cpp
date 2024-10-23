@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 #include "Span.hpp"
 #include "Operator.hpp"
 #include "Error.hpp"
@@ -189,11 +190,34 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
 {
     Span span = current().span;
     auto type = parse_type(context);
-    auto id_token = match(TokenType_Id);
+
+    auto parse_assignment_expr = [=](ParserContext& context)
+    {
+        Span span = current().span;
+        auto id_token = match(TokenType_Id); // TODO add parsing of * too
+        auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
+        std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
+        if (is_currently({ "=" }))
+        {
+            match("=");
+            auto rhs = parse_expression(context);
+            expr = std::make_shared<BinaryOperation>(span + rhs->span, BinOp::Assign, expr, rhs, context.current_symbol_table());
+        }
+
+        return expr;
+    };
+
+    std::vector<std::shared_ptr<Expression>> expressions;
+    expressions.push_back(parse_assignment_expr(context));
+    while (is_currently({ "," }))
+    {
+        match(",");
+        expressions.push_back(parse_assignment_expr(context));
+    }
+
     auto semi_token = match(";");
     span += semi_token.span;
-    auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
-    return std::make_shared<VariableDeclaration>(span, type, symbol, context.current_symbol_table());
+    return std::make_shared<VariableDeclaration>(span, type, expressions, context.current_symbol_table());
 }
 
 /**
@@ -304,21 +328,40 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
 /**
  * Parses anm expression for the given precedence level p.
  */
-std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p) // TODO need right associtivity for assign
+std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p)
 {
     if (p == -1)
     {
         return parse_unary(context);
     }
 
+    auto operators = std::get<0>(operator_precedence[p]);
+    auto associativity = std::get<1>(operator_precedence[p]);
+
     Span span = current().span;
     auto lhs = parse_expression(context, p-1);
-    while (is_currently(operator_precedence[p]))
+    switch (associativity)
     {
-        auto op = match(operator_precedence[p]);
-        auto rhs = parse_expression(context, p-1);
-        span = span + rhs->span;
-        lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
+        case Associativity::Left:
+            while (is_currently(operators))
+            {
+                auto op = match(operators);
+                auto rhs = parse_expression(context, p-1);
+                span = span + rhs->span;
+                lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
+            }
+
+            break;
+        case Associativity::Right:
+            while (is_currently(operators))
+            {
+                auto op = match(operators);
+                auto rhs = parse_expression(context);
+                span = span + rhs->span;
+                lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
+            }
+
+            break;
     }
 
     return lhs;
@@ -327,7 +370,7 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
 /**
  * Parses an unary expression.
  */
-std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
+std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context) // TODO may need to change to get operator precedence right
 {
     Span span = current().span;
     if (is_currently({ "-", "!", "*", "&", "++", "--" }))

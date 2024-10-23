@@ -20,6 +20,11 @@ void CompoundStatement::ir_codegen()
  */
 void VariableDeclaration::ir_codegen()
 {
+    for (auto expr : expressions)
+    {
+        expr->ir_codegen();
+        ir_list = QuadList::concat(ir_list, expr->ir_list);
+    }
 }
 
 /**

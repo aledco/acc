@@ -24,6 +24,10 @@ void CompoundStatement::typecheck(TypecheckContext& context)
  */
 void VariableDeclaration::typecheck(TypecheckContext& context)
 {
+    for (auto expr : expressions)
+    {
+        expr->typecheck(context); // TODO need to add some additional type checking
+    }
 }
 
 /**
@@ -343,7 +347,23 @@ void CompoundStatement::dump(int depth)
  */
 void VariableDeclaration::dump(int depth)
 {
-    std::cout << "VariableDeclaration(" << symbol->get_name() << ")";
+    std::cout << "VariableDeclaration(\n";
+    indent(depth);
+    std::cout << "type = ";
+    type->dump();
+
+    std::cout << "\n";
+    for (auto i = 0; i < expressions.size(); i++)
+    {
+        indent(depth);
+        expressions[i]->dump(depth + 1);
+        if (i < expressions.size() - 1)
+        {
+            std::cout << ",\n";
+        }
+    }
+
+    std::cout << ")";
 }
 
 /**

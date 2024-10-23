@@ -83,12 +83,12 @@ struct CompoundStatement : Statement
 struct VariableDeclaration : Statement
 {
     std::shared_ptr<Type> type;
-    std::shared_ptr<Symbol> symbol;
+    std::vector<std::shared_ptr<Expression>> expressions;
 
-    VariableDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+    VariableDeclaration(Span span, std::shared_ptr<Type> type, std::vector<std::shared_ptr<Expression>> expressions, std::shared_ptr<SymbolTable> symbol_table) : 
         Statement(span, symbol_table), 
         type(type), 
-        symbol(symbol) 
+        expressions(expressions) 
     {}
 
     void typecheck(TypecheckContext& context) override;

@@ -2,19 +2,29 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 #include <map>
+
+/**
+ * Represents the associativity of an operator.
+ */
+enum class Associativity
+{
+    Left,
+    Right
+};
 
 /**
  * Encodes operator precedence.
  */
-const std::vector<std::vector<std::string>> operator_precedence = {
-    { "*", "/", "%" },              /*  3  */   
-    { "+", "-" },                   /*  4  */   
-    { "<", "<=", ">", ">=" },       /*  6  */   
-    { "==", "!=" },                 /*  7  */   
-    { "&&" },                       /* 11  */   
-    { "||" },                       /* 12  */   
-    { "=", "+=", "-=", "*=", "%=" } /* 14  */   
+const std::vector<std::tuple<std::vector<std::string>, Associativity>> operator_precedence = {
+    std::tuple<std::vector<std::string>, Associativity>({ "*", "/", "%" }, Associativity::Left),                        /*  3  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "+", "-" }, Associativity::Left),                             /*  4  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "<", "<=", ">", ">=" }, Associativity::Left),                 /*  6  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "==", "!=" }, Associativity::Left),                           /*  7  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "&&" }, Associativity::Left),                                 /* 11  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "||" }, Associativity::Left),                                 /* 12  */   
+    std::tuple<std::vector<std::string>, Associativity>({ "=", "+=", "-=", "*=", "/=", "%=" }, Associativity::Right)    /* 14  */   
 };
 
 /**
