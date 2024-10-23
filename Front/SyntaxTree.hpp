@@ -52,6 +52,8 @@ struct Expression : Statement
     std::shared_ptr<Operand> place;
     std::shared_ptr<Operand> location;
 
+    QuadList ir_list_lval;
+
     Expression(Span span, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table) {}
 
     virtual void ir_codegen_lval();

@@ -304,7 +304,7 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context)
 /**
  * Parses anm expression for the given precedence level p.
  */
-std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p)
+std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int p) // TODO need right associtivity for assign
 {
     if (p == -1)
     {
@@ -318,7 +318,7 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
         auto op = match(operator_precedence[p]);
         auto rhs = parse_expression(context, p-1);
         span = span + rhs->span;
-        lhs = std::make_shared<BinaryOperation>(span, getBinOp(op.value), lhs, rhs, context.current_symbol_table());
+        lhs = std::make_shared<BinaryOperation>(span, get_BinOp(op.value), lhs, rhs, context.current_symbol_table());
     }
 
     return lhs;
@@ -329,17 +329,27 @@ std::shared_ptr<Expression> Parser::parse_expression(ParserContext& context, int
  */
 std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context)
 {
+    Span span = current().span;
     if (is_currently({ "-", "!", "*", "&", "++", "--" }))
     {
-        Span span = current().span;
         auto op = match({ "-", "!", "*", "&", "++", "--" });
         auto expr = parse_term(context);
         span += expr->span;
-        return std::make_shared<UnaryOperation>(span, getUnOp(op.value), expr, context.current_symbol_table());
+        return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), expr, context.current_symbol_table());
     }
     else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
     {
-        return parse_term(context);
+        auto term = parse_term(context);
+        if (is_currently({ "++", "--" }))
+        {
+            auto op = match({ "++", "--" });
+            span += op.span;
+            return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), term, context.current_symbol_table(), true);
+        }
+        else
+        {
+            return term;
+        }
     }
 
     throw ParseError(current(), { "-",  "!", "*", "&", "++", "--", TokenType_Int, TokenType_Id, "(" });
@@ -381,14 +391,6 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         else if (is_currently({ "[" }))
         {
             // TODO parse array
-        }
-        else if (is_currently({ "++", "--" }))
-        {
-            // postfix increment
-            auto op = match({ "++", "--" });
-            auto expr = parse_term(context);
-            span += expr->span;
-            return std::make_shared<UnaryOperation>(span, getUnOp(op.value), expr, context.current_symbol_table(), true);
         }
         else
         {

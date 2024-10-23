@@ -293,7 +293,7 @@ void BinaryOperation::dump(int depth)
 {
     std::cout << "BinaryOperation(\n";
     indent(depth);
-    std::cout << "op = '" << toString(op) << "',\n";
+    std::cout << "op = '" << to_string(op) << "',\n";
     indent(depth);
     lhs->dump(depth + 1);
     std::cout << ",\n";
@@ -309,7 +309,7 @@ void UnaryOperation::dump(int depth)
 {
     std::cout << "UnaryOperation(\n";
     indent(depth);
-    std::cout << "op = " << toString(op) << ",\n";
+    std::cout << "op = " << to_string(op) << ",\n";
     indent(depth);
     std::cout << "expr = ";
     expr->dump(depth);

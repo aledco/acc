@@ -159,46 +159,74 @@ void FunctionCall::ir_codegen()
  */
 void BinaryOperation::ir_codegen()
 {
-    if (op == BinOp::Assign)
+    auto codegen_basic_binop = [=](QuadOp quad_op)
     {
-        // this is a special case, need to get the lvalue of the lhs
+        place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+        lhs->ir_codegen();
+        rhs->ir_codegen();
+        ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
+        ir_list = QuadList::append(ir_list, Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place));
+    };
+
+    auto codegen_assign = [=]()
+    {
         lhs->ir_codegen_lval();
         rhs->ir_codegen();
         ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-        auto copy = Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location);
-        ir_list = QuadList::append(ir_list, copy);
+        ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location));
         place = rhs->place;
-        return;
-    }
+    };
 
-    lhs->ir_codegen();
-    rhs->ir_codegen();
-    ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-    QuadOp quad_op;
+     auto codegen_compound_binop = [=](QuadOp quad_op)
+    {
+        place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+        lhs->ir_codegen_lval();
+        lhs->ir_codegen();
+        rhs->ir_codegen();
+        ir_list = QuadList::concat(lhs->ir_list_lval, lhs->ir_list);
+        ir_list = QuadList::concat(ir_list, rhs->ir_list);
+        ir_list = QuadList::append(ir_list, Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place));
+        ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, place, lhs->location));
+    };
+
     switch (op)
     {
         case BinOp::Plus:
-            quad_op = QuadOp::Add;
+            codegen_basic_binop(QuadOp::Add);
             break;
         case BinOp::Minus:
-            quad_op = QuadOp::Sub;
+            codegen_basic_binop(QuadOp::Sub);
             break;
         case BinOp::Times:
-            quad_op = QuadOp::Mul;
+            codegen_basic_binop(QuadOp::Mul);
             break;
         case BinOp::Divide:
-            quad_op = QuadOp::Div;
+            codegen_basic_binop(QuadOp::Div);
             break;
         case BinOp::Modulo:
-            quad_op = QuadOp::Mod;
+            codegen_basic_binop(QuadOp::Mod);
+            break;
+        case BinOp::Assign:
+            codegen_assign();
+            break;
+        case BinOp::PlusAssign:
+            codegen_compound_binop(QuadOp::Add);
+            break;
+        case BinOp::MinusAssign:
+            codegen_compound_binop(QuadOp::Sub);
+            break;
+        case BinOp::TimesAssign:
+            codegen_compound_binop(QuadOp::Mul);
+            break;
+        case BinOp::DivideAssign:
+            codegen_compound_binop(QuadOp::Div);
+            break;
+        case BinOp::ModuloAssign:
+            codegen_compound_binop(QuadOp::Mod);
             break;
         default:
             assert(false && "unimplemented");
     }
-
-    auto inst = Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place);
-    ir_list = QuadList::append(ir_list, inst);
 }
 
 /**
@@ -223,8 +251,27 @@ void UnaryOperation::ir_codegen()
             assert(false && "unimplemented");
         case UnOp::PlusPlus:
         case UnOp::MinusMinus:
-            // first get the lvalue of the expression, then update and return the value of the expression in the appropriate order
-            break; // TODO
+        {
+            place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+            expr->ir_codegen_lval();
+            expr->ir_codegen();
+            auto inc_inst = Quad::MakeBinOp(QuadOp::Add, expr->place, Operand::MakeIntConstOperand(op == UnOp::PlusPlus ? 1 : -1), expr->location);
+            auto copy_inst = Quad::MakeUnOp(QuadOp::Copy, expr->place, place);
+            ir_list = QuadList::concat(ir_list, expr->ir_list_lval);
+            ir_list = QuadList::concat(ir_list, expr->ir_list);
+            if (is_postfix)
+            {
+                ir_list = QuadList::append(ir_list, copy_inst);
+                ir_list = QuadList::append(ir_list, inc_inst);
+            }
+            else
+            {
+                ir_list = QuadList::append(ir_list, inc_inst);
+                ir_list = QuadList::append(ir_list, copy_inst);
+            }
+
+            break;
+        }
     }
 }
 

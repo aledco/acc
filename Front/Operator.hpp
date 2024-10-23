@@ -8,13 +8,13 @@
  * Encodes operator precedence.
  */
 const std::vector<std::vector<std::string>> operator_precedence = {
-    { "*", "/", "%" },          /*  3  */   
-    { "+", "-" },               /*  4  */   
-    { "<", "<=", ">", ">=" },   /*  6  */   
-    { "==", "!=" },             /*  7  */   
-    { "&&" },                   /* 11  */   
-    { "||" },                   /* 12  */   
-    { "=" }                     /* 14  */   
+    { "*", "/", "%" },              /*  3  */   
+    { "+", "-" },                   /*  4  */   
+    { "<", "<=", ">", ">=" },       /*  6  */   
+    { "==", "!=" },                 /*  7  */   
+    { "&&" },                       /* 11  */   
+    { "||" },                       /* 12  */   
+    { "=", "+=", "-=", "*=", "%=" } /* 14  */   
 };
 
 /**
@@ -35,7 +35,12 @@ enum class BinOp
     GreaterThanEqual,
     And,
     Or,
-    Assign
+    Assign,
+    PlusAssign,
+    MinusAssign,
+    TimesAssign,
+    DivideAssign,
+    ModuloAssign
 };
 
 const std::map<const std::string, const BinOp> binop_map = {
@@ -44,8 +49,8 @@ const std::map<const std::string, const BinOp> binop_map = {
     {"<", BinOp::LessThan}, {"<=", BinOp::LessThanEqual}, {">", BinOp::GreaterThan}, {">=", BinOp::GreaterThanEqual},
     {"==", BinOp::Equal}, {"!=", BinOp::NotEqual},
     {"&&", BinOp::And},
-    {"||", BinOp::Or},
-    {"=", BinOp::Assign},
+    {"||", BinOp::Or}, 
+    {"=", BinOp::Assign}, {"+=", BinOp::PlusAssign}, {"-=", BinOp::MinusAssign}, {"*=", BinOp::TimesAssign}, {"/=", BinOp::DivideAssign}, {"%=", BinOp::ModuloAssign},
 };
 
 /**
@@ -67,8 +72,8 @@ const std::map<const std::string, const UnOp> unop_map = {
 };
 
 
-const BinOp getBinOp(const std::string op);
-const std::string toString(const BinOp op);
+const BinOp get_BinOp(const std::string op);
+const std::string to_string(const BinOp op);
 
-const UnOp getUnOp(const std::string op);
-const std::string toString(const UnOp op);
+const UnOp get_UnOp(const std::string op);
+const std::string to_string(const UnOp op);
