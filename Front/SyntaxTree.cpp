@@ -35,10 +35,6 @@ void VariableDeclaration::typecheck(TypecheckContext& context)
  */
 void GlobalDeclaration::typecheck(TypecheckContext& context)
 {
-    for (auto expr : expressions)
-    {
-        expr->typecheck(context); // TODO need to add some additional type checking
-    }
 }
 
 /**
@@ -385,6 +381,22 @@ void VariableDeclaration::dump(int depth)
 /**
  * Dumps the AST node.
  */
+void GlobalDeclaration::dump(int depth)
+{
+    std::cout << "VariableDeclaration(\n";
+    indent(depth);
+    std::cout << "type = ";
+    type->dump();
+
+    std::cout << ",\n";
+    indent(depth);
+    std::cout << "symbol = " << symbol->get_name();
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
 void Return::dump(int depth)
 {
     std::cout << "Return(";
@@ -578,6 +590,12 @@ void Program::dump(int depth)
  */
 void Program::ir_dump() 
 {
+    for (auto g : globals)
+    {
+        g->ir_list.dump();
+        std::cout << "\n";
+    }
+
     for (auto f : functions)
     {
         std::cout << f->function->get_name() << "\n";

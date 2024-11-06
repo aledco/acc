@@ -99,16 +99,20 @@ struct VariableDeclaration : Statement
 /**
  * The global variable declaration AST node.
  */
-struct GlobalDeclaration : VariableDeclaration
+struct GlobalDeclaration : SyntaxTree
 {
     std::shared_ptr<Type> type;
-    std::vector<std::shared_ptr<Expression>> expressions;
+    std::shared_ptr<Symbol> symbol;
 
-    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::vector<std::shared_ptr<Expression>> expressions, std::shared_ptr<SymbolTable> symbol_table) : 
-        VariableDeclaration(span, type, expressions, symbol_table)
+    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+        SyntaxTree(span, symbol_table),
+        type(type),
+        symbol(symbol)
     {}
 
     void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
 };
 
 /**

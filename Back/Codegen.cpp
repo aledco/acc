@@ -38,7 +38,7 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
     }
 }
 
-static llvm::Value *get_default_value(std::shared_ptr<Type> type, CodegenContext& context)
+static llvm::Constant *get_default_value(std::shared_ptr<Type> type, CodegenContext& context)
 {
     switch (type->type) 
     {
@@ -455,12 +455,18 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 /**
  * Generates LLVM code for a global variable.
  */
-static llvm::Function *codegen_global(std::shared_ptr<GlobalDeclaration> global, CodegenContext& context)
+static llvm::GlobalVariable *codegen_global(std::shared_ptr<GlobalDeclaration> global_decl, CodegenContext& context)
 {
-    for (auto expr : var_decl->expressions)
-    {
-        new llvm::GlobalVariable(get_llvm_type(global->type, context), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage);
-    }
+    auto llvm_global = new llvm::GlobalVariable(
+        *context.llvm_module.get(),
+        get_llvm_type(global_decl->type, context),
+        false /* isConstant */, 
+        llvm::GlobalValue::LinkageTypes::CommonLinkage,
+        get_default_value(global_decl->type, context),
+        global_decl->symbol->get_name());
+
+    global_decl->symbol->symbol_data.value = llvm_global;
+    return llvm_global;
 }
 
 /**
@@ -469,19 +475,19 @@ static llvm::Function *codegen_global(std::shared_ptr<GlobalDeclaration> global,
 void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;
-    for (auto global : global->functions)
-    {
-        codegen_global(global, context);
-    }
 
-    auto a = new llvm::GlobalVariable(*context.llvm_module, 
-        context.llvm_builder->getInt32Ty(), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage, context.llvm_builder->getInt32(20));
+    std::vector<llvm::GlobalVariable *> llvm_globals;
+    for (auto global : program->globals)
+    {
+        auto llvm_global = codegen_global(global, context);
+        llvm_globals.push_back(llvm_global);
+    }
 
     for (auto function : program->functions)
     {
         codegen(function, context);
         auto a = context.llvm_builder->getInt32(21);
-    auto b = context.llvm_builder->getInt32(22);
+        auto b = context.llvm_builder->getInt32(22);
     }
 
     llvm::raw_os_ostream stream(*file);

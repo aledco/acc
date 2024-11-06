@@ -14,7 +14,6 @@
         - Pointers
     - Statements
         - Array declaration
-        - Global variables
     - Misc
         - Type conversion nodes
 - Add type casting
@@ -31,6 +30,7 @@
 - Add failure tests
 - Add tests from CSC 553 compiler
     - First will need to add arrays, strings, and global vars
+    - Probably need support for multiple global vars in one decl
 
 ## Misc
 - Clean up TODOs

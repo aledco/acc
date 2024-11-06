@@ -159,6 +159,20 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 }
 
 /**
+ * Parses a global declaration.
+ */
+std::shared_ptr<GlobalDeclaration> Parser::parse_global_declaration(ParserContext& context)
+{
+    Span span = current().span;
+    auto type = parse_type(context);
+    auto variable = match(TokenType_Id);
+    auto symbol = context.global_symbol_table->add_symbol(variable, type);
+    auto semi_token = match(";");
+    span += semi_token.span;
+    return std::make_shared<GlobalDeclaration>(span, type, symbol, context.current_symbol_table());
+}
+
+/**
  * Parses a statement.
  */
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
@@ -258,43 +272,6 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
     auto semi_token = match(";");
     span += semi_token.span;
     return std::make_shared<VariableDeclaration>(span, type, expressions, context.current_symbol_table());
-}
-
-/**
- * Parses a global declaration.
- */
-std::shared_ptr<GlobalDeclaration> Parser::parse_global_declaration(ParserContext& context)
-{
-    Span span = current().span;
-    auto type = parse_type(context);
-
-    auto parse_assignment_expr = [=](ParserContext& context)
-    {
-        Span span = current().span;
-        auto id_token = match(TokenType_Id); // TODO add parsing of * too
-        auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
-        std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
-        if (is_currently({ "=" }))
-        {
-            match("=");
-            auto rhs = parse_expression(context);
-            expr = std::make_shared<BinaryOperation>(span + rhs->span, BinOp::Assign, expr, rhs, context.current_symbol_table());
-        }
-
-        return expr;
-    };
-
-    std::vector<std::shared_ptr<Expression>> expressions;
-    expressions.push_back(parse_expression(context));
-    while (is_currently({ "," }))
-    {
-        match(",");
-        expressions.push_back(parse_expression(context));
-    }
-
-    auto semi_token = match(";");
-    span += semi_token.span;
-    return std::make_shared<GlobalDeclaration>(span, type, expressions, context.current_symbol_table());
 }
 
 /**

@@ -30,6 +30,15 @@ void VariableDeclaration::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void GlobalDeclaration::ir_codegen()
+{
+    auto inst = Quad::MakeGlobalOp(Operand::MakeVariableOperand(symbol));
+    ir_list = QuadList(inst, inst);
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void Return::ir_codegen()
 {
     if (expr)

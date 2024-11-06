@@ -249,9 +249,9 @@ void Quad::dump()
     {
         case QuadOp::Global:
             std::cerr << "global ";
-            res->dump();
+            arg1->dump();
             std::cerr << " ";
-            res->symbol->type->dump();
+            arg1->symbol->type->dump();
             std::cerr << "\n";
             break;
         case QuadOp::String:
