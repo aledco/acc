@@ -49,6 +49,7 @@ private:
     };
 
     std::shared_ptr<FunctionDef> parse_function(ParserContext& context);
+    std::shared_ptr<GlobalDeclaration> parse_global_declaration(ParserContext& context);
     std::shared_ptr<Symbol> parse_parameter(ParserContext& context);
     std::shared_ptr<Statement> parse_statement(ParserContext& context);
     std::shared_ptr<CompoundStatement> parse_compound_statement(ParserContext& context);

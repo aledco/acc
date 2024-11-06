@@ -31,6 +31,17 @@ void VariableDeclaration::typecheck(TypecheckContext& context)
 }
 
 /**
+ * Typechecks the global variable declaration.
+ */
+void GlobalDeclaration::typecheck(TypecheckContext& context)
+{
+    for (auto expr : expressions)
+    {
+        expr->typecheck(context); // TODO need to add some additional type checking
+    }
+}
+
+/**
  * Typechecks the return statement.
  */
 void Return::typecheck(TypecheckContext& context)

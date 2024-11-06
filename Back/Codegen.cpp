@@ -455,14 +455,12 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 /**
  * Generates LLVM code for a global variable.
  */
-static llvm::Function *codegen_global(std::shared_ptr<VariableDeclaration> var_decl, CodegenContext& context)
+static llvm::Function *codegen_global(std::shared_ptr<GlobalDeclaration> global, CodegenContext& context)
 {
     for (auto expr : var_decl->expressions)
     {
-        // TODO need decide how to handle globals with expressions, maybe only allow variable declarations with no initializers?
+        new llvm::GlobalVariable(get_llvm_type(global->type, context), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage);
     }
-    new llvm::GlobalVariable(*context.llvm_module, 
-        get_llvm_type(var_decl->type, context), false, llvm::GlobalValue::LinkageTypes::ExternalLinkage, context.llvm_builder->getInt32(20));
 }
 
 /**

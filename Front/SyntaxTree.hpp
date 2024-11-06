@@ -97,6 +97,21 @@ struct VariableDeclaration : Statement
 };
 
 /**
+ * The global variable declaration AST node.
+ */
+struct GlobalDeclaration : VariableDeclaration
+{
+    std::shared_ptr<Type> type;
+    std::vector<std::shared_ptr<Expression>> expressions;
+
+    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::vector<std::shared_ptr<Expression>> expressions, std::shared_ptr<SymbolTable> symbol_table) : 
+        VariableDeclaration(span, type, expressions, symbol_table)
+    {}
+
+    void typecheck(TypecheckContext& context) override;
+};
+
+/**
  * The return statement AST node.
  */
 struct Return : Statement
@@ -337,9 +352,9 @@ struct FunctionDef : SyntaxTree
 struct Program : SyntaxTree
 {
     std::vector<std::shared_ptr<FunctionDef>> functions;
-    std::vector<std::shared_ptr<VariableDeclaration>> globals;
+    std::vector<std::shared_ptr<GlobalDeclaration>> globals;
 
-    Program(Span span, std::vector<std::shared_ptr<FunctionDef>> functions, std::vector<std::shared_ptr<VariableDeclaration>> globals, std::shared_ptr<SymbolTable> symbol_table):
+    Program(Span span, std::vector<std::shared_ptr<FunctionDef>> functions, std::vector<std::shared_ptr<GlobalDeclaration>> globals, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(span, symbol_table),
         functions(functions),
         globals(globals)
