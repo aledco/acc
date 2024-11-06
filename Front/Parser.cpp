@@ -487,7 +487,11 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         }
         else if (is_currently({ "[" }))
         {
-            // TODO parse array
+            // match("[");
+            // auto size = std::stol(match(TokenType_Int).value);
+            // auto token = match("]");
+            // span += token.span;
+            // // return array index
         }
         else
         {
