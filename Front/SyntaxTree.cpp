@@ -175,6 +175,26 @@ void UnaryOperation::typecheck(TypecheckContext& context)
 }
 
 /**
+ * Typechecks the array index.
+ */
+void ArrayIndex::typecheck(TypecheckContext& context)
+{
+    array->typecheck(context);
+    if (array->type->type != TypeType::Array)
+    {
+        throw TypeError(span, "type cannot be indexed like an array");
+    }
+
+    index->typecheck(context);
+    if (index->type->type != TypeType::Int || index->type->type != TypeType::Char)
+    {
+        throw TypeError(span, "invalid type for array index");
+    }
+
+    type = array->type->elem_type;
+}
+
+/**
  * Typechecks the integer constant.
  */
 void IntegerConstant::typecheck(TypecheckContext& context)
@@ -332,6 +352,21 @@ void UnaryOperation::dump(int depth)
     std::cout << "\n";
     indent(depth);
     std::cout << "is_postfix = " << is_postfix;
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void ArrayIndex::dump(int depth)
+{
+    std::cout << "ArrayIndex(\n";
+    indent(depth);
+    std::cout << "array = ";
+    array->dump(depth);
+    indent(depth);
+    std::cout << "index = ";
+    index->dump(depth);
     std::cout << ")";
 }
 

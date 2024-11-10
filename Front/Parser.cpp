@@ -248,17 +248,31 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
     auto parse_assignment_expr = [=](ParserContext& context)
     {
         Span span = current().span;
-        auto id_token = match(TokenType_Id); // TODO add parsing of * too
+        auto id_token = match(TokenType_Id);
         auto symbol = context.current_symbol_table()->add_symbol(id_token, type);
-        std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
-        if (is_currently({ "=" }))
+        if (is_currently({ "[" }))
         {
-            match("=");
-            auto rhs = parse_expression(context);
-            expr = std::make_shared<BinaryOperation>(span + rhs->span, BinOp::Assign, expr, rhs, context.current_symbol_table());
-        }
+            match("[");
+            auto array_size = std::stoi(match(TokenType_Int).value);
+            match("]");
 
-        return expr;
+            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type);
+            std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
+            return expr;
+            // no defualt initializer for arrays right now
+        }
+        else
+        {
+            std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
+            if (is_currently({ "=" }))
+            {
+                match("=");
+                auto rhs = parse_expression(context);
+                expr = std::make_shared<BinaryOperation>(span + rhs->span, BinOp::Assign, expr, rhs, context.current_symbol_table());
+            }
+
+            return expr;
+        }
     };
 
     std::vector<std::shared_ptr<Expression>> expressions;

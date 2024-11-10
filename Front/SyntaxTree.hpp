@@ -291,6 +291,27 @@ struct UnaryOperation : Expression
 };
 
 /**
+ * The array index AST node.
+ */
+struct ArrayIndex : Expression
+{
+    std::shared_ptr<Expression> array;
+    std::shared_ptr<Expression> index;
+
+    ArrayIndex(Span span, std::shared_ptr<Expression> array, std::shared_ptr<Expression> index, std::shared_ptr<SymbolTable> symbol_table) :
+        Expression(span, symbol_table),
+        array(array), 
+        index(index)
+    {
+    }
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void ir_codegen_lval() override;
+    void dump(int depth = 1) override;
+};
+
+/**
  * The integer constant AST node.
  */
 struct IntegerConstant : Expression
