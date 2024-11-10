@@ -78,7 +78,7 @@ std::shared_ptr<Quad> Quad::MakeBinOp(QuadOp op, std::shared_ptr<Operand> arg1, 
  */
 std::shared_ptr<Quad> Quad::MakeUnOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res)
 {
-    assert(op == QuadOp::Neg || op == QuadOp::Deref || op == QuadOp::Addr || op == QuadOp::Copy);
+    assert(op == QuadOp::Neg || op == QuadOp::RDeref || op == QuadOp::AddrOf || op == QuadOp::Copy);
     return std::make_shared<Quad>(op, arg1, nullptr, res);
 }
 
@@ -335,18 +335,6 @@ void Quad::dump()
         case QuadOp::Neg:
             res->dump();
             std::cerr << " = -";
-            arg1->dump();
-            std::cerr << "\n";
-            break;
-        case QuadOp::Deref:
-            res->dump();
-            std::cerr << " = *";
-            arg1->dump();
-            std::cerr << "\n";
-            break;
-        case QuadOp::Addr:
-            res->dump();
-            std::cerr << " = &";
             arg1->dump();
             std::cerr << "\n";
             break;

@@ -187,7 +187,15 @@ void BinaryOperation::ir_codegen()
         lhs->ir_codegen_lval();
         rhs->ir_codegen();
         ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-        ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location));
+        if (lhs->type->type == TypeType::Pointer && rhs->type == lhs->type->elem_type)
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::LDeref, rhs->place, lhs->location));
+        }
+        else
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location));
+        }
+        
         place = rhs->place;
     };
 
@@ -294,24 +302,10 @@ void UnaryOperation::ir_codegen()
  */
 void ArrayIndex::ir_codegen()
 {
-    array->ir_codegen_lval();
-    index->ir_codegen();
-    ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
-
+    ir_codegen_lval();
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-    auto index_place = index->place;
-
-    // calculate the address of the array element
-    auto calc_inst = Quad::MakeAddPtrOp(array->location, index->place, place);
-
-    // get the value at the array elements address
-    auto deref_inst = Quad::MakeRDerefOp(place, place);
-    
-    ir_list = QuadList::append(ir_list, calc_inst);
+    auto deref_inst = Quad::MakeRDerefOp(location, place);
     ir_list = QuadList::append(ir_list, deref_inst);
-
-    //auto inst = Quad::MakeRIndexOp(array->location, index->place, place);
-    //ir_list = QuadList::append(ir_list, inst);
 }
 
 /**
@@ -394,14 +388,19 @@ void UnaryOperation::ir_codegen_lval()
 /**
  * Generates IR for the AST node.
  */
-void ArrayIndex::ir_codegen()
+void ArrayIndex::ir_codegen_lval()
 {
-    // array->ir_codegen_lval();
-    // index->ir_codegen();
-    // location = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-    // auto inst = Quad::MakeRIndexOp(array->location, index->place, place);
-    // ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
-    // ir_list = QuadList::append(ir_list, inst);
+    array->ir_codegen_lval();
+    index->ir_codegen();
+    ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
+
+    auto ptr_type = std::make_shared<Type>(TypeType::Pointer, array->type->elem_type);
+    location = Operand::MakeVariableOperand(symbol_table->new_temp(ptr_type));
+
+    // calculate the address of the array element
+    auto calc_inst = Quad::MakeAddPtrOp(array->location, index->place, location);
+
+    ir_list = QuadList::append(ir_list, calc_inst);
 }
 
 /**

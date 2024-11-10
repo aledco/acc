@@ -33,6 +33,27 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
             return llvm::Type::getInt32Ty(*context.llvm_context);
         case TypeType::Char:
             return llvm::Type::getInt8Ty(*context.llvm_context);
+        case TypeType::Array:
+            auto elem_type = get_llvm_type(type->elem_type, context);
+            if (type->num_elems)
+            {
+                return llvm::ArrayType::get(elem_type, type->num_elems.value());
+            }
+            else
+            {
+                return llvm::PointerType::get(elem_type);
+            }
+        case TypeType::Pointer:
+            auto elem_type = get_llvm_type(type->elem_type, context);
+            if (type->num_elems)
+            {
+                return llvm::ArrayType::get(elem_type, type->num_elems);
+            }
+            else
+            {
+                return llvm::PointerType::get(elem_type, nullptr);
+            }
+
         default:
             return nullptr; // TODO handle later
     }
@@ -215,8 +236,10 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
         case QuadOp::Neg:
             res = context.llvm_builder->CreateNeg(arg1);
             break;
-        case QuadOp::Deref:
-        case QuadOp::Addr:
+        case QuadOp::RDeref:
+            res = context.llvm_builder->load(arg1);
+            break;
+        case QuadOp::AddrOf:
             break; // TODO
         case QuadOp::Copy:
             res = arg1;
@@ -227,6 +250,16 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
 
     store(quad->res->symbol, res, context);
     return res;
+}
+
+/**
+ * Generates LLVM code for a left deref instruction.
+ */
+static llvm::Value *codegen_lderef(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    auto arg1 = codegen(quad->arg1, context);
+    auto res = codegen(quad->res, context);
+    return context.llvm_builder->CreateStore(arg1, res);
 }
 
 /**
@@ -310,12 +343,13 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
         case QuadOp::Mod:
             return codegen_binop(quad, context);
         case QuadOp::Neg:
-        case QuadOp::Deref:
-        case QuadOp::Addr:
+        case QuadOp::RDeref:
+        case QuadOp::AddrOf:
         case QuadOp::Copy:
             return codegen_unop(quad, context);
-        case QuadOp::LIndex:
-        case QuadOp::RIndex:
+        case QuadOp::LDeref:
+            return codegen_lderef(quad, context);
+        case QuadOp::AddPtr:
             break; // TODO
         case QuadOp::Goto:
             return codegen_goto(quad, context);
@@ -431,8 +465,8 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
     context.llvm_builder->SetInsertPoint(llvm_blocks.front());
     for (auto s : def->symbol_table->get_all_variables())
     {
-        auto type = get_llvm_type(s->type, context);
-        s->symbol_data.value = context.llvm_builder->CreateAlloca(type, nullptr, s->get_name());
+        auto llvm_type = get_llvm_type(s->type, context);
+        s->symbol_data.value = context.llvm_builder->CreateAlloca(llvm_type, nullptr, s->get_name());
     }
 
     // store each argument into the allocated stack variable

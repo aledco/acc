@@ -13,7 +13,8 @@ enum class TypeType
     Int,
     Char,
     Function,
-    Array // TODO add more
+    Array,
+    Pointer
 };
 
 /**
@@ -23,7 +24,7 @@ struct Type
 {
     TypeType type;
     
-    /* for array types */
+    /* for array and pointer types */
     std::shared_ptr<Type> elem_type;
     std::optional<int> num_elems;
 
@@ -68,12 +69,13 @@ struct Type
 
                 return true;
             case TypeType::Array:
+            case TypeType::Pointer:
                 if (type != other.type)
                 {
                     return false;
                 }
 
-                return ret_type == other.ret_type;
+                return elem_type == other.elem_type;
         }
     }
 

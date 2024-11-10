@@ -17,8 +17,6 @@ enum class QuadOp
     Div,
     Mod,
     Neg,
-    Deref,
-    Addr,
     Copy,
     //LIndex, // a[i] = x
     //RIndex, // x = a[i]
