@@ -25,7 +25,7 @@ struct Type
     
     /* for array types */
     std::shared_ptr<Type> elem_type;
-    std::optional<int> size;
+    std::optional<int> num_elems;
 
     /* for function types */
     std::shared_ptr<Type> ret_type;
@@ -41,8 +41,8 @@ struct Type
         is_extern(is_extern),
         is_defined(is_defined)
     {}
-    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type), size({}) {}
-    Type(TypeType type, std::shared_ptr<Type> elem_type, int size) : type(type), elem_type(elem_type), size(size) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type), num_elems({}) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type, int num_elems) : type(type), elem_type(elem_type), num_elems(num_elems) {}
 
     bool operator== (const Type& other)
     {

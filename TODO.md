@@ -17,6 +17,8 @@
 - Add type casting
 
 ## IR
+- Use addr and deref instead of index
+    - update IR.md
 - Add optimization
 
 ## LLVM

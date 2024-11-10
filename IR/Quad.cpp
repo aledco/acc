@@ -82,20 +82,53 @@ std::shared_ptr<Quad> Quad::MakeUnOp(QuadOp op, std::shared_ptr<Operand> arg1, s
     return std::make_shared<Quad>(op, arg1, nullptr, res);
 }
 
+// /**
+//  * Makes a right index quad operation.
+//  */
+// std::shared_ptr<Quad> Quad::MakeRIndexOp(std::shared_ptr<Operand> array, std::shared_ptr<Operand> index, std::shared_ptr<Operand> res)
+// {
+//     return std::make_shared<Quad>(QuadOp::RIndex, array, index, res);
+// }
+
+// /**
+//  * Makes a left index quad operation.
+//  */
+// std::shared_ptr<Quad> Quad::MakeLIndexOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> index, std::shared_ptr<Operand> array)
+// {
+//     return std::make_shared<Quad>(QuadOp::LIndex, arg1, index, array);
+// }
+
 /**
- * Makes a right index quad operation.
+ * Makes an addr of quad operation.
  */
-std::shared_ptr<Quad> Quad::MakeRIndexOp(std::shared_ptr<Operand> array, std::shared_ptr<Operand> index, std::shared_ptr<Operand> res)
+std::shared_ptr<Quad> Quad::MakeAddrOfOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res)
 {
-    return std::make_shared<Quad>(QuadOp::RIndex, array, index, res);
+    return std::make_shared<Quad>(QuadOp::AddrOf, arg1, nullptr, res);
 }
 
 /**
- * Makes a left index quad operation.
+ * Makes a right deref quad operation.
  */
-std::shared_ptr<Quad> Quad::MakeLIndexOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> index, std::shared_ptr<Operand> array)
+std::shared_ptr<Quad> Quad::MakeRDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res)
 {
-    return std::make_shared<Quad>(QuadOp::LIndex, arg1, index, array);
+    return std::make_shared<Quad>(QuadOp::RDeref, arg1, nullptr, res);
+}
+
+/**
+ * Makes a left deref quad operation.
+ */
+std::shared_ptr<Quad> Quad::MakeLDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res)
+{
+    return std::make_shared<Quad>(QuadOp::LDeref, arg1, nullptr, res);
+}
+
+/**
+ * Makes an add pointer quad operation.
+ */
+std::shared_ptr<Quad> MakeAddPtrOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res)
+{
+    assert(arg1->type == OperandType::Variable);
+    return std::make_shared<Quad>(QuadOp::AddPtr, arg1, arg2, res);
 }
 
 /**
@@ -323,21 +356,48 @@ void Quad::dump()
             arg1->dump();
             std::cerr << "\n";
             break;
-        case QuadOp::LIndex:
+        // case QuadOp::LIndex:
+        //     res->dump();
+        //     std::cerr << "[";
+        //     arg2->dump();
+        //     std::cerr << "] = ";
+        //     arg1->dump();
+        //     std::cerr << "\n";
+        //     break;
+        // case QuadOp::RIndex:
+        //     res->dump();
+        //     std::cerr << " = ";
+        //     arg1->dump();
+        //     std::cerr << "[";
+        //     arg2->dump();
+        //     std::cerr << "]\n";
+        //     break;
+        case QuadOp::AddrOf:
             res->dump();
-            std::cerr << "[";
-            arg2->dump();
-            std::cerr << "] = ";
+            std::cerr << " = &";
             arg1->dump();
             std::cerr << "\n";
             break;
-        case QuadOp::RIndex:
+        case QuadOp::RDeref:
+            res->dump();
+            std::cerr << " = *";
+            arg1->dump();
+            std::cerr << "\n";
+            break;
+        case QuadOp::LDeref:
+        std::cerr << "*";
             res->dump();
             std::cerr << " = ";
             arg1->dump();
-            std::cerr << "[";
+            std::cerr << "\n";
+            break;
+        case QuadOp::AddPtr:
+            res->dump();
+            std::cerr << " = ";
+            arg1->dump();
+            std::cerr << " + ";
             arg2->dump();
-            std::cerr << "]\n";
+            std::cerr << "\n";
             break;
         case QuadOp::Label:
             std::cerr << "label ";

@@ -294,7 +294,24 @@ void UnaryOperation::ir_codegen()
  */
 void ArrayIndex::ir_codegen()
 {
-    // TODO
+    array->ir_codegen_lval();
+    index->ir_codegen();
+    ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
+
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto index_place = index->place;
+
+    // calculate the address of the array element
+    auto calc_inst = Quad::MakeAddPtrOp(array->location, index->place, place);
+
+    // get the value at the array elements address
+    auto deref_inst = Quad::MakeRDerefOp(place, place);
+    
+    ir_list = QuadList::append(ir_list, calc_inst);
+    ir_list = QuadList::append(ir_list, deref_inst);
+
+    //auto inst = Quad::MakeRIndexOp(array->location, index->place, place);
+    //ir_list = QuadList::append(ir_list, inst);
 }
 
 /**
@@ -379,7 +396,12 @@ void UnaryOperation::ir_codegen_lval()
  */
 void ArrayIndex::ir_codegen()
 {
-    // TODO
+    // array->ir_codegen_lval();
+    // index->ir_codegen();
+    // location = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    // auto inst = Quad::MakeRIndexOp(array->location, index->place, place);
+    // ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
+    // ir_list = QuadList::append(ir_list, inst);
 }
 
 /**
