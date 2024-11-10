@@ -32,5 +32,8 @@
     - First will need to add arrays, strings, and global vars
     - Probably need support for multiple global vars in one decl
 
+## Benchmarking
+- Add benchmarks and compare speed of generated code between clang and acc
+
 ## Misc
 - Clean up TODOs
