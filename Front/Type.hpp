@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <optional>
 
 /**
  * The type of the type.
@@ -24,6 +25,7 @@ struct Type
     
     /* for array types */
     std::shared_ptr<Type> elem_type;
+    std::optional<int> size;
 
     /* for function types */
     std::shared_ptr<Type> ret_type;
@@ -39,7 +41,8 @@ struct Type
         is_extern(is_extern),
         is_defined(is_defined)
     {}
-    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type), size({}) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type, int size) : type(type), elem_type(elem_type), size(size) {}
 
     bool operator== (const Type& other)
     {

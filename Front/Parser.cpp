@@ -153,9 +153,25 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
 {
     auto param_type = parse_type(context);
     auto param_token = match(TokenType_Id);
-    auto sym = context.current_symbol_table()->add_symbol(param_token, param_type);
-    sym->is_parameter = true;
-    return sym;
+    auto symbol = context.current_symbol_table()->add_symbol(param_token, param_type);
+    symbol->is_parameter = true;
+    if (is_currently({ "[" }))
+    {
+        match("[");
+        if (is_currently({ TokenType_Int }))
+        {
+            auto array_size = std::stoi(match(TokenType_Int).value);
+            match("]");
+            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
+        }
+        else
+        {
+            match("]");
+            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type);
+        }
+    }
+
+    return symbol;
 }
 
 /**
@@ -167,6 +183,16 @@ std::shared_ptr<GlobalDeclaration> Parser::parse_global_declaration(ParserContex
     auto type = parse_type(context);
     auto variable = match(TokenType_Id);
     auto symbol = context.global_symbol_table->add_symbol(variable, type);
+    
+    if (is_currently({ "[" }))
+    {
+        match("[");
+        auto array_size = std::stoi(match(TokenType_Int).value);
+        match("]");
+
+        symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
+    }
+
     auto semi_token = match(";");
     span += semi_token.span;
     return std::make_shared<GlobalDeclaration>(span, type, symbol, context.current_symbol_table());
@@ -256,10 +282,9 @@ std::shared_ptr<VariableDeclaration> Parser::parse_variable_declaration(ParserCo
             auto array_size = std::stoi(match(TokenType_Int).value);
             match("]");
 
-            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type);
+            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
             std::shared_ptr<Expression> expr = std::make_shared<Variable>(span, symbol, context.current_symbol_table());
-            return expr;
-            // no defualt initializer for arrays right now
+            return expr; // no defualt initializer for arrays right now
         }
         else
         {
@@ -457,6 +482,14 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context) // TODO 
             span += op.span;
             return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), term, context.current_symbol_table(), true);
         }
+        else if (is_currently({ "[" })) // TODO move function calls here too
+        {
+            match("[");
+            auto index = parse_expression(context);
+            auto token = match("]");
+            span += token.span;
+            return std::make_shared<ArrayIndex>(span, term, index, context.current_symbol_table());
+        }
         else
         {
             return term;
@@ -498,14 +531,6 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             auto token = match(")");
             span += token.span;
             return std::make_shared<FunctionCall>(span, symbol, args, context.current_symbol_table());
-        }
-        else if (is_currently({ "[" }))
-        {
-            // match("[");
-            // auto size = std::stol(match(TokenType_Int).value);
-            // auto token = match("]");
-            // span += token.span;
-            // // return array index
         }
         else
         {
