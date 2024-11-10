@@ -8,14 +8,12 @@
     - Expressions
         - Char const
         - Str const
-        - Array index
         - Floats
         - Bitwise operations (and the rest of the C operators)
         - Pointers
-    - Statements
-        - Array declaration
     - Misc
         - Type conversion nodes
+        - Structs (maybe)
 - Add type casting
 
 ## IR
@@ -24,7 +22,6 @@
 ## LLVM
 
 ## Code Maintenance
-- Add const to everything possible
 
 ## Tests
 - Add failure tests
