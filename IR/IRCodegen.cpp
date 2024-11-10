@@ -283,6 +283,14 @@ void UnaryOperation::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void ArrayIndex::ir_codegen()
+{
+    // TODO
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void IntegerConstant::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
@@ -348,6 +356,14 @@ void Variable::ir_codegen_lval()
  * Generates IR for the AST node.
  */
 void UnaryOperation::ir_codegen_lval()
+{
+    // TODO
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+void ArrayIndex::ir_codegen()
 {
     // TODO
 }
