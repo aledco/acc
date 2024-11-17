@@ -31,7 +31,6 @@ public:
     SyntaxTree(Span span, std::shared_ptr<SymbolTable> symbol_table) : span(span), symbol_table(symbol_table) {}
 
     virtual void typecheck(TypecheckContext& context) = 0;
-    virtual void typecheck_lvalue(TypecheckContext& context);
     virtual void ir_codegen() = 0;
     virtual void dump(int depth = 1) = 0;
 };
@@ -216,7 +215,6 @@ struct Variable : Expression
     Variable(Span span, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), symbol(symbol) {}
 
     void typecheck(TypecheckContext& context) override;
-    void typecheck_lvalue(TypecheckContext& context) override;
     void ir_codegen() override;
     bool ir_codegen_lval() override;
     void dump(int depth = 1) override;
@@ -258,7 +256,6 @@ struct BinaryOperation : Expression
     {}
 
     void typecheck(TypecheckContext& context) override;
-    void typecheck_lvalue(TypecheckContext& context) override;
     void ir_codegen() override;
     void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label) override;
     void dump(int depth = 1) override;
@@ -287,7 +284,6 @@ struct UnaryOperation : Expression
     {}
 
     void typecheck(TypecheckContext& context) override;
-    void typecheck_lvalue(TypecheckContext& context) override;
     void ir_codegen() override;
     bool ir_codegen_lval() override;
     void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label) override;
@@ -310,7 +306,6 @@ struct ArrayIndex : Expression
     }
 
     void typecheck(TypecheckContext& context) override;
-    void typecheck_lvalue(TypecheckContext& context) override;
     void ir_codegen() override;
     bool ir_codegen_lval() override;
     void dump(int depth = 1) override;
