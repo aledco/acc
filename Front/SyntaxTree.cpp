@@ -255,48 +255,6 @@ void Program::typecheck()
 }
 
 /********************************************************************************/
-/*                       Typecheck Lvalue                                       */
-/********************************************************************************/
-
-// TODO remove if not needed
-void SyntaxTree::typecheck_lvalue(TypecheckContext& context)
-{
-    throw TypeError(span, "invalid lvalue");
-}
-
-void Variable::typecheck_lvalue(TypecheckContext& context)
-{
-    type = symbol->type;
-}
-
-void BinaryOperation::typecheck_lvalue(TypecheckContext& context)
-{
-    // TODO
-}
-
-void UnaryOperation::typecheck_lvalue(TypecheckContext& context)
-{
-    // TODO
-}
-
-void ArrayIndex::typecheck_lvalue(TypecheckContext& context)
-{
-    array->typecheck(context);
-    if (array->type->type != TypeType::Array)
-    {
-        throw TypeError(span, "type cannot be indexed like an array");
-    }
-
-    index->typecheck(context);
-    if (index->type->type != TypeType::Int && index->type->type != TypeType::Char)
-    {
-        throw TypeError(span, "invalid type for array index");
-    }
-
-    type = std::make_shared<Type>(TypeType::Pointer, array->type->elem_type);
-}
-
-/********************************************************************************/
 /*                                   Dump                                       */
 /********************************************************************************/
 
