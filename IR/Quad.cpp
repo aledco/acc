@@ -125,7 +125,7 @@ std::shared_ptr<Quad> Quad::MakeLDerefOp(std::shared_ptr<Operand> arg1, std::sha
 /**
  * Makes an add pointer quad operation.
  */
-std::shared_ptr<Quad> MakeAddPtrOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res)
+std::shared_ptr<Quad> Quad::MakeAddPtrOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res)
 {
     assert(arg1->type == OperandType::Variable);
     return std::make_shared<Quad>(QuadOp::AddPtr, arg1, arg2, res);
@@ -373,7 +373,7 @@ void Quad::dump()
             std::cerr << "\n";
             break;
         case QuadOp::LDeref:
-        std::cerr << "*";
+            std::cerr << "*";
             res->dump();
             std::cerr << " = ";
             arg1->dump();

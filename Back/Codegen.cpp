@@ -34,6 +34,7 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
         case TypeType::Char:
             return llvm::Type::getInt8Ty(*context.llvm_context);
         case TypeType::Array:
+        {
             auto elem_type = get_llvm_type(type->elem_type, context);
             if (type->num_elems)
             {
@@ -41,19 +42,14 @@ static llvm::Type *get_llvm_type(std::shared_ptr<Type> type, CodegenContext& con
             }
             else
             {
-                return llvm::PointerType::get(elem_type);
+                return elem_type->getPointerTo();
             }
+        }
         case TypeType::Pointer:
+        {
             auto elem_type = get_llvm_type(type->elem_type, context);
-            if (type->num_elems)
-            {
-                return llvm::ArrayType::get(elem_type, type->num_elems);
-            }
-            else
-            {
-                return llvm::PointerType::get(elem_type, nullptr);
-            }
-
+            return elem_type->getPointerTo();
+        }
         default:
             return nullptr; // TODO handle later
     }
@@ -71,6 +67,7 @@ static llvm::Constant *get_default_value(std::shared_ptr<Type> type, CodegenCont
             return context.llvm_builder->getInt8(0);
         case TypeType::Function:
         case TypeType::Array:
+        case TypeType::Pointer:
             return nullptr;
     }
 }
@@ -237,7 +234,7 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
             res = context.llvm_builder->CreateNeg(arg1);
             break;
         case QuadOp::RDeref:
-            res = context.llvm_builder->load(arg1);
+            res = context.llvm_builder->CreateLoad(arg1->getType(), arg1);
             break;
         case QuadOp::AddrOf:
             break; // TODO
@@ -260,6 +257,18 @@ static llvm::Value *codegen_lderef(std::shared_ptr<Quad> quad, CodegenContext& c
     auto arg1 = codegen(quad->arg1, context);
     auto res = codegen(quad->res, context);
     return context.llvm_builder->CreateStore(arg1, res);
+}
+
+/**
+ * Generates LLVM code for an add pointer instruction.
+ */
+static llvm::Value *codegen_addptr(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    auto arg1 = codegen(quad->arg1, context);
+    auto arg2 = codegen(quad->arg2, context);
+    auto res = context.llvm_builder->CreatePtrAdd(arg1, arg2);
+    store(quad->res->symbol, res, context);
+    return res;
 }
 
 /**
@@ -350,6 +359,7 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
         case QuadOp::LDeref:
             return codegen_lderef(quad, context);
         case QuadOp::AddPtr:
+            return codegen_addptr(quad, context);
             break; // TODO
         case QuadOp::Goto:
             return codegen_goto(quad, context);

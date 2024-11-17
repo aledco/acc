@@ -141,10 +141,10 @@ void BinaryOperation::typecheck(TypecheckContext& context)
 {
     lhs->typecheck(context);
     rhs->typecheck(context);
-    if (*lhs->type != *rhs->type)
+    if (*lhs->type != *rhs->type || (lhs->type->type == TypeType::Pointer && rhs))
     {
         // TODO implicitly cast type if possible
-            throw TypeError(span, "type mismatch between operands of binary operation");
+        throw TypeError(span, "type mismatch between operands of binary operation");
     }
     else
     {
@@ -186,7 +186,7 @@ void ArrayIndex::typecheck(TypecheckContext& context)
     }
 
     index->typecheck(context);
-    if (index->type->type != TypeType::Int || index->type->type != TypeType::Char)
+    if (index->type->type != TypeType::Int && index->type->type != TypeType::Char)
     {
         throw TypeError(span, "invalid type for array index");
     }
@@ -252,6 +252,48 @@ void Program::typecheck()
 {
     TypecheckContext context;
     typecheck(context);
+}
+
+/********************************************************************************/
+/*                       Typecheck Lvalue                                       */
+/********************************************************************************/
+
+// TODO remove if not needed
+void SyntaxTree::typecheck_lvalue(TypecheckContext& context)
+{
+    throw TypeError(span, "invalid lvalue");
+}
+
+void Variable::typecheck_lvalue(TypecheckContext& context)
+{
+    type = symbol->type;
+}
+
+void BinaryOperation::typecheck_lvalue(TypecheckContext& context)
+{
+    // TODO
+}
+
+void UnaryOperation::typecheck_lvalue(TypecheckContext& context)
+{
+    // TODO
+}
+
+void ArrayIndex::typecheck_lvalue(TypecheckContext& context)
+{
+    array->typecheck(context);
+    if (array->type->type != TypeType::Array)
+    {
+        throw TypeError(span, "type cannot be indexed like an array");
+    }
+
+    index->typecheck(context);
+    if (index->type->type != TypeType::Int && index->type->type != TypeType::Char)
+    {
+        throw TypeError(span, "invalid type for array index");
+    }
+
+    type = std::make_shared<Type>(TypeType::Pointer, array->type->elem_type);
 }
 
 /********************************************************************************/
@@ -364,6 +406,7 @@ void ArrayIndex::dump(int depth)
     indent(depth);
     std::cout << "array = ";
     array->dump(depth);
+    std::cout << ",\n";
     indent(depth);
     std::cout << "index = ";
     index->dump(depth);
