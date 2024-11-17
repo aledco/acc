@@ -1,6 +1,6 @@
 extern void println(int n);
 
-int sum(int a[], int n)
+int sum(int a[5], int n)
 {
     int sum = 0, i;
     for (i = 0; i < n; i++)

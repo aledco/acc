@@ -162,12 +162,12 @@ std::shared_ptr<Symbol> Parser::parse_parameter(ParserContext& context)
         {
             auto array_size = std::stoi(match(TokenType_Int).value);
             match("]");
-            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
+            symbol->type = std::make_shared<Type>(TypeType::Pointer, symbol->type, array_size);
         }
         else
         {
             match("]");
-            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type);
+            symbol->type = std::make_shared<Type>(TypeType::Pointer, symbol->type);
         }
     }
 
