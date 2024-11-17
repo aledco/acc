@@ -54,14 +54,14 @@ struct Type
             case TypeType::Char:
                 return type == other.type;
             case TypeType::Function:
-                if (type != other.type || ret_type != ret_type || param_types.size() != other.param_types.size())
+                if (type != other.type || *ret_type != *ret_type || param_types.size() != other.param_types.size())
                 {
                     return false;
                 }
 
                 for (auto i = 0; i < param_types.size(); i++)
                 {
-                    if (param_types[i] != other.param_types[i])
+                    if (*param_types[i] != *other.param_types[i])
                     {
                         return false;
                     }
@@ -75,7 +75,7 @@ struct Type
                     return false;
                 }
 
-                return elem_type == other.elem_type;
+                return *elem_type == *other.elem_type;
         }
     }
 

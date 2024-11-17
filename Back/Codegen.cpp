@@ -130,15 +130,22 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
         case OperandType::StrConst:
             return nullptr; // TODO
         case OperandType::Variable:
-            if (operand->symbol->is_temp)
+            if (operand->symbol->type->type == TypeType::Array)
             {
                 return operand->symbol->symbol_data.value;
             }
             else
             {
-                return context.llvm_builder->CreateLoad(
-                    get_llvm_type(operand->symbol->type, context), 
-                    operand->symbol->symbol_data.value);
+                if (operand->symbol->is_temp)
+                {
+                    return operand->symbol->symbol_data.value;
+                }
+                else
+                {
+                    return context.llvm_builder->CreateLoad(
+                        get_llvm_type(operand->symbol->type, context), 
+                        operand->symbol->symbol_data.value);
+                }
             }
         case OperandType::Label:
             return nullptr;
@@ -234,7 +241,8 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
             res = context.llvm_builder->CreateNeg(arg1);
             break;
         case QuadOp::RDeref:
-            res = context.llvm_builder->CreateLoad(arg1->getType(), arg1);
+            assert(quad->arg1->type == OperandType::Variable);
+            res = context.llvm_builder->CreateLoad(get_llvm_type(quad->arg1->symbol->type->elem_type, context), arg1);
             break;
         case QuadOp::AddrOf:
             break; // TODO
@@ -266,7 +274,9 @@ static llvm::Value *codegen_addptr(std::shared_ptr<Quad> quad, CodegenContext& c
 {
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
-    auto res = context.llvm_builder->CreatePtrAdd(arg1, arg2);
+    auto multiplier = llvm::ConstantInt::get(arg2->getType(), 2);
+    auto offset = context.llvm_builder->CreateShl(arg2, multiplier);
+    auto res = context.llvm_builder->CreatePtrAdd(arg1, offset);
     store(quad->res->symbol, res, context);
     return res;
 }
