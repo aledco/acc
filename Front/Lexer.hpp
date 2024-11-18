@@ -6,8 +6,10 @@
 #include <memory>
 #include "Span.hpp"
 
-inline std::string TokenType_Id = "ID";
-inline std::string TokenType_Int = "INT";
+const std::string TokenType_Id = "ID";
+const std::string TokenType_Int = "INT";
+const std::string TokenType_Char = "CHAR";
+const std::string TokenType_String = "STRING";
 
 /**
  * A token produced by lexical analysis.
@@ -71,6 +73,10 @@ const std::vector<std::string> keywords = {
     "extern"
 };
 
+
+const char char_quote = '\'';
+const char string_quote = '\"';
+
 const std::string single_line_comment = "//";
 const std::string multi_line_comment_start = "/*";
 const std::string multi_line_comment_end = "*/";
@@ -92,6 +98,8 @@ private:
 
     std::optional<Token> attempt_lex_keyword();
     Token lex_integer();
+    Token lex_char();
+    Token lex_string();
     Token lex_id();
     Token lex_sep();
     Token lex_op();
@@ -111,6 +119,8 @@ private:
     inline bool iswhitespace() const { return std::isspace(current()); }
     inline bool iscomment() const { return index < input.size() - 1 && (slice(2) == single_line_comment || slice(2) == multi_line_comment_start); }
     inline bool isdigit() const { return std::isdigit(current()); }
+    inline bool ischar() const { return current() == char_quote; }
+    inline bool isstring() const { return current() == string_quote;}
     inline bool isfloat() const { return isdigit() || current() == '.'; }
     inline bool isalpha() const { return std::isalpha(current()); } 
     inline bool isalnum() const { return std::isalnum(current()); }

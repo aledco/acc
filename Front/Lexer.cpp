@@ -39,6 +39,16 @@ void Lexer::lex()
             auto token = lex_integer();
             add(token);
         }
+        else if (ischar())
+        {
+            auto token = lex_char();
+            add(token);
+        }
+        else if (isstring())
+        {
+            auto token = lex_string();
+            add(token);
+        }
         else if (isid() && !isdigit())
         {
             auto token = lex_id();
@@ -128,7 +138,41 @@ Token Lexer::lex_integer()
         advance();
     }
 
-    return Token(TokenType_Int, value, span( value));
+    return Token(TokenType_Int, value, span(value));
+}
+
+/**
+ * Lexes a char.
+ */
+Token Lexer::lex_char()
+{
+    assert(current() == char_quote);
+    advance();
+    std::string value = "" + current();
+    advance();
+    assert(current() == char_quote);
+    advance();
+    return Token(TokenType_Char, value, span(value));
+}
+
+/**
+ * Lexes a string.
+ */
+Token Lexer::lex_string()
+{
+    assert(current() == string_quote);
+    advance();
+
+    std::string value = "";
+    while (!eof() && isalpha())
+    {
+        value += current();
+        advance();
+    }
+
+    assert(current() == string_quote);
+    advance();
+    return Token(TokenType_String, value, span(value));
 }
 
 /**

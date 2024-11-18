@@ -509,6 +509,13 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
         auto token = match(TokenType_Int);
         return std::make_shared<IntegerConstant>(token.span, std::stol(token.value), context.current_symbol_table());
     }
+    else if (is_currently({ TokenType_Char }))
+    {
+        auto token = match(TokenType_Char);
+        assert(token.value.size() == 1);
+        char c = token.value[0];
+        return std::make_shared<CharConstant>(token.span, c, context.current_symbol_table());
+    }
     else if (is_currently({ TokenType_Id }))
     {
         Span span = current().span;

@@ -333,7 +333,7 @@ struct CharConstant : Expression
 {
     char value;
 
-    CharConstant(Span span, long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
+    CharConstant(Span span, char value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;

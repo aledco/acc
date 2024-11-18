@@ -208,7 +208,7 @@ void IntegerConstant::typecheck(TypecheckContext& context)
  */
 void CharConstant::typecheck(TypecheckContext& context)
 {
-    // TODO later
+    type = std::make_shared<Type>(TypeType::Char);
 }
 
 /**
