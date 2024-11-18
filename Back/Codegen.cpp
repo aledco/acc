@@ -158,6 +158,12 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
 static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     auto value = codegen(quad->arg1, context);
+    if (quad->arg1->type == OperandType::Variable && quad->arg1->symbol->type->type == TypeType::Array)
+    { // TODO instead, create a typecase node in the IR
+        auto elem_type = get_llvm_type(quad->arg1->symbol->type->elem_type, context);
+        value = context.llvm_builder->CreateGEP(elem_type, value, context.llvm_builder->getInt32(0));
+    }
+
     context.param_stack.push_back(value);
     return value;
 }

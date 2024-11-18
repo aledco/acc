@@ -8,6 +8,8 @@
 /*                             Type Check                                       */
 /********************************************************************************/
 
+static bool try_typecast(std::shared_ptr<Expression> e, std::shared_ptr<Type> type);
+
 /**
  * Typechecks the compound statement.
  */
@@ -45,9 +47,8 @@ void Return::typecheck(TypecheckContext& context)
     if (expr != nullptr)
     {
         expr->typecheck(context);
-        if (*expr->type != *context.func_def->function->type->ret_type)
+        if (!try_typecast(expr, context.func_def->function->type->ret_type))
         {
-            // TODO implicitly cast type if possible
             throw TypeError(span, "return type does not match function");
         }
     }
@@ -124,9 +125,8 @@ void FunctionCall::typecheck(TypecheckContext& context)
     for (auto i = 0; i < args.size(); i++)
     {
         args[i]->typecheck(context);
-        if (*args[i]->type != *function->type->param_types[i])
+        if (!try_typecast(args[i], function->type->param_types[i]))
         {
-            // TODO implicitly cast type if possible
             throw TypeError(span, "argument type does not match function");
         }
     }
@@ -141,7 +141,8 @@ void BinaryOperation::typecheck(TypecheckContext& context)
 {
     lhs->typecheck(context);
     rhs->typecheck(context);
-    if (*lhs->type != *rhs->type || (lhs->type->type == TypeType::Pointer && rhs))
+    //if (*lhs->type != *rhs->type || (lhs->type->type == TypeType::Pointer && rhs))
+    if (!try_typecast(rhs, lhs->type))
     {
         // TODO implicitly cast type if possible
         throw TypeError(span, "type mismatch between operands of binary operation");
@@ -180,15 +181,15 @@ void UnaryOperation::typecheck(TypecheckContext& context)
 void ArrayIndex::typecheck(TypecheckContext& context)
 {
     array->typecheck(context);
-    if (array->type->type != TypeType::Array)
+    if (array->type->type != TypeType::Array && array->type->type != TypeType::Pointer)
     {
-        throw TypeError(span, "type cannot be indexed like an array");
+        throw TypeError(span, "type cannot be indexed");
     }
 
     index->typecheck(context);
     if (index->type->type != TypeType::Int && index->type->type != TypeType::Char)
     {
-        throw TypeError(span, "invalid type for array index");
+        throw TypeError(span, "invalid type for index");
     }
 
     type = array->type->elem_type;
@@ -252,6 +253,56 @@ void Program::typecheck()
 {
     TypecheckContext context;
     typecheck(context);
+}
+
+/**
+ * Trys to typecast the type of e to the type.
+ */
+static bool try_typecast(std::shared_ptr<Expression> e, std::shared_ptr<Type> type)
+{
+    if (*e->type == *type)
+    {
+        return true;
+    }
+
+    auto typecast = [=] {
+        e->typecast = std::make_pair(e->type, type);
+        e->type = type;
+        return true;
+    };
+
+    switch (type->type)
+    {
+        case TypeType::Int:
+            if (e->type->type == TypeType::Char)
+            {
+                return typecast();
+            }
+
+            return false;
+        case TypeType::Char:
+            if (e->type->type == TypeType::Int)
+            {
+                return typecast();
+            }
+
+            return false;
+        case TypeType::Array:
+            return false;
+        case TypeType::Pointer:
+            if (e->type->type == TypeType::Array && *e->type->elem_type == *type->elem_type)
+            {
+                return typecast();
+            }
+            else if (e->type->type == TypeType::Pointer && (e->type->elem_type->type == TypeType::Void || type->elem_type->type == TypeType::Void))
+            {
+                return typecast();
+            }
+
+            return false;
+        default:
+            return false;
+    }
 }
 
 /********************************************************************************/

@@ -36,6 +36,3 @@
 
 ## Misc
 - Clean up TODOs
-
-## Branch
-- Decay arrays to pointers when passed to a function, implement pointer operations

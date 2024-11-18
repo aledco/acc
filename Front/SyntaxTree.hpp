@@ -51,6 +51,7 @@ struct Expression : Statement
     std::shared_ptr<Type> type;
     std::shared_ptr<Operand> place;
     std::shared_ptr<Operand> location;
+    std::optional<std::pair<std::shared_ptr<Type>, std::shared_ptr<Type>>> typecast = {};
 
     QuadList ir_list_lval;
 

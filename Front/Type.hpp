@@ -70,7 +70,7 @@ struct Type
                 return true;
             case TypeType::Array:
             case TypeType::Pointer:
-                if (type != other.type)
+                if (other.type != TypeType::Array && TypeType::Array != TypeType::Pointer)
                 {
                     return false;
                 }
