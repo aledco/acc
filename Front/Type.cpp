@@ -54,5 +54,9 @@ void Type::dump()
             elem_type->dump();
             std::cerr << "[]";
             break;
+        case TypeType::Pointer:
+            elem_type->dump();
+            std::cerr << "*";
+            break;
     }
 }

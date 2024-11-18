@@ -30,6 +30,15 @@ void VariableDeclaration::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void GlobalDeclaration::ir_codegen()
+{
+    auto inst = Quad::MakeGlobalOp(Operand::MakeVariableOperand(symbol));
+    ir_list = QuadList(inst, inst);
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void Return::ir_codegen()
 {
     if (expr)
@@ -175,23 +184,38 @@ void BinaryOperation::ir_codegen()
 
     auto codegen_assign = [=]()
     {
-        lhs->ir_codegen_lval();
+        bool is_deref = lhs->ir_codegen_lval();
         rhs->ir_codegen();
         ir_list = QuadList::concat(lhs->ir_list, rhs->ir_list);
-        ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location));
+        if (is_deref)
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeLDerefOp(rhs->place, lhs->location));
+        }
+        else
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, rhs->place, lhs->location));
+        }
+        
         place = rhs->place;
     };
 
      auto codegen_compound_binop = [=](QuadOp quad_op)
     {
         place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-        lhs->ir_codegen_lval();
+        bool is_deref = lhs->ir_codegen_lval();
         lhs->ir_codegen();
         rhs->ir_codegen();
         ir_list = QuadList::concat(lhs->ir_list_lval, lhs->ir_list);
         ir_list = QuadList::concat(ir_list, rhs->ir_list);
         ir_list = QuadList::append(ir_list, Quad::MakeBinOp(quad_op, lhs->place, rhs->place, place));
-        ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, place, lhs->location));
+        if (is_deref)
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeLDerefOp(place, lhs->location));
+        }
+        else
+        {
+            ir_list = QuadList::append(ir_list, Quad::MakeUnOp(QuadOp::Copy, place, lhs->location));
+        }
     };
 
     switch (op)
@@ -283,6 +307,17 @@ void UnaryOperation::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
+void ArrayIndex::ir_codegen()
+{
+    ir_codegen_lval();
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto deref_inst = Quad::MakeRDerefOp(location, place);
+    ir_list = QuadList::append(ir_list, deref_inst);
+}
+
+/**
+ * Generates IR for the AST node.
+ */
 void IntegerConstant::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
@@ -322,16 +357,21 @@ void FunctionDef::ir_codegen()
  */
 void Program::ir_codegen()
 {
-    for (auto& function : functions)
+    for (auto& g : globals)
     {
-        function->ir_codegen();
+        g->ir_codegen();
+    }
+
+    for (auto& f : functions)
+    {
+        f->ir_codegen();
     }
 }
 
 /**
  * Generates IR for the AST node.
  */
-void Expression::ir_codegen_lval()
+bool Expression::ir_codegen_lval()
 {
     throw Error(span, "Error", "cannot take lvalue of expression");
 }
@@ -339,17 +379,38 @@ void Expression::ir_codegen_lval()
 /**
  * Generates IR for the AST node.
  */
-void Variable::ir_codegen_lval()
+bool Variable::ir_codegen_lval()
 {
     location = Operand::MakeVariableOperand(symbol);
+    return false;
 }
 
 /**
  * Generates IR for the AST node.
  */
-void UnaryOperation::ir_codegen_lval()
+bool UnaryOperation::ir_codegen_lval()
 {
     // TODO
+    return true;
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+bool ArrayIndex::ir_codegen_lval()
+{
+    array->ir_codegen_lval();
+    index->ir_codegen();
+    ir_list = QuadList::concat(array->ir_list_lval, index->ir_list);
+
+    auto ptr_type = std::make_shared<Type>(TypeType::Pointer, array->type->elem_type);
+    location = Operand::MakeVariableOperand(symbol_table->new_temp(ptr_type));
+
+    // calculate the address of the array element
+    auto calc_inst = Quad::MakeAddPtrOp(array->location, index->place, location);
+
+    ir_list = QuadList::append(ir_list, calc_inst);
+    return true;
 }
 
 /**

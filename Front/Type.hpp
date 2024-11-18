@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <optional>
 
 /**
  * The type of the type.
@@ -12,7 +13,8 @@ enum class TypeType
     Int,
     Char,
     Function,
-    Array // TODO add more
+    Array,
+    Pointer
 };
 
 /**
@@ -22,8 +24,9 @@ struct Type
 {
     TypeType type;
     
-    /* for array types */
+    /* for array and pointer types */
     std::shared_ptr<Type> elem_type;
+    std::optional<int> num_elems;
 
     /* for function types */
     std::shared_ptr<Type> ret_type;
@@ -39,7 +42,8 @@ struct Type
         is_extern(is_extern),
         is_defined(is_defined)
     {}
-    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type) : type(type), elem_type(elem_type), num_elems({}) {}
+    Type(TypeType type, std::shared_ptr<Type> elem_type, int num_elems) : type(type), elem_type(elem_type), num_elems(num_elems) {}
 
     bool operator== (const Type& other)
     {
@@ -50,14 +54,14 @@ struct Type
             case TypeType::Char:
                 return type == other.type;
             case TypeType::Function:
-                if (type != other.type || ret_type != ret_type || param_types.size() != other.param_types.size())
+                if (type != other.type || *ret_type != *ret_type || param_types.size() != other.param_types.size())
                 {
                     return false;
                 }
 
                 for (auto i = 0; i < param_types.size(); i++)
                 {
-                    if (param_types[i] != other.param_types[i])
+                    if (*param_types[i] != *other.param_types[i])
                     {
                         return false;
                     }
@@ -65,12 +69,13 @@ struct Type
 
                 return true;
             case TypeType::Array:
-                if (type != other.type)
+            case TypeType::Pointer:
+                if (other.type != TypeType::Array && TypeType::Array != TypeType::Pointer)
                 {
                     return false;
                 }
 
-                return ret_type == other.ret_type;
+                return *elem_type == *other.elem_type;
         }
     }
 

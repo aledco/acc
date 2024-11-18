@@ -8,6 +8,8 @@
 /*                             Type Check                                       */
 /********************************************************************************/
 
+static bool try_typecast(std::shared_ptr<Expression> e, std::shared_ptr<Type> type);
+
 /**
  * Typechecks the compound statement.
  */
@@ -31,6 +33,13 @@ void VariableDeclaration::typecheck(TypecheckContext& context)
 }
 
 /**
+ * Typechecks the global variable declaration.
+ */
+void GlobalDeclaration::typecheck(TypecheckContext& context)
+{
+}
+
+/**
  * Typechecks the return statement.
  */
 void Return::typecheck(TypecheckContext& context)
@@ -38,9 +47,8 @@ void Return::typecheck(TypecheckContext& context)
     if (expr != nullptr)
     {
         expr->typecheck(context);
-        if (*expr->type != *context.func_def->function->type->ret_type)
+        if (!try_typecast(expr, context.func_def->function->type->ret_type))
         {
-            // TODO implicitly cast type if possible
             throw TypeError(span, "return type does not match function");
         }
     }
@@ -117,9 +125,8 @@ void FunctionCall::typecheck(TypecheckContext& context)
     for (auto i = 0; i < args.size(); i++)
     {
         args[i]->typecheck(context);
-        if (*args[i]->type != *function->type->param_types[i])
+        if (!try_typecast(args[i], function->type->param_types[i]))
         {
-            // TODO implicitly cast type if possible
             throw TypeError(span, "argument type does not match function");
         }
     }
@@ -134,10 +141,11 @@ void BinaryOperation::typecheck(TypecheckContext& context)
 {
     lhs->typecheck(context);
     rhs->typecheck(context);
-    if (*lhs->type != *rhs->type)
+    //if (*lhs->type != *rhs->type || (lhs->type->type == TypeType::Pointer && rhs))
+    if (!try_typecast(rhs, lhs->type))
     {
         // TODO implicitly cast type if possible
-            throw TypeError(span, "type mismatch between operands of binary operation");
+        throw TypeError(span, "type mismatch between operands of binary operation");
     }
     else
     {
@@ -168,6 +176,26 @@ void UnaryOperation::typecheck(TypecheckContext& context)
 }
 
 /**
+ * Typechecks the array index.
+ */
+void ArrayIndex::typecheck(TypecheckContext& context)
+{
+    array->typecheck(context);
+    if (array->type->type != TypeType::Array && array->type->type != TypeType::Pointer)
+    {
+        throw TypeError(span, "type cannot be indexed");
+    }
+
+    index->typecheck(context);
+    if (index->type->type != TypeType::Int && index->type->type != TypeType::Char)
+    {
+        throw TypeError(span, "invalid type for index");
+    }
+
+    type = array->type->elem_type;
+}
+
+/**
  * Typechecks the integer constant.
  */
 void IntegerConstant::typecheck(TypecheckContext& context)
@@ -188,6 +216,7 @@ void CharConstant::typecheck(TypecheckContext& context)
  */
 void FunctionDef::typecheck(TypecheckContext& context)
 {
+    context.func_def = this;
     if (!is_proto())
     {
         body->typecheck(context);
@@ -206,10 +235,14 @@ void FunctionDef::typecheck(TypecheckContext& context)
  */
 void Program::typecheck(TypecheckContext& context)
 {
-    for (auto& function : functions)
+    for (auto& g : globals)
     {
-        context.func_def = function;
-        function->typecheck(context);
+        g->typecheck(context);
+    }
+
+    for (auto& f : functions)
+    {
+        f->typecheck(context);
     }
 }
 
@@ -220,6 +253,56 @@ void Program::typecheck()
 {
     TypecheckContext context;
     typecheck(context);
+}
+
+/**
+ * Trys to typecast the type of e to the type.
+ */
+static bool try_typecast(std::shared_ptr<Expression> e, std::shared_ptr<Type> type)
+{
+    if (*e->type == *type)
+    {
+        return true;
+    }
+
+    auto typecast = [=] {
+        e->typecast = std::make_pair(e->type, type);
+        e->type = type;
+        return true;
+    };
+
+    switch (type->type)
+    {
+        case TypeType::Int:
+            if (e->type->type == TypeType::Char)
+            {
+                return typecast();
+            }
+
+            return false;
+        case TypeType::Char:
+            if (e->type->type == TypeType::Int)
+            {
+                return typecast();
+            }
+
+            return false;
+        case TypeType::Array:
+            return false;
+        case TypeType::Pointer:
+            if (e->type->type == TypeType::Array && *e->type->elem_type == *type->elem_type)
+            {
+                return typecast();
+            }
+            else if (e->type->type == TypeType::Pointer && (e->type->elem_type->type == TypeType::Void || type->elem_type->type == TypeType::Void))
+            {
+                return typecast();
+            }
+
+            return false;
+        default:
+            return false;
+    }
 }
 
 /********************************************************************************/
@@ -326,6 +409,22 @@ void UnaryOperation::dump(int depth)
 /**
  * Dumps the AST node.
  */
+void ArrayIndex::dump(int depth)
+{
+    std::cout << "ArrayIndex(\n";
+    indent(depth);
+    std::cout << "array = ";
+    array->dump(depth);
+    std::cout << ",\n";
+    indent(depth);
+    std::cout << "index = ";
+    index->dump(depth);
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
 void CompoundStatement::dump(int depth)
 {
     std::cout << "CompoundStatement(\n";
@@ -363,6 +462,22 @@ void VariableDeclaration::dump(int depth)
         }
     }
 
+    std::cout << ")";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void GlobalDeclaration::dump(int depth)
+{
+    std::cout << "VariableDeclaration(\n";
+    indent(depth);
+    std::cout << "type = ";
+    type->dump();
+
+    std::cout << ",\n";
+    indent(depth);
+    std::cout << "symbol = " << symbol->get_name();
     std::cout << ")";
 }
 
@@ -534,6 +649,16 @@ void FunctionDef::dump(int depth)
 void Program::dump(int depth)
 {   
     std::cout << "Program(\n";
+    for (auto i = 0; i < globals.size(); i++)
+    {
+        indent(depth);
+        globals[i]->dump(depth + 1);
+        if (i < globals.size() - 1)
+        {
+            std::cout << ",\n";
+        }
+    }
+
     for (auto i = 0; i < functions.size(); i++)
     {
         indent(depth);
@@ -552,6 +677,12 @@ void Program::dump(int depth)
  */
 void Program::ir_dump() 
 {
+    for (auto g : globals)
+    {
+        g->ir_list.dump();
+        std::cout << "\n";
+    }
+
     for (auto f : functions)
     {
         std::cout << f->function->get_name() << "\n";

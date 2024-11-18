@@ -20,7 +20,7 @@ struct SyntaxTree
 protected:
     struct TypecheckContext 
     {
-        std::shared_ptr<FunctionDef> func_def;
+        FunctionDef *func_def;
     };
 
 public:
@@ -51,12 +51,13 @@ struct Expression : Statement
     std::shared_ptr<Type> type;
     std::shared_ptr<Operand> place;
     std::shared_ptr<Operand> location;
+    std::optional<std::pair<std::shared_ptr<Type>, std::shared_ptr<Type>>> typecast = {};
 
     QuadList ir_list_lval;
 
     Expression(Span span, std::shared_ptr<SymbolTable> symbol_table) : Statement(span, symbol_table) {}
 
-    virtual void ir_codegen_lval();
+    virtual bool ir_codegen_lval();
     virtual void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label);
 };
 
@@ -89,6 +90,25 @@ struct VariableDeclaration : Statement
         Statement(span, symbol_table), 
         type(type), 
         expressions(expressions) 
+    {}
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
+};
+
+/**
+ * The global variable declaration AST node.
+ */
+struct GlobalDeclaration : SyntaxTree
+{
+    std::shared_ptr<Type> type;
+    std::shared_ptr<Symbol> symbol;
+
+    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+        SyntaxTree(span, symbol_table),
+        type(type),
+        symbol(symbol)
     {}
 
     void typecheck(TypecheckContext& context) override;
@@ -197,7 +217,7 @@ struct Variable : Expression
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
-    void ir_codegen_lval() override;
+    bool ir_codegen_lval() override;
     void dump(int depth = 1) override;
 };
 
@@ -266,8 +286,29 @@ struct UnaryOperation : Expression
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
-    void ir_codegen_lval() override;
+    bool ir_codegen_lval() override;
     void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label) override;
+    void dump(int depth = 1) override;
+};
+
+/**
+ * The array index AST node.
+ */
+struct ArrayIndex : Expression
+{
+    std::shared_ptr<Expression> array;
+    std::shared_ptr<Expression> index;
+
+    ArrayIndex(Span span, std::shared_ptr<Expression> array, std::shared_ptr<Expression> index, std::shared_ptr<SymbolTable> symbol_table) :
+        Expression(span, symbol_table),
+        array(array), 
+        index(index)
+    {
+    }
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    bool ir_codegen_lval() override;
     void dump(int depth = 1) override;
 };
 
@@ -337,10 +378,12 @@ struct FunctionDef : SyntaxTree
 struct Program : SyntaxTree
 {
     std::vector<std::shared_ptr<FunctionDef>> functions;
+    std::vector<std::shared_ptr<GlobalDeclaration>> globals;
 
-    Program(Span span, const std::vector<std::shared_ptr<FunctionDef>>& functions,  std::shared_ptr<SymbolTable> symbol_table):
+    Program(Span span, std::vector<std::shared_ptr<FunctionDef>> functions, std::vector<std::shared_ptr<GlobalDeclaration>> globals, std::shared_ptr<SymbolTable> symbol_table):
         SyntaxTree(span, symbol_table),
-        functions(functions)
+        functions(functions),
+        globals(globals)
     {}
 
     void typecheck(TypecheckContext& context) override;

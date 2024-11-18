@@ -17,11 +17,13 @@ enum class QuadOp
     Div,
     Mod,
     Neg,
-    Deref,
-    Addr,
     Copy,
-    LIndex, // a[i] = x
-    RIndex, // x = a[i]
+    //LIndex, // a[i] = x
+    //RIndex, // x = a[i]
+    AddrOf, // x = &y
+    RDeref, // x = *y
+    LDeref, // *x = y
+    AddPtr, // x = y + z (y is a pointer variable, z is an integer)
     Label,
     Goto,
     IfEq,
@@ -89,8 +91,12 @@ struct Quad
     static std::shared_ptr<Quad> MakeStringOp(std::shared_ptr<Operand> arg1);
     static std::shared_ptr<Quad> MakeBinOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeUnOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
-    static std::shared_ptr<Quad> MakeRIndexOp(std::shared_ptr<Operand> array, std::shared_ptr<Operand> index, std::shared_ptr<Operand> res);
-    static std::shared_ptr<Quad> MakeLIndexOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> index, std::shared_ptr<Operand> array);
+    //static std::shared_ptr<Quad> MakeRIndexOp(std::shared_ptr<Operand> array, std::shared_ptr<Operand> index, std::shared_ptr<Operand> res);
+    //static std::shared_ptr<Quad> MakeLIndexOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> index, std::shared_ptr<Operand> array);
+    static std::shared_ptr<Quad> MakeAddrOfOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
+    static std::shared_ptr<Quad> MakeRDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
+    static std::shared_ptr<Quad> MakeLDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
+    static std::shared_ptr<Quad> MakeAddPtrOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeLabelOp(std::shared_ptr<Operand> label);
     static std::shared_ptr<Quad> MakeGotoOp(std::shared_ptr<Operand> label);
     static std::shared_ptr<Quad> MakeIfOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res);
