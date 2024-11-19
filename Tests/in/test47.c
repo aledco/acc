@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int sum(int a[5], int n)
 {
@@ -20,6 +20,6 @@ int main() {
     }
 
     int s = sum(a, 5);
-    println(s);
+    printiln(s);
     return 0;
 }

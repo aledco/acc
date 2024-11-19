@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -10,6 +10,6 @@ int main()
     ++x; ++x;
     x--;
     --x;
-    println(x);
+    printiln(x);
     return x;
 }

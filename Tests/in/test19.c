@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -10,11 +10,11 @@ int main()
 
     if ((!(x == y) && x <= 0 && y < 1) || x == -1)
     {
-        println(1);
+        printiln(1);
     }
     else
     {
-        println(0);
+        printiln(0);
     }
 
     return 0;

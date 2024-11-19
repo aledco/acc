@@ -108,14 +108,22 @@ static bool is_terminator(std::shared_ptr<Quad> quad)
  */
 static void store(std::shared_ptr<Symbol> symbol, llvm::Value *val, CodegenContext& context)
 {
-    if (symbol->is_temp)
+    if (symbol->type->type == TypeType::Array)
     {
         symbol->symbol_data.value = val;
     }
     else
-    {   
-        context.llvm_builder->CreateStore(val, symbol->symbol_data.value, false);
+    {
+        if (symbol->is_temp)
+        {
+            symbol->symbol_data.value = val;
+        }
+        else
+        {   
+            context.llvm_builder->CreateStore(val, symbol->symbol_data.value, false);
+        }
     }
+    
 }
 
 /**
@@ -400,15 +408,24 @@ static llvm::Value *codegen_cast(std::shared_ptr<Quad> quad, CodegenContext& con
 }
 
 /**
+ * Generates LLVM code for a string instruction.
+ */
+static llvm::Value *codegen_string(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    // TODO need to do a builder->CreateMemCpy, look at test.ll for reference
+    assert(quad->arg1->type == OperandType::StrConst);
+    auto res = context.llvm_builder->CreateGlobalString(quad->arg1->strconst);
+    store(quad->res->symbol, res, context);
+    return res;
+}
+
+/**
  * Generates LLVM code for an instruction.
  */
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     switch (quad->op)
     {
-        case QuadOp::Global:
-        case QuadOp::String:
-            break; // TODO
         case QuadOp::Add:
         case QuadOp::Sub:
         case QuadOp::Mul:
@@ -442,8 +459,11 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             return codegen_call(quad, context);
         case QuadOp::Cast:
             return codegen_cast(quad, context);
+        case QuadOp::String:
+            return codegen_string(quad, context);
         case QuadOp::Enter:
         case QuadOp::Label:
+        case QuadOp::Global:
             break;
     }
 

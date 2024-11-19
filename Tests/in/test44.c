@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main() {
     int a[2];
@@ -8,8 +8,8 @@ int main() {
         a[i] = i;
     }
 
-    println(a[0]);
-    println(a[1]);
+    printiln(a[0]);
+    printiln(a[1]);
 
     return 0;
 }

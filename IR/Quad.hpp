@@ -100,11 +100,9 @@ struct Quad
     
     // TODO remove Op suffix
     static std::shared_ptr<Quad> MakeGlobalOp(std::shared_ptr<Operand> arg1);
-    static std::shared_ptr<Quad> MakeStringOp(std::shared_ptr<Operand> arg1);
+    static std::shared_ptr<Quad> MakeStringOp(std::shared_ptr<Operand> str, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeBinOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> arg2, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeUnOp(QuadOp op, std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
-    //static std::shared_ptr<Quad> MakeRIndexOp(std::shared_ptr<Operand> array, std::shared_ptr<Operand> index, std::shared_ptr<Operand> res);
-    //static std::shared_ptr<Quad> MakeLIndexOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> index, std::shared_ptr<Operand> array);
     static std::shared_ptr<Quad> MakeAddrOfOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeRDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);
     static std::shared_ptr<Quad> MakeLDerefOp(std::shared_ptr<Operand> arg1, std::shared_ptr<Operand> res);

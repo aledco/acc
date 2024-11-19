@@ -9,7 +9,7 @@
     #pragma diag_suppress 20
 #endif
 
-const inline std::string test_code_path = "acc-link/test-code.ll"; 
+const inline std::string test_code_path = "acc-link/print.ll"; 
 
 struct Input
 {

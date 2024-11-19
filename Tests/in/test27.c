@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -10,7 +10,7 @@ int main()
         {
             if (j == 4 || j == 8)
             {
-                println(j);
+                printiln(j);
             }
         }
     }

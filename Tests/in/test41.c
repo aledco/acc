@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int x;
 int y;
@@ -8,7 +8,7 @@ int main()
     x = 1;
     y = x + 2;
     y = y * x;
-    println(x);
-    println(y);
+    printiln(x);
+    printiln(y);
     return 0;
 }

@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -12,13 +12,13 @@ int main()
     d = 8;
     e = 4;
 
-    println(x);
-    println(y);
-    println(z);
-    println(a);
-    println(b);
-    println(c);
-    println(d);
-    println(e);
+    printiln(x);
+    printiln(y);
+    printiln(z);
+    printiln(a);
+    printiln(b);
+    printiln(c);
+    printiln(d);
+    printiln(e);
     return 0;
 }

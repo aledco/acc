@@ -1,10 +1,10 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int x;
 
 int main()
 {
     x = 0;
-    println(x);
+    printiln(x);
     return 0;
 }

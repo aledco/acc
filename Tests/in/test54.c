@@ -1,11 +1,11 @@
-extern void println(int n);
+extern void printiln(int n);
 
 void print_array(char a[], int n)
 {
     int i;
     for (i = 0; i < n; i++)
     {
-        println(a[i]);
+        printiln(a[i]);
     }
 }
 

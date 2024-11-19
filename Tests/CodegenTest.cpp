@@ -44,8 +44,8 @@ TEST(Codegen, All)
         execute(input.test_id, "./" + output_files.exe_filepath + " > " + output_files.out_filepath + " ; echo exit status: $? >> " + output_files.out_filepath, false);
 
         // link the C files using clang to compare output
-        execute(input.test_id, "clang-18 -c Tests/test-link/test-code.c -o Tests/test-link/test-code.o");
-        execute(input.test_id, "clang-18 " + input.filepath + " Tests/test-link/test-code.o -o " + output_files.ref_exe_filepath);
+        execute(input.test_id, "clang-18 -c Tests/test-link/print.c -o Tests/test-link/print.o");
+        execute(input.test_id, "clang-18 " + input.filepath + " Tests/test-link/print.o -o " + output_files.ref_exe_filepath);
         execute(input.test_id, "./" + output_files.ref_exe_filepath + " > " + output_files.ref_out_filepath + " ; echo exit status: $? >> " + output_files.ref_out_filepath, false);
 
         execute(input.test_id, "diff " + output_files.ref_out_filepath + " " + output_files.out_filepath + " > " + output_files.diff_filepath);

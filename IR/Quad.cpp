@@ -65,10 +65,10 @@ std::shared_ptr<Quad> Quad::MakeGlobalOp(std::shared_ptr<Operand> arg1)
 /**
  * Makes a string quad operation.
  */
-std::shared_ptr<Quad> Quad::MakeStringOp(std::shared_ptr<Operand> arg1)
+std::shared_ptr<Quad> Quad::MakeStringOp(std::shared_ptr<Operand> str, std::shared_ptr<Operand> res)
 {
-    assert(arg1 != nullptr && arg1->type == OperandType::StrConst);
-    return std::make_shared<Quad>(QuadOp::String, arg1, nullptr, nullptr);
+    assert(str != nullptr && str->type == OperandType::StrConst);
+    return std::make_shared<Quad>(QuadOp::String, str, nullptr, res);
 }
 
 /**
@@ -308,7 +308,9 @@ void Quad::dump()
         case QuadOp::String:
             std::cerr << "string ";
             res->dump();
-            std::cerr << "\n";
+            std::cerr << " = \"";
+            arg1->dump();
+            std::cerr << "\"\n";
             break;
         case QuadOp::Add:
             res->dump();

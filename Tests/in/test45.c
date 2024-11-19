@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main() {
     int a[5];
@@ -11,7 +11,7 @@ int main() {
     for (i = 0; i < 5; i++)
     {
         int x = a[i];
-        println(x);
+        printiln(x);
     }
 
     return 0;

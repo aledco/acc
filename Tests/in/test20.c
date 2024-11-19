@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -6,7 +6,7 @@ int main()
     i = 0;
     while (i < 10)
     {
-        println(i);
+        printiln(i);
         i = i + 1;
     }
 

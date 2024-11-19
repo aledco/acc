@@ -1,8 +1,8 @@
-extern void println(int n);
+extern void printiln(int n);
 
 void print_array_elem(int a[], int i)
 {
-    println(a[i]);
+    printiln(a[i]);
 }
 
 int main() {

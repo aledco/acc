@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
         int j;
         for (j = i; j < 10; j = j + 2)
         {
-            println(j);
+            printiln(j);
         }
     }
 

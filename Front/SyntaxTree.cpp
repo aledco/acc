@@ -116,7 +116,6 @@ void Variable::typecheck(TypecheckContext& context)
  */
 void FunctionCall::typecheck(TypecheckContext& context)
 {
-    // TODO check types of args
     if (args.size() != function->type->param_types.size())
     {
         throw TypeError(span, "number of arguments do not match the function");
@@ -141,10 +140,8 @@ void BinaryOperation::typecheck(TypecheckContext& context)
 {
     lhs->typecheck(context);
     rhs->typecheck(context);
-    //if (*lhs->type != *rhs->type || (lhs->type->type == TypeType::Pointer && rhs))
     if (!try_typecast(rhs, lhs->type))
     {
-        // TODO implicitly cast type if possible
         throw TypeError(span, "type mismatch between operands of binary operation");
     }
     else
@@ -198,7 +195,7 @@ void ArrayIndex::typecheck(TypecheckContext& context)
 /**
  * Typechecks the integer constant.
  */
-void IntegerConstant::typecheck(TypecheckContext& context)
+void IntegerLiteral::typecheck(TypecheckContext& context)
 {
     type = std::make_shared<Type>(TypeType::Int);
 }
@@ -206,9 +203,18 @@ void IntegerConstant::typecheck(TypecheckContext& context)
 /**
  * Typechecks the char constant.
  */
-void CharConstant::typecheck(TypecheckContext& context)
+void CharLiteral::typecheck(TypecheckContext& context)
 {
     type = std::make_shared<Type>(TypeType::Char);
+}
+
+/**
+ * Typechecks the string constant.
+ */
+void StringLiteral::typecheck(TypecheckContext& context)
+{
+    auto elem_type = std::make_shared<Type>(TypeType::Char);
+    type = std::make_shared<Type>(TypeType::Array, elem_type, value.size()+1);
 }
 
 /**
@@ -320,17 +326,25 @@ static void indent(int depth)
 /**
  * Dumps the AST node.
  */
-void IntegerConstant::dump(int depth)
+void IntegerLiteral::dump(int depth)
 {
-    std::cout << "IntegerConstant(" << value << ")";
+    std::cout << "IntegerLiteral(" << value << ")";
 }
 
 /**
  * Dumps the AST node.
  */
-void CharConstant::dump(int depth)
+void CharLiteral::dump(int depth)
 {
-    std::cout << "CharConstant('" << value << "')";
+    std::cout << "CharLiteral('" << value << "')";
+}
+
+/**
+ * Dumps the AST node.
+ */
+void StringLiteral::dump(int depth)
+{
+    std::cout << "StringLiteral('" << value << "')";
 }
 
 /**

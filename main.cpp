@@ -66,7 +66,7 @@ static void link_llvm(Args& args, std::vector<std::string> llvm_files)
 
     if (args.link_test)
     {
-        link_cmd += "acc-link/test-code.ll ";
+        link_cmd += "acc-link/print.ll ";
     }
 
     auto bin_output = args.output.empty() ? "a.out" : args.output;

@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int add(int x, int y)
 {
@@ -11,6 +11,6 @@ int main()
 {
     int x;
     x = add(1, 2);
-    println(x);
+    printiln(x);
     return x;
 }

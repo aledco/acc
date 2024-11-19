@@ -1,4 +1,4 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int fact_rec(int n)
 {
@@ -30,8 +30,8 @@ int main()
 
     x = fact_rec(5);
     y = fact_itr(5);
-    println(x);
-    println(y);
+    printiln(x);
+    printiln(y);
     if (x != y)
     {
         return 1;
@@ -39,8 +39,8 @@ int main()
 
     x = fact_rec(0);
     y = fact_itr(0);
-    println(x);
-    println(y);
+    printiln(x);
+    printiln(y);
     if (x != y)
     {
         return 1;
@@ -48,8 +48,8 @@ int main()
 
     x = fact_rec(10);
     y = fact_itr(10);
-    println(x);
-    println(y);
+    printiln(x);
+    printiln(y);
     if (x != y)
     {
         return 1;

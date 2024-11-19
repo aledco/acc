@@ -316,11 +316,11 @@ struct ArrayIndex : Expression
 /**
  * The integer constant AST node.
  */
-struct IntegerConstant : Expression
+struct IntegerLiteral : Expression
 {
     long value;
 
-    IntegerConstant(Span span, long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
+    IntegerLiteral(Span span, long value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;
@@ -330,11 +330,25 @@ struct IntegerConstant : Expression
 /**
  * The char constant AST node.
  */
-struct CharConstant : Expression
+struct CharLiteral : Expression
 {
     char value;
 
-    CharConstant(Span span, char value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
+    CharLiteral(Span span, char value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
+
+    void typecheck(TypecheckContext& context) override;
+    void ir_codegen() override;
+    void dump(int depth = 1) override;
+};
+
+/**
+ * The string literal AST node. 
+ */
+struct StringLiteral : Expression
+{
+    std::string value;
+
+    StringLiteral(Span span, std::string value, std::shared_ptr<SymbolTable> symbol_table) : Expression(span, symbol_table), value(value) {}
 
     void typecheck(TypecheckContext& context) override;
     void ir_codegen() override;

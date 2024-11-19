@@ -1,9 +1,9 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main()
 {
     int x;
     x = (1 + 1 - 1) * 2;
-    println(x);
+    printiln(x);
     return 0;
 }

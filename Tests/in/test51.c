@@ -1,8 +1,8 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main() {
     char x = 10;
     int y = x;
-    println(y);
+    printiln(y);
     return 0;
 }

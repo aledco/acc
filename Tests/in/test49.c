@@ -1,7 +1,7 @@
-extern void println(int n);
+extern void printiln(int n);
 
 int main() {
     char x = 'a';
-    println(x);
+    printiln(x);
     return 0;
 }

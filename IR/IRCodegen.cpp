@@ -328,7 +328,7 @@ void ArrayIndex::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
-void IntegerConstant::ir_codegen()
+void IntegerLiteral::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
@@ -339,10 +339,21 @@ void IntegerConstant::ir_codegen()
 /**
  * Generates IR for the AST node.
  */
-void CharConstant::ir_codegen()
+void CharLiteral::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
+    ir_list = QuadList(inst, inst);
+    ir_codegen_typecast();
+}
+
+/**
+ * Generates IR for the AST node.
+ */
+void StringLiteral::ir_codegen()
+{
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto inst = Quad::MakeStringOp(Operand::MakeStrConstOperand(value), place);
     ir_list = QuadList(inst, inst);
     ir_codegen_typecast();
 }
