@@ -9,9 +9,9 @@
 /**
  * Makes a int constant operand.
  */
-std::shared_ptr<Operand> Operand::MakeIntConstOperand(long val)
+std::shared_ptr<Operand> Operand::MakeIntConstOperand(long val, int nbytes)
 {
-    return std::make_shared<Operand>(OperandType::IntConst, val);
+    return std::make_shared<Operand>(OperandType::IntConst, val, nbytes);
 }
 
 /**
@@ -261,7 +261,7 @@ void Operand::dump()
     switch (type)
     {
         case OperandType::IntConst:
-            std::cerr << iconst;
+            std::cerr << iconst.value;
             break;
         case OperandType::StrConst:
         case OperandType::Label:

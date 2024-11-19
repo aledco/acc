@@ -164,7 +164,7 @@ void FunctionCall::ir_codegen()
     }
 
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-    auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size()), place); 
+    auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size(), sizeof(int)), place); 
     ir_list = QuadList::append(ir_list, call_inst);
 }
 
@@ -284,7 +284,10 @@ void UnaryOperation::ir_codegen()
             place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
             expr->ir_codegen_lval();
             expr->ir_codegen();
-            auto inc_inst = Quad::MakeBinOp(QuadOp::Add, expr->place, Operand::MakeIntConstOperand(op == UnOp::PlusPlus ? 1 : -1), expr->location);
+            auto inc_inst = Quad::MakeBinOp(QuadOp::Add, 
+                expr->place, 
+                Operand::MakeIntConstOperand(op == UnOp::PlusPlus ? 1 : -1, expr->type->size()), 
+                expr->location);
             auto copy_inst = Quad::MakeUnOp(QuadOp::Copy, expr->place, place);
             ir_list = QuadList::concat(ir_list, expr->ir_list_lval);
             ir_list = QuadList::concat(ir_list, expr->ir_list);
@@ -321,7 +324,7 @@ void ArrayIndex::ir_codegen()
 void IntegerConstant::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
-    auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value), place);
+    auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
     ir_list = QuadList(inst, inst);
 }
 
@@ -330,7 +333,9 @@ void IntegerConstant::ir_codegen()
  */
 void CharConstant::ir_codegen()
 {
-    // TODO later
+    place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+    auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
+    ir_list = QuadList(inst, inst);
 }
 
 /**
@@ -431,7 +436,7 @@ static QuadList codegen_if(QuadOp op, std::shared_ptr<Operand> rhs, std::shared_
 void Expression::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label)
 {
     ir_codegen();
-    auto if_code = codegen_if(QuadOp::IfNeq, place, Operand::MakeIntConstOperand(0), true_label, false_label);
+    auto if_code = codegen_if(QuadOp::IfNeq, place, Operand::MakeIntConstOperand(0, type->size()), true_label, false_label);
     ir_list = QuadList::concat(ir_list, if_code);
 }
 

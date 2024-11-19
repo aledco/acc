@@ -43,7 +43,7 @@ std::shared_ptr<Program> Parser::parse()
  */
 bool Parser::lookahead_is_function()
 {
-    if (is_currently({ "void", "int" }))
+    if (is_currently({ "void", "int", "char" }))
     {
         if (index+2 < lexer.size() && lexer[index+1].type == TokenType_Id && lexer[index+2].type == "(")
         {
@@ -53,7 +53,7 @@ bool Parser::lookahead_is_function()
 
     if (is_currently({ "extern" }))
     {
-        if (index+3 < lexer.size() && (lexer[index+1].type == "void" || lexer[index+1].type == "int") && 
+        if (index+3 < lexer.size() && (lexer[index+1].type == "void" || lexer[index+1].type == "int" || lexer[index+1].type == "char") && 
             lexer[index+2].type == TokenType_Id && lexer[index+3].type == "(")
         {
             return true;
@@ -89,7 +89,7 @@ std::shared_ptr<FunctionDef> Parser::parse_function(ParserContext& context)
     {
         match("void");
     }
-    else if (is_currently({ "int" }))
+    else if (is_currently({ "int", "char" }))
     {
         auto param = parse_parameter(context);
         params.push_back(param);
@@ -203,7 +203,7 @@ std::shared_ptr<GlobalDeclaration> Parser::parse_global_declaration(ParserContex
  */
 std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
 {
-    if (is_currently({ "void", "int" }))
+    if (is_currently({ "void", "int", "char" }))
     {
         return parse_variable_declaration(context);
     }
@@ -227,7 +227,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     {
         return parse_compound_statement(context);
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    else if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         auto statement = parse_expression(context);
         auto token = match(";");
@@ -236,7 +236,7 @@ std::shared_ptr<Statement> Parser::parse_statement(ParserContext& context)
     }
     else
     {
-        throw ParseError(current(), { "void", "int", "if", "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" });
+        throw ParseError(current(), { "void", "int", "char", "if", "while", "for", "return", "{", TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" });
     }
 }
 
@@ -250,7 +250,7 @@ std::shared_ptr<CompoundStatement> Parser::parse_compound_statement(ParserContex
     Span span = current().span;
     match("{");
     std::vector<std::shared_ptr<Statement>> statements;
-    while (is_currently({ "void", "int", "if",  "while", "for", "return", "{", TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    while (is_currently({ "void", "int", "char", "if",  "while", "for", "return", "{", TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         statements.push_back(parse_statement(context));
     }
@@ -365,19 +365,19 @@ std::shared_ptr<ForLoop> Parser::parse_for_loop(ParserContext& context)
     std::shared_ptr<Expression> init = nullptr;
     std::shared_ptr<Expression> guard = nullptr;
     std::shared_ptr<Expression> update = nullptr;
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         init = parse_expression(context);
     }
 
     match(";");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         guard = parse_expression(context);
     }
 
     match(";");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         update = parse_expression(context);
     }
@@ -395,7 +395,7 @@ std::shared_ptr<Return> Parser::parse_return_statement(ParserContext& context)
 {
     Span span = current().span;
     match("return");
-    if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+    if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
     {
         auto expr = parse_expression(context);
         auto token = match(";");
@@ -473,7 +473,7 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context) // TODO 
         span += expr->span;
         return std::make_shared<UnaryOperation>(span, get_UnOp(op.value), expr, context.current_symbol_table());
     }
-    else if (is_currently({ TokenType_Int, TokenType_Id, "(" }))
+    else if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(" }))
     {
         auto term = parse_term(context);
         if (is_currently({ "++", "--" }))
@@ -496,7 +496,7 @@ std::shared_ptr<Expression> Parser::parse_unary(ParserContext& context) // TODO 
         }
     }
 
-    throw ParseError(current(), { "-",  "!", "*", "&", "++", "--", TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { "-",  "!", "*", "&", "++", "--", TokenType_Int, TokenType_Char, TokenType_Id, "(" });
 }
 
 /**
@@ -525,7 +525,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
             match("(");
 
             std::vector<std::shared_ptr<Expression>> args;
-            if (is_currently({ TokenType_Int, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
+            if (is_currently({ TokenType_Int, TokenType_Char, TokenType_Id, "(", "-", "!", "*", "&", "++", "--" }))
             {
                 args.push_back(parse_expression(context));
                 while (is_currently({ "," }))
@@ -554,7 +554,7 @@ std::shared_ptr<Expression> Parser::parse_term(ParserContext& context)
 
     // TODO add parens, function calls, arrays, etc
 
-    throw ParseError(current(), { TokenType_Int, TokenType_Id, "(" });
+    throw ParseError(current(), { TokenType_Int, TokenType_Char, TokenType_Id, "(" });
 }
 
 /**
@@ -572,8 +572,13 @@ std::shared_ptr<Type> Parser::parse_type(ParserContext& context)
         match("int");
         return std::make_shared<Type>(TypeType::Int);
     }
+    else if (is_currently({ "char" }))
+    {
+        match("char");
+        return std::make_shared<Type>(TypeType::Char);
+    }
     
-    throw ParseError(current(), { "void", "int" });
+    throw ParseError(current(), { "void", "int", "char" });
 }
 
 /**

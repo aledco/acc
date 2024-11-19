@@ -126,7 +126,7 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
     switch (operand->type)
     {
         case OperandType::IntConst:
-            return llvm::ConstantInt::get(*context.llvm_context, llvm::APInt(32, operand->iconst));
+            return context.llvm_builder->getIntN(operand->iconst.nbytes * 8, operand->iconst.value);
         case OperandType::StrConst:
             return nullptr; // TODO
         case OperandType::Variable:
@@ -181,8 +181,8 @@ static llvm::Value *codegen_call(std::shared_ptr<Quad> quad, CodegenContext& con
     assert(func != nullptr);
 
     auto nargs = quad->arg2->iconst;
-    llvm::SmallVector<llvm::Value *> args(nargs);
-    for (int i = nargs - 1; i >= 0; i--)
+    llvm::SmallVector<llvm::Value *> args(nargs.value);
+    for (int i = nargs.value - 1; i >= 0; i--)
     {
         args[i] = context.param_stack.back();
         context.param_stack.pop_back();

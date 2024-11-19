@@ -1,6 +1,6 @@
 extern void println(int n);
 
-int print_array_elem(int a[], int i)
+void print_array_elem(int a[], int i)
 {
     println(a[i]);
 }

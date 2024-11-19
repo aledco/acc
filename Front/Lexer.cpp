@@ -148,7 +148,7 @@ Token Lexer::lex_char()
 {
     assert(current() == char_quote);
     advance();
-    std::string value = "" + current();
+    std::string value(1, current());
     advance();
     assert(current() == char_quote);
     advance();

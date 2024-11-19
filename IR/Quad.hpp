@@ -56,17 +56,24 @@ struct Operand
 {
     OperandType type;
 
-    long iconst;
+    struct IntConst
+    {
+        long value;
+        int nbytes;
+    };
+
+
+    IntConst iconst;
     std::string strconst;
     std::shared_ptr<Symbol> symbol;
 
-    Operand(OperandType type, long val): type(type), iconst(val) {}
+    Operand(OperandType type, long val, int nbytes): type(type) { iconst.value = val; iconst.nbytes = nbytes; }
     Operand(OperandType type, std::string val): type(type), strconst(val) {}
     Operand(OperandType type, std::shared_ptr<Symbol> symbol): type(type), symbol(symbol) {}
 
     void dump();
 
-    static std::shared_ptr<Operand> MakeIntConstOperand(long val);
+    static std::shared_ptr<Operand> MakeIntConstOperand(long val, int nbytes);
     static std::shared_ptr<Operand> MakeStrConstOperand(std::string val);
     static std::shared_ptr<Operand> MakeVariableOperand(std::shared_ptr<Symbol> val);
     static std::shared_ptr<Operand> MakeLabelOperand();

@@ -65,6 +65,7 @@ const std::vector<std::string> operators = {
 const std::vector<std::string> keywords = {
     "void",
     "int",
+    "char",
     "if",
     "else",
     "while",
