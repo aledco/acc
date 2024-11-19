@@ -14,8 +14,11 @@ int Type::size()
             return 4;
         case TypeType::Char:
                 return 1;
+        case TypeType::Pointer:
+        case TypeType::Array:
+            return 8;
         default:
-            return 0; // TODO handle other types later
+            return 0;
     }
 }
 

@@ -128,7 +128,7 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
         case OperandType::IntConst:
             return context.llvm_builder->getIntN(operand->iconst.nbytes * 8, operand->iconst.value);
         case OperandType::StrConst:
-            return nullptr; // TODO
+            return nullptr;
         case OperandType::Variable:
             if (operand->symbol->type->type == TypeType::Array)
             {
@@ -148,6 +148,7 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
                 }
             }
         case OperandType::Label:
+        case OperandType::ExprType:
             return nullptr;
     }
 }
@@ -158,12 +159,6 @@ static llvm::Value *codegen(std::shared_ptr<Operand> operand, CodegenContext& co
 static llvm::Value *codegen_param(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     auto value = codegen(quad->arg1, context);
-    if (quad->arg1->type == OperandType::Variable && quad->arg1->symbol->type->type == TypeType::Array)
-    { // TODO instead, create a typecase node in the IR
-        auto elem_type = get_llvm_type(quad->arg1->symbol->type->elem_type, context);
-        value = context.llvm_builder->CreateGEP(elem_type, value, context.llvm_builder->getInt32(0));
-    }
-
     context.param_stack.push_back(value);
     return value;
 }
@@ -280,8 +275,18 @@ static llvm::Value *codegen_addptr(std::shared_ptr<Quad> quad, CodegenContext& c
 {
     auto arg1 = codegen(quad->arg1, context);
     auto arg2 = codegen(quad->arg2, context);
-    auto multiplier = llvm::ConstantInt::get(arg2->getType(), 2);
-    auto offset = context.llvm_builder->CreateShl(arg2, multiplier);
+    auto element_size = quad->arg1->symbol->type->elem_type->size();
+    llvm::Value *offset;
+    if (element_size > 1)
+    {
+        auto multiplier = llvm::ConstantInt::get(arg2->getType(), element_size);
+        offset = context.llvm_builder->CreateMul(arg2, multiplier);
+    }
+    else
+    {
+        offset = arg2;
+    }
+    
     auto res = context.llvm_builder->CreatePtrAdd(arg1, offset);
     store(quad->res->symbol, res, context);
     return res;
@@ -352,6 +357,49 @@ static llvm::Value *codegen_if(std::shared_ptr<Quad> quad, CodegenContext& conte
 }
 
 /**
+ * Generates LLVM code for a cast instruction.
+ */
+static llvm::Value *codegen_cast(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    assert(quad->arg2->type == OperandType::ExprType);
+    
+    auto arg1 = codegen(quad->arg1, context);
+    auto llvm_to_type = get_llvm_type(quad->arg2->expr_type, context);
+
+    llvm::Value *res;
+    if (llvm_to_type->isIntegerTy() && arg1->getType()->isIntegerTy())
+    {
+        res = context.llvm_builder->CreateIntCast(arg1, llvm_to_type, true); // TODO if signed types are added need to adjust
+    }
+    else if (llvm_to_type->isIntegerTy() && arg1->getType()->isPointerTy())
+    {
+        res = context.llvm_builder->CreateCast(llvm::Instruction::CastOps::PtrToInt, arg1, llvm_to_type);
+    }
+    else if (llvm_to_type->isPointerTy() && arg1->getType()->isIntegerTy())
+    {
+        res = context.llvm_builder->CreateCast(llvm::Instruction::CastOps::IntToPtr, arg1, llvm_to_type);
+    }
+    else if (llvm_to_type->isPointerTy() && arg1->getType()->isPointerTy())
+    {
+        res = context.llvm_builder->CreateCast(llvm::Instruction::CastOps::BitCast, arg1, llvm_to_type);
+    }
+    else if (llvm_to_type->isPointerTy() && arg1->getType()->isArrayTy())
+    {
+        auto elem_type = get_llvm_type(quad->arg1->symbol->type->elem_type, context);
+        res = context.llvm_builder->CreateGEP(elem_type, arg1, context.llvm_builder->getInt32(0));
+    }
+    else
+    {
+        arg1->getType()->dump();
+        llvm_to_type->dump();
+        assert(false && "unsupported cast");
+    }
+    
+    store(quad->res->symbol, res, context);
+    return res;
+}
+
+/**
  * Generates LLVM code for an instruction.
  */
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
@@ -392,10 +440,10 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             return codegen_param(quad, context);
         case QuadOp::Call:
             return codegen_call(quad, context);
+        case QuadOp::Cast:
+            return codegen_cast(quad, context);
         case QuadOp::Enter:
         case QuadOp::Label:
-            break;
-        default:
             break;
     }
 

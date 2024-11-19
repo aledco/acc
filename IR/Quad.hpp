@@ -35,7 +35,8 @@ enum class QuadOp
     Enter,
     Return,
     Param,
-    Call
+    Call,
+    Cast
 };
 
 /**
@@ -46,7 +47,8 @@ enum class OperandType
     IntConst,
     StrConst,
     Variable,
-    Label
+    Label,
+    ExprType
 };
 
 /**
@@ -66,10 +68,12 @@ struct Operand
     IntConst iconst;
     std::string strconst;
     std::shared_ptr<Symbol> symbol;
+    std::shared_ptr<Type> expr_type;
 
     Operand(OperandType type, long val, int nbytes): type(type) { iconst.value = val; iconst.nbytes = nbytes; }
     Operand(OperandType type, std::string val): type(type), strconst(val) {}
     Operand(OperandType type, std::shared_ptr<Symbol> symbol): type(type), symbol(symbol) {}
+    Operand(OperandType type, std::shared_ptr<Type> expr_type): type(type), expr_type(expr_type) {}
 
     void dump();
 
@@ -77,6 +81,7 @@ struct Operand
     static std::shared_ptr<Operand> MakeStrConstOperand(std::string val);
     static std::shared_ptr<Operand> MakeVariableOperand(std::shared_ptr<Symbol> val);
     static std::shared_ptr<Operand> MakeLabelOperand();
+    static std::shared_ptr<Operand> MakeExprTypeOperand(std::shared_ptr<Type> type);
 };
 
 /**
@@ -112,6 +117,7 @@ struct Quad
     static std::shared_ptr<Quad> MakeReturnOp();
     static std::shared_ptr<Quad> MakeParamOp(std::shared_ptr<Operand> arg1);
     static std::shared_ptr<Quad> MakeCallOp(std::shared_ptr<Operand> func, std::shared_ptr<Operand> nargs, std::shared_ptr<Operand> res);
+    static std::shared_ptr<Quad> MakeCastOp(std::shared_ptr<Operand> expr, std::shared_ptr<Operand> type, std::shared_ptr<Operand> res);
 };
 
 /**

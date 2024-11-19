@@ -148,6 +148,7 @@ void ForLoop::ir_codegen()
 void Variable::ir_codegen()
 {
     place = Operand::MakeVariableOperand(symbol);
+    ir_codegen_typecast();
 }
 
 /**
@@ -166,6 +167,7 @@ void FunctionCall::ir_codegen()
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto call_inst = Quad::MakeCallOp(Operand::MakeVariableOperand(function), Operand::MakeIntConstOperand(args.size(), sizeof(int)), place); 
     ir_list = QuadList::append(ir_list, call_inst);
+    ir_codegen_typecast();
 }
 
 /**
@@ -256,6 +258,8 @@ void BinaryOperation::ir_codegen()
         default:
             assert(false && "unimplemented");
     }
+
+    ir_codegen_typecast();
 }
 
 /**
@@ -305,6 +309,8 @@ void UnaryOperation::ir_codegen()
             break;
         }
     }
+
+    ir_codegen_typecast();
 }
 
 /**
@@ -316,6 +322,7 @@ void ArrayIndex::ir_codegen()
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto deref_inst = Quad::MakeRDerefOp(location, place);
     ir_list = QuadList::append(ir_list, deref_inst);
+    ir_codegen_typecast();
 }
 
 /**
@@ -326,6 +333,7 @@ void IntegerConstant::ir_codegen()
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
     ir_list = QuadList(inst, inst);
+    ir_codegen_typecast();
 }
 
 /**
@@ -336,6 +344,7 @@ void CharConstant::ir_codegen()
     place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
     auto inst = Quad::MakeUnOp(QuadOp::Copy, Operand::MakeIntConstOperand(value, type->size()), place);
     ir_list = QuadList(inst, inst);
+    ir_codegen_typecast();
 }
 
 /**
@@ -523,5 +532,20 @@ void UnaryOperation::ir_codegen_bool(std::shared_ptr<Operand> true_label, std::s
         default:
             Expression::ir_codegen_bool(true_label, false_label);
             break;     
+    }
+}
+
+/**
+ * Type casts the expression.
+ */
+void Expression::ir_codegen_typecast()
+{
+    if (typecast)
+    {
+        auto to_type = Operand::MakeExprTypeOperand(typecast.value().second);
+        auto expr_place = place;
+        place = Operand::MakeVariableOperand(symbol_table->new_temp(type));
+        auto cast_op = Quad::MakeCastOp(expr_place, to_type, place);
+        ir_list = QuadList::append(ir_list, cast_op);
     }
 }

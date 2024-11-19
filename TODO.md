@@ -6,15 +6,12 @@
 ## Parser
 - Finish parser
     - Expressions
-        - Char const
         - Str const
         - Floats
         - Bitwise operations (and the rest of the C operators)
         - Pointers
     - Misc
-        - Type conversion nodes
         - Structs (maybe)
-- Add type casting
 
 ## IR
 - Use addr and deref instead of index

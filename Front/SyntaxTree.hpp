@@ -59,6 +59,7 @@ struct Expression : Statement
 
     virtual bool ir_codegen_lval();
     virtual void ir_codegen_bool(std::shared_ptr<Operand> true_label, std::shared_ptr<Operand> false_label);
+    void ir_codegen_typecast();
 };
 
 /**

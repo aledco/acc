@@ -41,6 +41,13 @@ std::shared_ptr<Operand> Operand::MakeLabelOperand()
     return std::make_shared<Operand>(OperandType::Label, label);
 }
 
+/**
+ * Makes an expression operand.
+ */
+std::shared_ptr<Operand> Operand::MakeExprTypeOperand(std::shared_ptr<Type> val)
+{
+    return std::make_shared<Operand>(OperandType::ExprType, val);
+}
 
 /********************************************************************************/
 /*                              Quad Factories                                  */
@@ -196,6 +203,14 @@ std::shared_ptr<Quad> Quad::MakeCallOp(std::shared_ptr<Operand> func, std::share
     return std::make_shared<Quad>(QuadOp::Call, func, nargs, res);
 }
 
+/**
+ * Makes a cast operation.
+ */
+std::shared_ptr<Quad> Quad::MakeCastOp(std::shared_ptr<Operand> expr, std::shared_ptr<Operand> type, std::shared_ptr<Operand> res)
+{
+    return std::make_shared<Quad>(QuadOp::Cast, expr, type, res);
+}
+
 /********************************************************************************/
 /*                                    QuadList                                  */
 /********************************************************************************/
@@ -269,6 +284,9 @@ void Operand::dump()
             break;
         case OperandType::Variable:
             std::cerr << symbol->get_name();
+            break;
+        case OperandType::ExprType:
+            expr_type->dump();
             break;
     }
 }
@@ -481,6 +499,14 @@ void Quad::dump()
             arg1->dump();
             std::cerr << ", ";
             arg2->dump();
+            std::cerr << "\n";
+            break;
+        case QuadOp::Cast:
+            res->dump();
+            std::cerr << " = (";
+            arg2->dump();
+            std::cerr << ")";
+            arg1->dump();
             std::cerr << "\n";
             break;
     }

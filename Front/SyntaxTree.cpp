@@ -267,7 +267,7 @@ static bool try_typecast(std::shared_ptr<Expression> e, std::shared_ptr<Type> ty
 
     auto typecast = [=] {
         e->typecast = std::make_pair(e->type, type);
-        e->type = type;
+        //e->type = type;
         return true;
     };
 
