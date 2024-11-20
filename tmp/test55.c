@@ -3,13 +3,13 @@ extern void println();
 
 int main() {
     char str[6] = "hello";
-    int i;
-    for (i = 0; i < 5; i++)
-    {
-        printi(str[i]);
-    }
+    // int i;
+    // for (i = 0; i < 5; i++)
+    // {
+    //     printi(str[i]);
+    // }
 
-    println();
+    // println();
 
     return 0;
 }

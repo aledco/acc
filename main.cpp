@@ -74,6 +74,49 @@ static void link_llvm(Args& args, std::vector<std::string> llvm_files)
     std::system(link_cmd.c_str());
 }
 
+static std::vector<std::string> llc(Args& args, std::vector<std::string> llvm_files)
+{
+    std::vector<std::string> asm_files;
+    for (auto& file : llvm_files)
+    {
+        auto file_base = file.substr(0, file.size()-3);
+        auto asm_file = file_base += ".s";
+        asm_files.push_back(asm_file);
+        auto llc_cmd = "llc-18 " + file + " -o " + asm_file;
+        std::system(llc_cmd.c_str());
+    }
+
+    return asm_files;
+}
+
+static std::vector<std::string> as(Args& args, std::vector<std::string> asm_files)
+{
+    std::vector<std::string> obj_files;
+    for (auto& file : asm_files)
+    {
+        auto file_base = file.substr(0, file.size()-2);
+        auto obj_file = file_base += ".o";
+        obj_files.push_back(obj_file);
+        auto as_cmd = "as " + file + " -o " + obj_file;
+        std::system(as_cmd.c_str());
+    }
+
+    return obj_files;
+}
+
+static void link(Args& args, std::vector<std::string> obj_files)
+{
+    std::string link_cmd = "gcc ";
+    for (auto& file : obj_files)
+    {
+        link_cmd += file + " ";
+    }
+
+    auto bin_output = args.output.empty() ? "a.out" : args.output;
+    link_cmd += "-o " + bin_output + " -no-pie";
+    std::system(link_cmd.c_str());
+}
+
 int main(int argc, char *argv[])
 {
     Args args(argc, argv);
@@ -122,12 +165,15 @@ int main(int argc, char *argv[])
 
             std::vector<std::string> llvm_files;
             llvm_files.push_back(llvm_output);
-            link_llvm(args, llvm_files);
+            llvm_files.push_back("acc-link/print.ll");
+            auto asm_files = llc(args, llvm_files);
+            auto obj_files = as(args, asm_files);
+            link(args, obj_files);
 
-            for (auto& file : llvm_files) 
-            {
-                std::remove(file.c_str());
-            }
+            // for (auto& file : llvm_files) 
+            // {
+            //     std::remove(file.c_str());
+            // }
         }
     }
     catch(Error& e)
