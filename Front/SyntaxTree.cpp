@@ -491,8 +491,18 @@ void GlobalDeclaration::dump(int depth)
 
     std::cout << ",\n";
     indent(depth);
-    std::cout << "symbol = " << symbol->get_name();
-    std::cout << ")";
+
+    std::cout << "symbols = [";
+    for (auto i = 0; i < symbols.size(); i++)
+    {
+        std::cout << symbols[i]->get_name();
+        if (i < symbols.size() - 1)
+        {
+            std::cout << ", ";
+        }
+    }
+
+    std::cout << "])";
 }
 
 /**

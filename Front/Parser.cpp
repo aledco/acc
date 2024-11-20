@@ -181,21 +181,37 @@ std::shared_ptr<GlobalDeclaration> Parser::parse_global_declaration(ParserContex
 {
     Span span = current().span;
     auto type = parse_type(context);
-    auto variable = match(TokenType_Id);
-    auto symbol = context.global_symbol_table->add_symbol(variable, type);
-    
-    if (is_currently({ "[" }))
-    {
-        match("[");
-        auto array_size = std::stoi(match(TokenType_Int).value);
-        match("]");
 
-        symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
+    auto parse_global_symbol = [=](ParserContext& context)
+    {
+        auto variable = match(TokenType_Id);
+        auto symbol = context.global_symbol_table->add_symbol(variable, type);
+        symbol->is_global = true;
+        
+        if (is_currently({ "[" }))
+        {
+            match("[");
+            auto array_size = std::stoi(match(TokenType_Int).value);
+            match("]");
+
+            symbol->type = std::make_shared<Type>(TypeType::Array, symbol->type, array_size);
+        }
+
+        return symbol;
+    };
+
+    std::vector<std::shared_ptr<Symbol>> symbols;
+    symbols.push_back(parse_global_symbol(context));
+    while (is_currently({ "," }))
+    {
+        match(",");
+        symbols.push_back(parse_global_symbol(context));
     }
+    
 
     auto semi_token = match(";");
     span += semi_token.span;
-    return std::make_shared<GlobalDeclaration>(span, type, symbol, context.current_symbol_table());
+    return std::make_shared<GlobalDeclaration>(span, type, symbols, context.current_symbol_table());
 }
 
 /**

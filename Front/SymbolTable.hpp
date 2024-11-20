@@ -23,6 +23,7 @@ public:
     int scope;
 
     bool is_parameter = false;
+    bool is_global = false;
     bool is_temp = false;
 
     CodegenSymbolData symbol_data; // stores codegen specific information

@@ -123,7 +123,6 @@ static void store(std::shared_ptr<Symbol> symbol, llvm::Value *val, CodegenConte
             context.llvm_builder->CreateStore(val, symbol->symbol_data.value, false);
         }
     }
-    
 }
 
 /**
@@ -263,7 +262,6 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
                 auto mem_size = nelems * elem_size;
                 res = codegen(quad->res, context);
                 context.llvm_builder->CreateMemCpy(res, {}, arg1, {}, mem_size);
-                //res = arg1;
             }
             else
             {
@@ -434,12 +432,32 @@ static llvm::Value *codegen_string(std::shared_ptr<Quad> quad, CodegenContext& c
 }
 
 /**
+ * Generates LLVM code for a global variable.
+ */
+static llvm::Value *codegen_global(std::shared_ptr<Quad> quad, CodegenContext& context)
+{
+    assert(quad->arg1->type == OperandType::Variable);
+    auto llvm_global = new llvm::GlobalVariable(
+        *context.llvm_module.get(),
+        get_llvm_type(quad->arg1->symbol->type, context),
+        false /* isConstant */, 
+        llvm::GlobalValue::LinkageTypes::CommonLinkage,
+        get_default_value(quad->arg1->symbol->type, context),
+        quad->arg1->symbol->get_name());
+
+    quad->arg1->symbol->symbol_data.value = llvm_global;
+    return llvm_global;
+}
+
+/**
  * Generates LLVM code for an instruction.
  */
 static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
 {
     switch (quad->op)
     {
+        case QuadOp::Global:
+            return codegen_global(quad, context);
         case QuadOp::Add:
         case QuadOp::Sub:
         case QuadOp::Mul:
@@ -476,7 +494,6 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             return codegen_string(quad, context);
         case QuadOp::Enter:
         case QuadOp::Label:
-        case QuadOp::Global:
             break;
     }
 
@@ -594,41 +611,23 @@ static llvm::Function *codegen(std::shared_ptr<FunctionDef> def, CodegenContext&
 }
 
 /**
- * Generates LLVM code for a global variable.
- */
-static llvm::GlobalVariable *codegen_global(std::shared_ptr<GlobalDeclaration> global_decl, CodegenContext& context)
-{
-    auto llvm_global = new llvm::GlobalVariable(
-        *context.llvm_module.get(),
-        get_llvm_type(global_decl->type, context),
-        false /* isConstant */, 
-        llvm::GlobalValue::LinkageTypes::CommonLinkage,
-        get_default_value(global_decl->type, context),
-        global_decl->symbol->get_name());
-
-    global_decl->symbol->symbol_data.value = llvm_global;
-    return llvm_global;
-}
-
-/**
  * Generates LLVM code for the program.
  */
 void codegen(std::shared_ptr<Program> program, std::ostream *file)
 {
     CodegenContext context;
 
-    std::vector<llvm::GlobalVariable *> llvm_globals;
     for (auto global : program->globals)
     {
-        auto llvm_global = codegen_global(global, context);
-        llvm_globals.push_back(llvm_global);
+        for (auto quad = global->ir_list.get_head(); quad != nullptr; quad = quad->next)
+        {
+            codegen(quad, context);
+        }
     }
 
     for (auto function : program->functions)
     {
         codegen(function, context);
-        auto a = context.llvm_builder->getInt32(21);
-        auto b = context.llvm_builder->getInt32(22);
     }
 
     llvm::raw_os_ostream stream(*file);

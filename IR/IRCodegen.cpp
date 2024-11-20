@@ -32,8 +32,11 @@ void VariableDeclaration::ir_codegen()
  */
 void GlobalDeclaration::ir_codegen()
 {
-    auto inst = Quad::MakeGlobalOp(Operand::MakeVariableOperand(symbol));
-    ir_list = QuadList(inst, inst);
+    for (auto symbol : symbols)
+    {
+        auto inst = Quad::MakeGlobalOp(Operand::MakeVariableOperand(symbol));
+        ir_list = QuadList::append(ir_list, inst);
+    }
 }
 
 /**

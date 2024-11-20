@@ -104,12 +104,12 @@ struct VariableDeclaration : Statement
 struct GlobalDeclaration : SyntaxTree
 {
     std::shared_ptr<Type> type;
-    std::shared_ptr<Symbol> symbol;
+    std::vector<std::shared_ptr<Symbol>> symbols;
 
-    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::shared_ptr<Symbol> symbol, std::shared_ptr<SymbolTable> symbol_table) : 
+    GlobalDeclaration(Span span, std::shared_ptr<Type> type, std::vector<std::shared_ptr<Symbol>> symbols, std::shared_ptr<SymbolTable> symbol_table) : 
         SyntaxTree(span, symbol_table),
         type(type),
-        symbol(symbol)
+        symbols(symbols)
     {}
 
     void typecheck(TypecheckContext& context) override;
