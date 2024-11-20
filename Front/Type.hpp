@@ -26,7 +26,7 @@ struct Type
     
     /* for array and pointer types */
     std::shared_ptr<Type> elem_type;
-    std::optional<int> num_elems;
+    std::optional<long> num_elems;
 
     /* for function types */
     std::shared_ptr<Type> ret_type;

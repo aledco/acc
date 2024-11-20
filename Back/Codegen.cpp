@@ -256,7 +256,20 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
         case QuadOp::AddrOf:
             break; // TODO
         case QuadOp::Copy:
-            res = arg1;
+            if (quad->res->symbol->type->type == TypeType::Array && quad->res->symbol->type->num_elems)
+            {
+                auto nelems = quad->res->symbol->type->num_elems.value();
+                auto elem_size = quad->res->symbol->type->elem_type->size();
+                auto mem_size = nelems * elem_size * 8;
+                res = codegen(quad->res, context);
+                context.llvm_builder->CreateMemCpy(res, {}, arg1, {}, mem_size);
+                //res = arg1;
+            }
+            else
+            {
+                res = arg1;
+            }
+            
             break;
         default:
             break;
@@ -441,7 +454,6 @@ static llvm::Value *codegen(std::shared_ptr<Quad> quad, CodegenContext& context)
             return codegen_lderef(quad, context);
         case QuadOp::AddPtr:
             return codegen_addptr(quad, context);
-            break; // TODO
         case QuadOp::Goto:
             return codegen_goto(quad, context);
         case QuadOp::IfEq:
