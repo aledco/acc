@@ -260,7 +260,7 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
             {
                 auto nelems = quad->res->symbol->type->num_elems.value();
                 auto elem_size = quad->res->symbol->type->elem_type->size();
-                auto mem_size = nelems * elem_size * 8;
+                auto mem_size = nelems * elem_size;
                 res = codegen(quad->res, context);
                 context.llvm_builder->CreateMemCpy(res, {}, arg1, {}, mem_size);
                 //res = arg1;
@@ -270,6 +270,7 @@ static llvm::Value *codegen_unop(std::shared_ptr<Quad> quad, CodegenContext& con
                 res = arg1;
             }
             
+            res = arg1;
             break;
         default:
             break;
