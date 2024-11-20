@@ -9,7 +9,7 @@
     #pragma diag_suppress 20
 #endif
 
-const inline std::string test_code_path = "acc-link/print.ll"; 
+const inline std::string test_code_path = "acc-link/print.o"; 
 
 struct Input
 {
@@ -23,6 +23,7 @@ struct OutputFiles
 {
     std::string ll_filepath;
     std::string s_filepath;
+    std::string obj_filepath;
     std::string exe_filepath;
     std::string out_filepath;
     std::string ref_exe_filepath;
@@ -31,6 +32,7 @@ struct OutputFiles
     OutputFiles(std::string outdir) :
         ll_filepath(outdir + "/act.ll"),
         s_filepath(outdir + "/act.s"),
+        obj_filepath(outdir + "/act.o"),
         exe_filepath(outdir + "/act.exe"),
         out_filepath(outdir + "/act.out"),
         ref_exe_filepath(outdir + "/ref.exe"),
