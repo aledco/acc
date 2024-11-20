@@ -35,11 +35,9 @@ TEST(Codegen, All)
         }
         
         // link the LLVM files into an executable
-        //execute(input.test_id, "llvm-link-18 " + output_files.ll_filepath + " " + test_code_path + " -S -o " + output_files.s_filepath);
         execute(input.test_id, "llc-18 " + output_files.ll_filepath + " -o " + output_files.s_filepath);
         execute(input.test_id, "as " + output_files.s_filepath + " -o " + output_files.obj_filepath);
         execute(input.test_id, "gcc " + output_files.obj_filepath + " " + test_code_path + " -o " + output_files.exe_filepath + " -no-pie");
-        //execute(input.test_id, "llvm-link-18 " + output_files.ll_filepath + " " + test_code_path + " -o " + output_files.exe_filepath);
         execute(input.test_id, "chmod u+x " + output_files.exe_filepath);
 
         // run the generated executable

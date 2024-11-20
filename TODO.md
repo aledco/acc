@@ -6,7 +6,6 @@
 ## Parser
 - Finish parser
     - Expressions
-        - Str const
         - Floats
         - Bitwise operations (and the rest of the C operators)
         - Pointers
@@ -14,8 +13,7 @@
         - Structs (maybe)
 
 ## IR
-- Use addr and deref instead of index
-    - update IR.md
+- Update IR.md
 - Add optimization
 
 ## LLVM
@@ -25,7 +23,6 @@
 ## Tests
 - Add failure tests
 - Add tests from CSC 553 compiler
-    - First will need to add arrays, strings, and global vars
     - Probably need support for multiple global vars in one decl
 
 ## Benchmarking
